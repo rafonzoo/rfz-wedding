@@ -23,10 +23,10 @@ const Sheet: Component<iSheet> = (props) => {
     <Dialog.Root open={callable(show)} onOpenChange={setShow}>
       {/* <Dialog.Trigger... */}
       <Dialog.Portal>
-        <Dialog.Overlay class='fixed will-change-[opacity] left-0 top-0 z-40 h-full w-full animate-overlay-out bg-black opacity-75 transition-fade data-[expanded]:animate-overlay-in' />
+        <Dialog.Overlay class='fixed left-0 top-0 z-40 h-full w-full animate-overlay-out bg-black opacity-75 transition-fade data-[expanded]:animate-overlay-in' />
         <Dialog.Content
           onCloseAutoFocus={() => triggerRef?.focus()}
-          class='dialog-sheet will-change-[transform,opacity] transform-gpu fixed z-50 flex w-full flex-col rounded-t-3xl bg-white dark:bg-gray-900 max-sm:bottom-0 max-sm:left-0 max-sm:animate-slide-down data-[expanded]:max-sm:animate-slide-up sm:left-1/2 sm:top-1/2 sm:max-w-[390px] sm:animate-dialog-out sm:rounded-lg data-[expanded]:sm:animate-dialog-in'
+          class='dialog-sheet fixed z-50 flex w-full flex-col rounded-t-3xl bg-white dark:bg-gray-900 max-sm:bottom-0 max-sm:left-0 max-sm:animate-slide-down data-[expanded]:max-sm:animate-slide-up sm:left-1/2 sm:top-1/2 sm:max-w-[390px] sm:animate-dialog-out sm:rounded-lg data-[expanded]:sm:animate-dialog-in'
         >
           <Dialog.Title>
             <div class='relative flex min-h-[48px] items-center justify-between px-3'>
