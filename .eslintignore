@@ -1,0 +1,30 @@
+# bundle
+node_modules
+.pnp
+.pnp.js
+
+# next
+.vercel
+.next
+out
+
+# output
+build
+coverage
+dist
+dist-ssr
+src/types
+src/**/types
+
+# config
+**/*.config.js
+**/*.config.ts
+
+# declaration
+**/*.d.ts
+
+# specific File
+**/*. js
+
+# public
+public/**/*. js

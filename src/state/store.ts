@@ -1,0 +1,17 @@
+import type { AuthSession } from '@supabase/supabase-js'
+import { createStore } from 'solid-js/store'
+
+interface AppStore {
+  darkMode: boolean
+  overlay: boolean
+  locale: number // 0: Indonesia, 1: English
+  session: AuthSession | null
+}
+
+export const [store, setStore] = createStore<AppStore>({
+  session: null,
+  overlay: false,
+  locale: localStorage.getItem('locale') === '0' ? 0 : 1,
+  // darkMode: matchMedia('(prefers-color-scheme: dark)').matches || false,
+  darkMode: localStorage.getItem('darkMode') === 'true' ? true : false,
+})

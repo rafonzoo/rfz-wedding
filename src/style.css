@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  }
+}
+
+@screen sm {
+  .dialog-sheet[data-expanded] {
+    transform: translate(-50%, -50%);
+  }
+}
