@@ -10,6 +10,12 @@
 
 @screen sm {
   .dialog-sheet[data-expanded] {
-    transform: translate(-50%, -50%);
+    transform: translate3d(-50%, -50%, 0);
+    opacity: 1;
+  }
+
+  .dialog-sheet[data-closed] {
+    transform: translate3d(-50%, calc(-50% + 30px), 0);
+    opacity: 0;
   }
 }

@@ -54,6 +54,12 @@ module.exports = {
         base: ['16px', '24px'],
         hero: ['30px', '34px'],
       },
+      transitionTimingFunction: {
+        hero: 'cubic-bezier(0.52, 0.16, 0.24, 1)'
+      },
+      transitionDuration: {
+        hero: '400ms'
+      },
       fontFamily: {
         inter: ["Inter", ...defaultTheme.fontFamily.sans],
       },

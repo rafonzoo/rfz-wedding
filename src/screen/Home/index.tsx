@@ -25,14 +25,14 @@ const Homepage: Component = () => {
             class='px-1 py-1'
             icon={<IconPlus />}
             label='Tambah undangan'
-            onclick={() => setShowAddNewSheet(true)}
+            onClick={() => setShowAddNewSheet(true)}
           />
         </div>
       </nav>
       <div class='flex justify-between px-4 pb-3 pt-3'>
         <div class='flex items-center'>
           <ButtonIcon
-            class='!text-gray-300 dark:!text-gray-700 rounded-full'
+            class='rounded-full !text-gray-300 dark:!text-gray-700'
             label='Buka panel profil'
             icon={<IconPerson size={36} />}
           />
@@ -47,7 +47,7 @@ const Homepage: Component = () => {
         setShow={setShowAddNewSheet}
         element={addNewButtonRef}
       />
-      <div class='fixed w-full z-30 p-4 bottom-0'>
+      <div class='fixed bottom-0 z-30 w-full p-4'>
         <Button class='text-sm' onclick={() => toggleDarkMode()}>
           Light: {!store.darkMode ? 'ON' : 'OFF'}
         </Button>
