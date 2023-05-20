@@ -1,9 +1,6 @@
 const defaultTheme = require('tailwindcss/defaultTheme')
 const colors = require('tailwindcss/colors')
 
-const defaultEase = 'cubic-bezier(0.52, 0.16, 0.24, 1)'
-const defaultDuration = '400ms'
-
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -43,12 +40,12 @@ module.exports = {
         }
       },
       animation: {
-        'dialog-in': ['dialog-in', defaultDuration, defaultEase].join(' '),
-        'dialog-out': ['dialog-out', defaultDuration, defaultEase].join(' '),
-        'overlay-in': ['overlay-in', defaultDuration, defaultEase].join(' '),
-        'overlay-out': ['overlay-out', defaultDuration, defaultEase].join(' '),
-        'slide-up': ['slide-up', defaultDuration, defaultEase].join(' '),
-        'slide-down': ['slide-down', defaultDuration, defaultEase].join(' '),
+        'dialog-in': ['dialog-in', '560ms', 'cubic-bezier(0.52, 0.16, 0.24, 1)'].join(' '),
+        'dialog-out': ['dialog-out', '560ms', 'cubic-bezier(0.52, 0.16, 0.24, 1)'].join(' '),
+        'overlay-in': ['overlay-in', '320ms', 'cubic-bezier(0.4,0,0.6,1)'].join(' '),
+        'overlay-out': ['overlay-out', '320ms', 'cubic-bezier(0.4,0,0.6,1)'].join(' '),
+        'slide-up': ['slide-up', '560ms', 'cubic-bezier(0.52, 0.16, 0.24, 1)'].join(' '),
+        'slide-down': ['slide-down', '560ms', 'cubic-bezier(0.52, 0.16, 0.24, 1)'].join(' '),
       },
       fontSize: {
         base: ['16px', '24px'],
@@ -62,7 +59,8 @@ module.exports = {
         hero: '0.0125em'
       },
       transitionProperty: {
-        fade: 'transform, opacity, visibility'
+        fade: 'transform, opacity, visibility',
+        base: 'cubic-bezier(0.4,0,0.6,1)'
       },
       colors: {
         primary: {
