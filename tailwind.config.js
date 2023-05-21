@@ -24,10 +24,10 @@ module.exports = {
         },
         'overlay-in': {
           from: { opacity: '0' },
-          to: { opacity: '0.75' },
+          to: { opacity: '0.50' },
         },
         'overlay-out': {
-          from: { opacity: '0.75' },
+          from: { opacity: '0.50' },
           to: { opacity: '0' },
         },
         'slide-up': {
