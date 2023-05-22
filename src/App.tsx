@@ -17,9 +17,11 @@ const App: Component = () => {
       'dark'
     )
 
-    colorScheme?.addEventListener('change', (e) => {
-      setStore('darkMode', e.matches)
-    })
+    if (colorScheme) {
+      colorScheme.addEventListener('change', (e) => {
+        setStore('darkMode', e.matches)
+      })
+    }
   })
 
   return (
