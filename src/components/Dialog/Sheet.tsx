@@ -25,7 +25,7 @@ const Sheet: Component<iSheet> = (props) => {
       <Dialog.Portal>
         <Dialog.Overlay
           class='fixed left-0 top-0 z-40 h-full w-full animate-overlay-out bg-black opacity-50 data-[expanded]:animate-overlay-in'
-          onclick={() => setShow(false)}
+          role='button' /* iOS 12 */
         />
         <Dialog.Content
           onCloseAutoFocus={() => triggerRef?.focus()}
