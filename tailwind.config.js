@@ -15,12 +15,12 @@ module.exports = {
       },
       keyframes: {
         'dialog-in': {
-          from: { opacity: '0', transform: 'translate(-50%, calc(-50% + 30px))' },
-          to: { opacity: '1', transform: 'translate(-50%, -50%)' },
+          from: { opacity: '0', transform: 'translate3d(-50%, calc(-50% + 30px), 0)' },
+          to: { opacity: '1', transform: 'translate3d(-50%, -50%, 0)' },
         },
         'dialog-out': {
-          from: { opacity: '1', transform: 'translate(-50%, -50%)' },
-          to: { opacity: '0', transform: 'translate(-50%, calc(-50% + 30px))' },
+          from: { opacity: '1', transform: 'translate3d(-50%, -50%, 0)' },
+          to: { opacity: '0', transform: 'translate3d(-50%, calc(-50% + 30px), 0)' },
         },
         'overlay-in': {
           from: { opacity: '0' },
@@ -31,12 +31,12 @@ module.exports = {
           to: { opacity: '0' },
         },
         'slide-up': {
-          from: { transform: 'translateY(100%)' },
-          to: { transform: 'translateY(0)' },
+          from: { transform: 'translate3d(0,100%,0)' },
+          to: { transform: 'translate3d(0,0,0)' },
         },
         'slide-down': {
-          from: { transform: 'translateY(0)' },
-          to: { transform: 'translateY(100%)' },
+          from: { transform: 'translate3d(0,0,0)' },
+          to: { transform: 'translate3d(0,100%,0)' },
         }
       },
       animation: {
