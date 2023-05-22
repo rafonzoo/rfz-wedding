@@ -24,15 +24,14 @@ const Sheet: Component<iSheet> = (props) => {
       {/* <Dialog.Trigger... */}
       <Dialog.Portal>
         <Dialog.Overlay
-          class='fixed left-0 top-0 z-40 h-full w-full animate-overlay-out bg-black opacity-50 data-[expanded]:animate-overlay-in'
+          class='translate-z-0 fixed left-0 top-0 z-40 h-full w-full animate-overlay-out bg-black opacity-50 data-[expanded]:animate-overlay-in'
           /* iOS 12 */
           onclick={() => setShow(false)}
           role='button'
         />
         <Dialog.Content
-          style={{ 'backface-visibility': 'hidden' }}
           onCloseAutoFocus={() => triggerRef?.focus()}
-          class='dialog-sheet fixed z-50 flex w-full flex-col rounded-t-3xl bg-white dark:bg-gray-900 max-sm:bottom-0 max-sm:left-0 max-sm:animate-slide-down data-[expanded]:max-sm:animate-slide-up sm:left-1/2 sm:top-1/2 sm:max-w-[390px] sm:animate-dialog-out sm:rounded-lg data-[expanded]:sm:animate-dialog-in'
+          class='backface-hidden sm:translate-3d-center fixed z-50 flex w-full flex-col rounded-t-3xl bg-white dark:bg-gray-900 max-sm:bottom-0 max-sm:left-0 max-sm:animate-slide-down data-[expanded]:max-sm:animate-slide-up sm:left-1/2 sm:top-1/2 sm:max-w-[390px] sm:animate-dialog-out sm:rounded-lg data-[expanded]:sm:animate-dialog-in'
         >
           <Dialog.Title>
             <div class='relative flex min-h-[48px] items-center justify-between px-3'>
@@ -44,7 +43,13 @@ const Sheet: Component<iSheet> = (props) => {
               </Dialog.CloseButton>
             </div>
           </Dialog.Title>
-          <Dialog.Description as='div' class='h-full px-4 pb-9 sm:px-3 sm:pb-3'>
+          <Dialog.Description
+            as='div'
+            class='h-full px-4 sm:px-3 sm:pb-3'
+            style={{
+              'padding-bottom': 'max(env(safe-area-inset-bottom), 16px)',
+            }}
+          >
             {rest.children}
           </Dialog.Description>
         </Dialog.Content>

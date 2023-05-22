@@ -51,6 +51,9 @@ module.exports = {
         base: ['16px', '24px'],
         hero: ['30px', '34px'],
       },
+      boxShadow: {
+        outline: 'inset 0 0 0 2px rgb(96 165 250)'
+      },
       fontFamily: {
         inter: ["Inter", ...defaultTheme.fontFamily.sans],
       },
@@ -60,7 +63,8 @@ module.exports = {
       },
       transitionProperty: {
         fade: 'transform, opacity, visibility',
-        base: 'cubic-bezier(0.4,0,0.6,1)'
+        base: 'cubic-bezier(0.4,0,0.6,1)',
+        shadow: 'box-shadow',
       },
       colors: {
         primary: {

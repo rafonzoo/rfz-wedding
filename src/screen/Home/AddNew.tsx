@@ -25,12 +25,11 @@ const AddNewSheet: Component<AddNewSheetProps> = (props) => {
     >
       {addNewSheetOption.map((item, index) => (
         <button
-          class='group flex h-[100px] w-full appearance-none items-center rounded-lg border bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-800'
+          class='group flex h-[100px] w-full appearance-none items-center rounded-lg border bg-gray-100 p-4 dark:bg-gray-800'
           onclick={() => setAddNewMethod(item)}
           classList={{
             'mt-3': index > 0,
-            'outline outline-2 -outline-offset-1 outline-blue-400':
-              addNewMethod() === item,
+            'shadow-outline': addNewMethod() === item,
           }}
         >
           <IconPaper
