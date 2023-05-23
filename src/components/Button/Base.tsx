@@ -7,7 +7,7 @@ const ButtonBase: Component<ButtonRootProps> = (props) => {
   return (
     <KButton.Root
       {...props}
-      class='flex appearance-none items-center justify-center rounded-md text-center text-base -tracking-base outline-none focus-visible:shadow-focus'
+      class='flex appearance-none items-center justify-center rounded-md text-center text-base -tracking-base outline-none focus:shadow-none focus-visible:shadow-focus'
       classList={{ ...classList(props) }}
     />
   )

@@ -3,7 +3,7 @@ import type { iDialog } from '@app/types'
 import { createSignal } from 'solid-js'
 import { text } from '@app/helpers/trans'
 import IconPlus from '@app/components/Icon/Plus'
-import IconPaper from '@app/components/Icon/Paper'
+import IconPaper from '@app/components/Icon/PaperColored'
 import Sheet from '@app/components/Dialog/Sheet'
 import ButtonBase from '@app/components/Button/Base'
 import Button from '@app/components/Button'
@@ -22,6 +22,7 @@ const AddNewSheet: Component<AddNewSheetProps> = ({ show, setShow }) => {
       setShow={setShow}
       title={text.bind(null, 'newInvitation')}
       trigger={<IconPlus class='m-1' label='Tambah undangan' />}
+      triggerClass='ml-auto'
     >
       {addNewSheetOption.map((item, index) => (
         <ButtonBase

@@ -4,7 +4,8 @@ import { store } from '@app/state/store'
 import { toggleDarkMode, toggleLocale } from '@app/state/action'
 import { text } from '@app/helpers/trans'
 import Separator from '@app/components/Separator'
-import IconPerson from '@app/components/Icon/Person'
+import Topbar from '@app/components/Navbar/Topbar'
+import IconPersonCircle from '@app/components/Icon/PersonCircle'
 import Container from '@app/components/Container'
 import ButtonIcon from '@app/components/Button/Icon'
 import Button from '@app/components/Button'
@@ -15,24 +16,23 @@ const Homepage: Component = () => {
 
   return (
     <Container>
-      <nav class='flex items-center justify-between'>
-        <div class='ml-auto flex h-14 w-14 items-center justify-center'>
-          <AddNewSheet show={showAddNewSheet} setShow={setShowAddNewSheet} />
+      <Topbar>
+        <AddNewSheet show={showAddNewSheet} setShow={setShowAddNewSheet} />
+      </Topbar>
+      <div class='md:px-8'>
+        <div class='flex justify-between px-4 py-3 md:px-0'>
+          <div class='flex items-center'>
+            <ButtonIcon
+              class='!rounded-full !text-gray-300 dark:!text-gray-700 max-md:mr-[10px] md:hidden'
+              icon={<IconPersonCircle size={36} label='Buka panel profil' />}
+            />
+            <h2 class='text-hero font-bold -tracking-hero'>
+              {text('undanganku')}
+            </h2>
+          </div>
         </div>
-      </nav>
-      <div class='flex justify-between px-4 pb-3 pt-3'>
-        <div class='flex items-center'>
-          <ButtonIcon
-            class='!rounded-full !text-gray-300 dark:!text-gray-700'
-            icon={<IconPerson size={36} label='Buka panel profil' />}
-          />
-          <h1 class='ml-[10px] text-hero font-bold -tracking-hero'>
-            {text('undanganku')}
-          </h1>
-        </div>
+        <Separator />
       </div>
-      <Separator />
-
       <div class='fixed bottom-0 z-30 w-full p-4'>
         <Button class='text-sm' onclick={() => toggleDarkMode()}>
           Light: {!store.darkMode ? 'ON' : 'OFF'}

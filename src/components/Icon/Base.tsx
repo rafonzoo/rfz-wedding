@@ -20,9 +20,9 @@ const IconSvg: ForwardRef<'svg', IconSvg> = (props) => {
         width='1em'
         height='1em'
         fill={fill}
-        class='pointer-events-none'
         viewBox='0 0 24 24'
         {...rest}
+        class='pointer-events-none'
         style={{ 'font-size': size + 'px' }}
         xmlns='http://www.w3.org/2000/svg'
         classList={{ ...classList(rest) }}

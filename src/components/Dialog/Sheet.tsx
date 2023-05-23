@@ -3,13 +3,14 @@ import type { Callable, iDialog } from '@app/types'
 import { createEffect, createSignal } from 'solid-js'
 import { Dialog } from '@kobalte/core'
 import { callable, delay } from '@app/helpers/util'
-import IconClose from '@app/components/Icon/Close'
+import IconCloseCircle from '@app/components/Icon/CloseCircle'
 import ButtonIcon from '@app/components/Button/Icon'
 
 interface iSheet extends iDialog {
   title?: Callable<string>
   children?: JSX.Element
   trigger?: JSX.Element
+  triggerClass?: string
 }
 
 const Sheet: Component<iSheet> = ({
@@ -17,6 +18,7 @@ const Sheet: Component<iSheet> = ({
   setShow,
   title,
   trigger,
+  triggerClass,
   ...props
 }) => {
   const [canToggle, setCanToggle] = createSignal(true)
@@ -35,7 +37,9 @@ const Sheet: Component<iSheet> = ({
 
   return (
     <Dialog.Root open={callable(show)} onOpenChange={controlledTrigger}>
-      <Dialog.Trigger as={ButtonIcon}>{trigger}</Dialog.Trigger>
+      <Dialog.Trigger as={ButtonIcon} class={triggerClass}>
+        {trigger}
+      </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
           class='translate-z-0 fixed left-0 top-0 z-40 h-full w-full animate-overlay-out bg-black opacity-50 data-[expanded]:animate-overlay-in'
@@ -53,7 +57,7 @@ const Sheet: Component<iSheet> = ({
                 as={ButtonIcon}
                 class='ml-auto !rounded-full text-gray-300 dark:text-gray-500'
               >
-                <IconClose label='Tutup panel' />
+                <IconCloseCircle label='Tutup panel' />
               </Dialog.CloseButton>
             </div>
           </Dialog.Title>
