@@ -19,12 +19,12 @@ const Homepage: Component = () => {
       <Topbar>
         <AddNewSheet show={showAddNewSheet} setShow={setShowAddNewSheet} />
       </Topbar>
-      <div class='md:px-8'>
-        <div class='flex justify-between px-4 py-3 md:px-0'>
+      <div class='tc:px-8'>
+        <div class='flex justify-between py-3 max-tc:px-4'>
           <div class='flex items-center'>
             <ButtonIcon
-              class='!rounded-full !text-gray-300 dark:!text-gray-700 max-md:mr-[10px] md:hidden'
-              icon={<IconPersonCircle size={36} label='Buka panel profil' />}
+              class='mr-[10px] !rounded-full !text-gray-300 dark:!text-gray-700 tc:hidden'
+              icon={<IconPersonCircle size={34} label='Buka panel profil' />}
             />
             <h2 class='text-hero font-bold -tracking-hero'>
               {text('undanganku')}

@@ -11,7 +11,8 @@ module.exports = {
   theme: {
     extend: {
       screens: {
-        sm: '525px'
+        sm: '525px',
+        tc: '768px'
       },
       keyframes: {
         'dialog-in': {

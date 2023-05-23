@@ -5,7 +5,7 @@ const Topbar: ForwardRef<'nav'> = ({ children, ...props }) => {
   return (
     <nav
       {...props}
-      class='flex h-[56px] items-center justify-between px-3 md:items-end md:px-6'
+      class='flex h-[56px] items-center justify-between px-3'
       classList={{ ...classList(props) }}
     >
       {children}
