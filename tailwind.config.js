@@ -52,7 +52,8 @@ module.exports = {
         hero: ['30px', '34px'],
       },
       boxShadow: {
-        outline: 'inset 0 0 0 2px rgb(96 165 250)'
+        outline: '0 0 0 2px rgb(96 165 250)',
+        focus: '0 0 0 2px rgb(245 158 11)'
       },
       fontFamily: {
         inter: ["Inter", ...defaultTheme.fontFamily.sans],

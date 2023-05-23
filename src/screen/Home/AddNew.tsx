@@ -1,31 +1,37 @@
 import type { Component } from 'solid-js'
 import type { iDialog } from '@app/types'
-import { createSignal, splitProps } from 'solid-js'
+import { createSignal } from 'solid-js'
 import { text } from '@app/helpers/trans'
+import IconPlus from '@app/components/Icon/Plus'
 import IconPaper from '@app/components/Icon/Paper'
 import Sheet from '@app/components/Dialog/Sheet'
+import ButtonIcon from '@app/components/Button/Icon'
+import ButtonBase from '@app/components/Button/Base'
 import Button from '@app/components/Button'
 
 interface AddNewSheetProps extends iDialog {
   element?: HTMLButtonElement
 }
 
-const [addNewMethod, setAddNewMethod] = createSignal('template')
-
-const AddNewSheet: Component<AddNewSheetProps> = (props) => {
+const AddNewSheet: Component<AddNewSheetProps> = ({ show, setShow }) => {
+  const [addNewMethod, setAddNewMethod] = createSignal('template')
   const addNewSheetOption = ['template', 'blank'] as const
-  const [{ element }, rest] = splitProps(props, ['element'])
 
   return (
     <Sheet
+      show={show}
+      setShow={setShow}
       title={() => text('newInvitation')}
-      triggerRef={element}
-      show={rest.show}
-      setShow={rest.setShow}
+      trigger={
+        <ButtonIcon
+          class='px-1 py-1'
+          icon={<IconPlus label='Tambah undangan' />}
+        />
+      }
     >
       {addNewSheetOption.map((item, index) => (
-        <button
-          class='group flex h-[100px] w-full appearance-none items-center rounded-lg border bg-gray-100 p-4 dark:bg-gray-800'
+        <ButtonBase
+          class='group h-[100px] w-full border border-gray-300 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-800'
           onclick={() => setAddNewMethod(item)}
           classList={{
             'mt-3': index > 0,
@@ -45,7 +51,7 @@ const AddNewSheet: Component<AddNewSheetProps> = (props) => {
               {text('dummy')}
             </span>
           </span>
-        </button>
+        </ButtonBase>
       ))}
       <Button class='mt-3' model='action'>
         {text('buat')}

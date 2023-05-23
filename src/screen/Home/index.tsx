@@ -4,7 +4,6 @@ import { store } from '@app/state/store'
 import { toggleDarkMode, toggleLocale } from '@app/state/action'
 import { text } from '@app/helpers/trans'
 import Separator from '@app/components/Separator'
-import IconPlus from '@app/components/Icon/Plus'
 import IconPerson from '@app/components/Icon/Person'
 import Container from '@app/components/Container'
 import ButtonIcon from '@app/components/Button/Icon'
@@ -14,27 +13,18 @@ import AddNewSheet from '@app/screen/Home/AddNew'
 const Homepage: Component = () => {
   const [showAddNewSheet, setShowAddNewSheet] = createSignal(false)
 
-  let addNewButtonRef: HTMLButtonElement | undefined
-
   return (
     <Container>
       <nav class='flex items-center justify-between'>
-        <div class='flex h-14 w-14 items-center justify-center'>
-          <ButtonIcon
-            ref={addNewButtonRef}
-            class='px-1 py-1'
-            icon={<IconPlus />}
-            label='Tambah undangan'
-            onclick={() => setShowAddNewSheet(true)}
-          />
+        <div class='ml-auto flex h-14 w-14 items-center justify-center'>
+          <AddNewSheet show={showAddNewSheet} setShow={setShowAddNewSheet} />
         </div>
       </nav>
       <div class='flex justify-between px-4 pb-3 pt-3'>
         <div class='flex items-center'>
           <ButtonIcon
-            class='rounded-full !text-gray-300 dark:!text-gray-700'
-            label='Buka panel profil'
-            icon={<IconPerson size={36} />}
+            class='!rounded-full !text-gray-300 dark:!text-gray-700'
+            icon={<IconPerson size={36} label='Buka panel profil' />}
           />
           <h1 class='ml-[10px] text-hero font-bold -tracking-hero'>
             {text('undanganku')}
@@ -42,11 +32,7 @@ const Homepage: Component = () => {
         </div>
       </div>
       <Separator />
-      <AddNewSheet
-        show={showAddNewSheet}
-        setShow={setShowAddNewSheet}
-        element={addNewButtonRef}
-      />
+
       <div class='fixed bottom-0 z-30 w-full p-4'>
         <Button class='text-sm' onclick={() => toggleDarkMode()}>
           Light: {!store.darkMode ? 'ON' : 'OFF'}
