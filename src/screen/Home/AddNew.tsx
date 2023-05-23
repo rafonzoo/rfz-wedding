@@ -5,7 +5,6 @@ import { text } from '@app/helpers/trans'
 import IconPlus from '@app/components/Icon/Plus'
 import IconPaper from '@app/components/Icon/Paper'
 import Sheet from '@app/components/Dialog/Sheet'
-import ButtonIcon from '@app/components/Button/Icon'
 import ButtonBase from '@app/components/Button/Base'
 import Button from '@app/components/Button'
 
@@ -21,13 +20,8 @@ const AddNewSheet: Component<AddNewSheetProps> = ({ show, setShow }) => {
     <Sheet
       show={show}
       setShow={setShow}
-      title={() => text('newInvitation')}
-      trigger={
-        <ButtonIcon
-          class='px-1 py-1'
-          icon={<IconPlus label='Tambah undangan' />}
-        />
-      }
+      title={text.bind(null, 'newInvitation')}
+      trigger={<IconPlus class='m-1' label='Tambah undangan' />}
     >
       {addNewSheetOption.map((item, index) => (
         <ButtonBase

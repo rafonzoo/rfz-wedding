@@ -4,6 +4,7 @@ import { createEffect, createSignal } from 'solid-js'
 import { Dialog } from '@kobalte/core'
 import { callable, delay } from '@app/helpers/util'
 import IconClose from '@app/components/Icon/Close'
+import ButtonIcon from '@app/components/Button/Icon'
 
 interface iSheet extends iDialog {
   title?: Callable<string>
@@ -24,14 +25,8 @@ const Sheet: Component<iSheet> = ({
     return void (canToggle() && setShow(isOpen))
   }
 
-  function activeSpaceEnter(e: KeyboardEvent): void {
-    if (e.key === ' ' || e.key === 'Enter') {
-      return controlledTrigger(true)
-    }
-  }
-
   createEffect(async () => {
-    callable(show)
+    callable(show) // Reactor
     setCanToggle(false)
 
     await delay(560)
@@ -40,9 +35,7 @@ const Sheet: Component<iSheet> = ({
 
   return (
     <Dialog.Root open={callable(show)} onOpenChange={controlledTrigger}>
-      <Dialog.Trigger as='div' onkeyup={activeSpaceEnter}>
-        {trigger}
-      </Dialog.Trigger>
+      <Dialog.Trigger as={ButtonIcon}>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay
           class='translate-z-0 fixed left-0 top-0 z-40 h-full w-full animate-overlay-out bg-black opacity-50 data-[expanded]:animate-overlay-in'
@@ -56,8 +49,11 @@ const Sheet: Component<iSheet> = ({
               <div class='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-semibold text-black dark:text-white'>
                 {callable(title)}
               </div>
-              <Dialog.CloseButton class='ml-auto h-6 w-6 rounded-full text-gray-300 outline-none focus-visible:shadow-focus dark:text-gray-500'>
-                <IconClose />
+              <Dialog.CloseButton
+                as={ButtonIcon}
+                class='ml-auto !rounded-full text-gray-300 dark:text-gray-500'
+              >
+                <IconClose label='Tutup panel' />
               </Dialog.CloseButton>
             </div>
           </Dialog.Title>
