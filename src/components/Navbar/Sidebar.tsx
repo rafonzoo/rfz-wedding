@@ -47,10 +47,6 @@ const Sidebar: ForwardRef<'aside', iSidebar> = ({ items, ...props }) => {
       {...props}
       class='flex h-screen min-h-[320px] w-[250px] flex-col bg-gray-100 dark:bg-gray-900 max-tc:hidden lg:w-[290px] xl:w-[320px]'
       classList={{ ...classList(props) }}
-      style={{
-        'margin-left': 'max(env(safe-area-inset-left))',
-        'margin-right': 'max(env(safe-area-inset-right))',
-      }}
     >
       <Topbar />
       <div class='flex items-center px-6 py-3'>

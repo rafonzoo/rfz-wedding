@@ -5,7 +5,13 @@ const items = ['Undanganku', 'Transaksi']
 
 const Container: Children = ({ children }) => {
   return (
-    <div class='flex flex-col tc:flex-row'>
+    <div
+      class='flex flex-col tc:flex-row'
+      style={{
+        'margin-left': 'max(env(safe-area-inset-left))',
+        'margin-right': 'max(env(safe-area-inset-right))',
+      }}
+    >
       <Sidebar items={() => items} />
       <main class='w-full flex-1'>{children}</main>
     </div>
