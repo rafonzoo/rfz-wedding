@@ -7,17 +7,3 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   }
 }
-
-@layer components {
-  .backface-hidden {
-    backface-visibility: hidden;
-  }
-
-  .translate-z-0 {
-    transform: translateZ(0);
-  }
-
-  .translate-3d-center {
-    transform: translate3d(-50%,-50%,0);
-  }
-}

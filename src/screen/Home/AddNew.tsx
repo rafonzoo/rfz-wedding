@@ -2,6 +2,7 @@ import type { Component } from 'solid-js'
 import type { iDialog } from '@app/types'
 import { createSignal } from 'solid-js'
 import { text } from '@app/helpers/trans'
+import clsx from 'clsx'
 import IconPlus from '@app/components/Icon/Plus'
 import IconPaper from '@app/components/Icon/PaperColored'
 import Sheet from '@app/components/Dialog/Sheet'
@@ -21,30 +22,26 @@ const AddNewSheet: Component<AddNewSheetProps> = ({ show, setShow }) => {
       show={show}
       setShow={setShow}
       title={text.bind(null, 'newInvitation')}
-      trigger={<IconPlus class='m-1' label='Tambah undangan' />}
-      triggerClass='ml-auto'
+      trigger={<IconPlus class='m-1' />}
+      triggerClass={clsx('ml-auto')}
     >
-      {addNewSheetOption.map((item, index) => (
+      {addNewSheetOption.map((item) => (
         <ButtonBase
-          class='group h-[100px] w-full border border-gray-300 bg-gray-100 p-4 dark:border-gray-700 dark:bg-gray-800'
           onclick={() => setAddNewMethod(item)}
-          classList={{
-            'mt-3': index > 0,
-            'shadow-outline': addNewMethod() === item,
-          }}
+          class={clsx(styles.button, {
+            [styles.focused]: addNewMethod() === item,
+          })}
         >
           <IconPaper
             size={32}
             class='mb-auto mt-1'
             filled={item === 'template'}
           />
-          <span class='ml-4 block flex-1 text-left'>
+          <span class={styles.headline}>
             <span class='font-semibold'>
               {item === 'template' ? text('fromTemplate') : text('fromScratch')}
             </span>
-            <span class='mt-1 line-clamp-2 text-sm tracking-normal text-gray-600 dark:text-gray-400'>
-              {text('dummy')}
-            </span>
+            <span class={styles.description}>{text('dummy')}</span>
           </span>
         </ButtonBase>
       ))}
@@ -53,6 +50,19 @@ const AddNewSheet: Component<AddNewSheetProps> = ({ show, setShow }) => {
       </Button>
     </Sheet>
   )
+}
+
+const styles = {
+  focused: '[&:not(:focus-visible)]:shadow-outline',
+  headline: 'ml-4 block flex-1 text-left',
+  description: clsx(
+    'mt-1 line-clamp-2 text-sm tracking-normal',
+    'text-gray-600 dark:text-gray-400'
+  ),
+  button: clsx(
+    'h-[100px] w-full border border-gray-300 bg-gray-100 p-4',
+    'dark:border-gray-700 dark:bg-gray-800'
+  ),
 }
 
 export default AddNewSheet

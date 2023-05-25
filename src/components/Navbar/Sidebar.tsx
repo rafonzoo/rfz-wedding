@@ -2,7 +2,8 @@ import type { Component } from 'solid-js'
 import type { Callable, ForwardRef } from '@app/types'
 import { createSignal, For } from 'solid-js'
 import { A } from '@solidjs/router'
-import { callable, classList } from '@app/helpers/util'
+import { callable } from '@app/helpers/util'
+import clsx from 'clsx'
 import Topbar from '@app/components/Navbar/Topbar'
 
 interface iSidebar {
@@ -13,24 +14,21 @@ const List: Component<iSidebar> = ({ items }) => {
   const [currentNav, setCurrentNav] = createSignal('Undanganku')
 
   return (
-    <ul role='list'>
+    <ul role='list' class={styles.list_ul}>
       <For each={callable(items)}>
-        {(item, index) => (
-          <li role='listitem' class='flex items-center'>
+        {(item) => (
+          <li role='listitem' class={styles.list_li}>
             <A
               href='/'
               onclick={() => setCurrentNav(item)}
-              class='flex w-full items-center rounded-md px-1.5 py-2 transition-colors hover:bg-gray-200 hover:dark:bg-gray-800'
-              classList={{
-                '!bg-blue-600 text-white': currentNav() === item,
-                'mt-1': index() > 0,
-              }}
+              class={clsx(styles.list_a, {
+                [styles.list_a_active]: currentNav() === item,
+              })}
             >
               <span
-                class='mr-2 block h-6 w-6 rounded-md bg-blue-600 transition-colors dark:bg-blue-400'
-                classList={{
-                  '!bg-blue-400': currentNav() === item,
-                }}
+                class={clsx(styles.list_span, {
+                  [styles.list_span_active]: currentNav() === item,
+                })}
               />
               <span>{item}</span>
             </A>
@@ -43,20 +41,38 @@ const List: Component<iSidebar> = ({ items }) => {
 
 const Sidebar: ForwardRef<'aside', iSidebar> = ({ items, ...props }) => {
   return (
-    <aside
-      {...props}
-      class='flex h-screen min-h-[320px] w-[250px] flex-col bg-gray-100 dark:bg-gray-900 max-tc:hidden lg:w-[290px] xl:w-[320px]'
-      classList={{ ...classList(props) }}
-    >
+    <aside {...props} class={clsx(styles.aside, props.class)}>
       <Topbar />
-      <div class='flex items-center px-6 py-3'>
-        <h1 class='text-hero font-bold -tracking-hero'>Mantu</h1>
+      <div class={styles.aside_header}>
+        <h1 class={styles.aside_title}>Mantu</h1>
       </div>
-      <div class='h-full flex-1 px-4'>
+      <div class={styles.list}>
         <List items={items} />
       </div>
     </aside>
   )
+}
+
+const styles = {
+  aside: clsx(
+    'flex h-screen min-h-[320px] w-[290px] flex-col max-tc:hidden',
+    'bg-gray-100 dark:bg-gray-900'
+  ),
+  aside_header: clsx('flex items-center px-6 py-3'),
+  aside_title: clsx('text-hero font-bold -tracking-hero'),
+
+  list: clsx('h-full flex-1 px-4'),
+  list_ul: 'space-y-1',
+  list_li: clsx('flex items-center'),
+  list_span_active: '!bg-primary-dark',
+  list_span: clsx(
+    'mr-2 block h-6 w-6 rounded-md bg-primary transition-colors dark:bg-primary-dark'
+  ),
+  list_a_active: clsx('!bg-primary text-white'),
+  list_a: clsx(
+    'flex w-full items-center rounded-md px-1.5 py-2 transition-colors',
+    'hover:bg-gray-200 hover:dark:bg-gray-800'
+  ),
 }
 
 export default Sidebar

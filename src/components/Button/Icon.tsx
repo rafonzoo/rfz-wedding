@@ -1,18 +1,20 @@
 import type { Component, JSX } from 'solid-js'
 import type { ButtonRootProps } from '@kobalte/core/dist/types/button'
-import { classList } from '@app/helpers/util'
+import clsx from 'clsx'
 import ButtonBase from '@app/components/Button/Base'
 
 interface iButtonIcon {
   icon: JSX.Element
 }
 
-const ButtonIcon: Component<iButtonIcon & ButtonRootProps> = ({ icon, ...props }) => {
+const ButtonIcon: Component<iButtonIcon & ButtonRootProps> = ({
+  icon,
+  ...props
+}) => {
   return (
     <ButtonBase
       {...props}
-      class='text-blue-600 dark:text-blue-400'
-      classList={{ ...classList(props) }}
+      class={clsx('text-primary dark:text-primary-dark', props.class)}
     >
       {icon}
     </ButtonBase>

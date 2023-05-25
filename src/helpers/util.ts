@@ -9,11 +9,6 @@ export function callable<T>(
   return typeof param === 'function' ? param() : param
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function classList(props: any): { [k: string]: boolean } {
-  return { ...props.classList, [props.class!]: !!props.class }
-}
-
 // export function keys<T extends object, K extends keyof T>(o: T) {
 //   return Object.keys(o) as Array<K>
 // }

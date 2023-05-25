@@ -41,6 +41,11 @@
             "position": "before"
           },
           {
+            "pattern": "clsx",
+            "group": "external",
+            "position": "after"
+          },
+          {
             "pattern": "@app/components/**",
             "group": "internal",
             "position": "after"

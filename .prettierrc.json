@@ -8,5 +8,7 @@
   "jsxSingleQuote": true,
   "bracketSameLine": false,
   "printWidth": 80,
-  "plugins": ["prettier-plugin-tailwindcss"]
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindAttributes": ["class", "classes", "className", "styles"],
+  "tailwindFunctions": ["clsx"]
 }

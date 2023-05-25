@@ -1,16 +1,12 @@
 import type { ForwardRef } from '@app/types'
-import { classList } from '@app/helpers/util'
+import clsx from 'clsx'
 
-const Topbar: ForwardRef<'nav'> = ({ children, ...props }) => {
-  return (
-    <nav
-      {...props}
-      class='flex h-[56px] items-center justify-between px-3'
-      classList={{ ...classList(props) }}
-    >
-      {children}
-    </nav>
-  )
+const Topbar: ForwardRef<'nav'> = (props) => {
+  return <nav {...props} class={clsx(styles.index, props.class)} />
+}
+
+const styles = {
+  index: clsx('flex h-[56px] items-center justify-between px-3'),
 }
 
 export default Topbar
