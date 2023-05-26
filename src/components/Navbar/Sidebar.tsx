@@ -52,7 +52,7 @@ const styles = {
     'flex h-screen min-h-[320px] w-[290px] flex-col max-tc:hidden',
     'bg-gray-100 dark:bg-gray-900'
   ),
-  aside_header: clsx('flex items-center px-6 py-3'),
+  aside_header: clsx('flex items-center px-6 pb-3 tc:py-3'),
   aside_title: clsx('text-hero font-bold -tracking-hero'),
 
   list: clsx('h-full flex-1 px-4'),

@@ -71,7 +71,7 @@ const Sheet: Component<iSheet> = ({
 const styles = {
   header: clsx('relative flex min-h-[48px] items-center justify-between px-3'),
   close: clsx('ml-auto !rounded-full !text-gray-300 dark:!text-gray-500'),
-  desc: clsx('h-full px-4 env-b-4 sm:px-3 sm:pb-3'),
+  desc: clsx('h-full px-4 env-pb-4 sm:px-3 sm:pb-3'),
   overlay: clsx(
     'fixed left-0 top-0 z-40 h-full w-full animate-overlay-out bg-black',
     'opacity-50 translate-z-0 data-[expanded]:animate-overlay-in'

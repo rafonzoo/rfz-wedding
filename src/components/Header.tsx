@@ -30,7 +30,7 @@ const Header: Children<iNavbar> = ({ path: pathname }) => {
 
 const styles = {
   header_outer: clsx('pt-12 tc:px-8'),
-  header_inner: clsx('flex justify-between py-3 max-tc:px-4'),
+  header_inner: clsx('flex justify-between pb-3 max-tc:px-4 tc:py-3'),
   header_wrapper: clsx('flex items-center'),
   header_icon: clsx('!text-gray-300 dark:!text-gray-700'),
   header_title: clsx('text-hero font-bold -tracking-hero'),

@@ -36,17 +36,17 @@ const BottomBar: ForwardRef<'nav', iNavbar> = ({ path, ...props }) => {
 const styles = {
   nav: clsx(
     'env-b-2px fixed bottom-0 left-0 right-0 flex items-center px-4',
-    'bg-gray-100 dark:bg-gray-900 tc:hidden'
+    'bg-gray-100 env-pb-0 dark:bg-gray-900 tc:hidden'
   ),
   ul: clsx('flex w-full'),
   li: clsx('flex w-full justify-center'),
-  a_text: clsx('mx-auto mt-0.5 text-small font-medium tracking-wide'),
+  a_text: clsx('mx-auto mt-0.5 text-small font-medium tracking-base'),
   a_icon_active: clsx('!bg-primary dark:!bg-primary-dark'),
-  a_icon: clsx('mx-auto h-6 w-6 rounded bg-gray-300 dark:bg-gray-700'),
+  a_icon: clsx('mx-auto h-6 w-6 rounded bg-gray-500 dark:bg-gray-500'),
   a_active: clsx('!text-primary dark:!text-primary-dark'),
   a: clsx(
-    'flex h-12 w-full select-none flex-col items-center justify-center !rounded-none text-gray-500',
-    'active-visible:!shadow-none active:bg-gray-200 dark:active:bg-gray-800'
+    'flex h-12 w-full select-none flex-col items-center justify-center !rounded-none text-gray-600',
+    'active-visible:!shadow-none active:bg-gray-200 dark:text-gray-400 dark:active:bg-gray-800'
   ),
 }
 
