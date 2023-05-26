@@ -6,7 +6,7 @@ const Topbar: ForwardRef<'nav'> = (props) => {
 }
 
 const styles = {
-  index: clsx('flex h-[56px] items-center justify-between px-3'),
+  index: clsx('flex h-12 items-center justify-between px-3'),
 }
 
 export default Topbar

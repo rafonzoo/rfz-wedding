@@ -13,7 +13,7 @@ interface AddNewSheetProps extends iDialog {
   element?: HTMLButtonElement
 }
 
-const AddNewSheet: Component<AddNewSheetProps> = ({ show, setShow }) => {
+const ButtonAddNew: Component<AddNewSheetProps> = ({ show, setShow }) => {
   const [addNewMethod, setAddNewMethod] = createSignal('template')
   const addNewSheetOption = ['template', 'blank'] as const
 
@@ -23,7 +23,7 @@ const AddNewSheet: Component<AddNewSheetProps> = ({ show, setShow }) => {
       setShow={setShow}
       title={text.bind(null, 'newInvitation')}
       trigger={<IconPlus class='m-1' />}
-      triggerClass={clsx('ml-auto')}
+      classes={{ trigger: '-mr-1 ml-auto', body: 'space-y-3' }}
     >
       {addNewSheetOption.map((item) => (
         <ButtonBase
@@ -65,4 +65,4 @@ const styles = {
   ),
 }
 
-export default AddNewSheet
+export default ButtonAddNew

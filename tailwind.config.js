@@ -64,6 +64,7 @@ module.exports = {
         inter: ['Inter', ...defaultTheme.fontFamily.sans],
       },
       fontSize: {
+        small: ['11px', '15px'],
         base: ['16px', '24px'],
         hero: ['30px', '34px'],
       },
@@ -121,6 +122,7 @@ module.exports = {
         '.translate-3d-center': { transform: translate['3d-center'] },
 
         // Safearea
+        '.env-b-0': { 'padding-bottom': 'max(env(safe-area-inset-bottom))' },
         '.env-b-4': { 'padding-bottom': 'max(env(safe-area-inset-bottom), 16px)' },
         '.env-ml-0': { 'margin-left': 'max(env(safe-area-inset-left))' },
         '.env-mr-0': { 'margin-right': 'max(env(safe-area-inset-right))' },

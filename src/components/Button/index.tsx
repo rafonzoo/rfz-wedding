@@ -4,11 +4,11 @@ import { splitProps } from 'solid-js'
 import clsx from 'clsx'
 import ButtonBase from '@app/components/Button/Base'
 
-interface iButton extends ButtonRootProps {
+interface ButtonProps extends ButtonRootProps {
   model?: 'default' | 'action'
 }
 
-const Button: Component<iButton> = (props) => {
+const Button: Component<ButtonProps> = (props) => {
   const [{ model = 'default' }, rest] = splitProps(props, ['model'])
   return (
     <ButtonBase

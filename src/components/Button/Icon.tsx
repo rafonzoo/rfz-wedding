@@ -3,11 +3,11 @@ import type { ButtonRootProps } from '@kobalte/core/dist/types/button'
 import clsx from 'clsx'
 import ButtonBase from '@app/components/Button/Base'
 
-interface iButtonIcon {
+interface ButtonIconProps {
   icon: JSX.Element
 }
 
-const ButtonIcon: Component<iButtonIcon & ButtonRootProps> = ({
+const ButtonIcon: Component<ButtonIconProps & ButtonRootProps> = ({
   icon,
   ...props
 }) => {

@@ -6,6 +6,10 @@ export type Nullable<T> = T | null | undefined
 
 export type Children<T = {}> = Component<T & { children?: JSX.Element }>
 
+export type iNavbar = {
+  path: string
+}
+
 export type iDialog = {
   show: Callable<boolean>
   setShow: (isOpen: boolean) => void

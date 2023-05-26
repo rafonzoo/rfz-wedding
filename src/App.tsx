@@ -2,8 +2,10 @@ import type { Component } from 'solid-js'
 import { lazy, onMount } from 'solid-js'
 import { Route, Routes } from '@solidjs/router'
 import { setStore } from '@app/state/store'
+import Container from '@app/components/Container'
 
 const Home = lazy(() => import('@app/screen/Home'))
+const Notification = lazy(() => import('@app/screen/Notification'))
 // const Signin = lazy(() => import('@app/screen/Signin'))
 
 const App: Component = () => {
@@ -24,7 +26,11 @@ const App: Component = () => {
 
   return (
     <Routes>
-      <Route path='/' component={Home} />
+      <Route path='/' component={() => <Container comp={Home} />} />
+      <Route
+        path='/notifikasi'
+        component={() => <Container comp={Notification} />}
+      />
       {/* <Route path='/signin' component={Signin} /> */}
     </Routes>
   )
