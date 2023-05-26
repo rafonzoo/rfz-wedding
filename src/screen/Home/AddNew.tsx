@@ -29,7 +29,7 @@ const ButtonAddNew: Component<AddNewSheetProps> = ({ show, setShow }) => {
         <ButtonBase
           onclick={() => setAddNewMethod(item)}
           class={clsx(styles.button, {
-            [styles.focused]: addNewMethod() === item,
+            'shadow-outline': addNewMethod() === item,
           })}
         >
           <IconPaper
@@ -53,7 +53,6 @@ const ButtonAddNew: Component<AddNewSheetProps> = ({ show, setShow }) => {
 }
 
 const styles = {
-  focused: '[&:not(:focus-visible)]:shadow-outline',
   headline: 'ml-4 block flex-1 text-left',
   description: clsx(
     'mt-1 line-clamp-2 text-sm tracking-normal',
