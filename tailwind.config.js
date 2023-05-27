@@ -1,26 +1,16 @@
 const defaultTheme = require('tailwindcss/defaultTheme')
 const colors = require('tailwindcss/colors')
+const { THEME } = require('./src/config/theme')
 
-const { color, duration, ease, translate } = {
-  color: {
-    dark: '#6496ff',
-    light: colors.blue[600],
-  },
-  duration: {
-    overlay: '320ms',
-    panel: '560ms',
-  },
-  ease: {
-    panel: 'cubic-bezier(0.52, 0.16, 0.24, 1)',
-    opacity: 'cubic-bezier(0.4,0,0.6,1)',
-  },
-  translate: {
-    '3d-bottom-dialog': 'translate3d(-50%, calc(-50% + 30px), 0)',
-    '3d-bottom-full': 'translate3d(0,100%,0)',
-    '3d-center': 'translate3d(-50%,-50%,0)',
-    '3d-0': 'translate3d(0,0,0)',
-    'z-0': 'translateZ(0)',
-  },
+const { color, animation } = THEME
+const { easing, duration } = animation
+
+const translate = {
+  '3d-bottom-dialog': 'translate3d(-50%, calc(-50% + 30px), 0)',
+  '3d-bottom-full': 'translate3d(0,100%,0)',
+  '3d-center': 'translate3d(-50%,-50%,0)',
+  '3d-0': 'translate3d(0,0,0)',
+  'z-0': 'translateZ(0)',
 }
 
 /** @type {import('tailwindcss').Config} */
@@ -30,13 +20,13 @@ module.exports = {
   theme: {
     extend: {
       animation: {
-        'dialog-in': `dialog-in ${duration['panel']} ${ease['panel']}`,
-        'dialog-out': `dialog-out ${duration['panel']} ${ease['panel']}`,
-        'overlay-in': `overlay-in ${duration['overlay']} ${ease['opacity']}`,
-        'overlay-out': `overlay-out ${duration['overlay']} ${ease['opacity']}`,
-        'slide-up': `slide-up ${duration['panel']} ${ease['panel']}`,
-        'slide-down': `slide-down ${duration['panel']} ${ease['panel']}`,
-        'spinner': `spinner 1s ${duration['overlay']} infinite`
+        'dialog-in': `dialog-in ${duration['panel']}ms ${easing['panel']}`,
+        'dialog-out': `dialog-out ${duration['panel']}ms ${easing['panel']}`,
+        'overlay-in': `overlay-in ${duration['overlay']}ms ${easing['opacity']}`,
+        'overlay-out': `overlay-out ${duration['overlay']}ms ${easing['opacity']}`,
+        'slide-up': `slide-up ${duration['panel']}ms ${easing['panel']}`,
+        'slide-down': `slide-down ${duration['panel']}ms ${easing['panel']}`,
+        'spinner': `spinner 1s ${duration['overlay']}ms infinite`
       },
       boxShadow: {
         outline: `0 0 0 2px ${color.dark}`,
@@ -124,7 +114,7 @@ module.exports = {
         fade: 'transform, opacity, visibility',
         shadow: 'box-shadow',
       },
-      transitionTimingFunction: { ...ease },
+      transitionTimingFunction: { ...easing },
     },
   },
   plugins: [

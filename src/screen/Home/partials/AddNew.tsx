@@ -1,7 +1,7 @@
 import type { Component } from 'solid-js'
 import type { iDialog } from '@app/types'
 import { createSignal } from 'solid-js'
-import { text } from '@app/helpers/trans'
+import { createHook, text } from '@app/helpers'
 import clsx from 'clsx'
 import IconPlus from '@app/components/Icon/Plus'
 import IconPaper from '@app/components/Icon/Colored/Paper'
@@ -13,9 +13,11 @@ interface AddNewSheetProps extends iDialog {
   element?: HTMLButtonElement
 }
 
+const addNewSheetOption = ['template', 'blank'] as const
+
 const ButtonAddNew: Component<AddNewSheetProps> = ({ show, setShow }) => {
   const [addNewMethod, setAddNewMethod] = createSignal('template')
-  const addNewSheetOption = ['template', 'blank'] as const
+  const { screen } = createHook()
 
   return (
     <Sheet
@@ -45,7 +47,11 @@ const ButtonAddNew: Component<AddNewSheetProps> = ({ show, setShow }) => {
           </span>
         </ButtonBase>
       ))}
-      <Button class='mt-3' model='action'>
+      <Button
+        class='mt-3'
+        model='action'
+        onclick={() => screen('editor', () => setShow(false))}
+      >
         {text('buat')}
       </Button>
     </Sheet>

@@ -2,11 +2,9 @@ import type { Component } from 'solid-js'
 import { lazy, onMount } from 'solid-js'
 import { Route, Routes } from '@solidjs/router'
 import { setStore } from '@app/state/store'
+import { lazied } from '@app/helpers'
+import { ROUTES } from '@app/config'
 import Container from '@app/components/Container'
-
-const Home = lazy(() => import('@app/screen/Home'))
-const Notification = lazy(() => import('@app/screen/Notification'))
-// const Signin = lazy(() => import('@app/screen/Signin'))
 
 const App: Component = () => {
   const colorScheme = window.matchMedia('(prefers-color-scheme: dark)')
@@ -14,10 +12,10 @@ const App: Component = () => {
   const darkMode = localStorage.getItem('darkMode')
 
   onMount(() => {
-    document.documentElement.lang = locale === '1' ? 'en' : 'id'
-    document.documentElement.classList[darkMode === 'true' ? 'add' : 'remove'](
-      'dark'
-    )
+    const html = document.documentElement
+
+    html.lang = locale === '1' ? 'en' : 'id'
+    html.classList.toggle('dark', darkMode === 'true')
 
     colorScheme?.addEventListener?.('change', (e) => {
       setStore('darkMode', e.matches)
@@ -26,11 +24,17 @@ const App: Component = () => {
 
   return (
     <Routes>
-      <Route path='/' component={() => <Container comp={Home} />} />
-      <Route
-        path='/notifikasi'
-        component={() => <Container comp={Notification} />}
-      />
+      {ROUTES.map(({ path, directory, translation }) => (
+        <Route
+          path={path}
+          component={() => (
+            <Container
+              isPrimary={!!translation}
+              comp={lazy(() => lazied(directory))}
+            />
+          )}
+        />
+      ))}
       {/* <Route path='/signin' component={Signin} /> */}
     </Routes>
   )

@@ -1,6 +1,5 @@
 {
-  "undanganku": ["Undanganku", "My Invitation"],
-  "notifikasi": ["Notifikasi", "Notification"],
+  "dummy": ["Lorem ipsum dolor sit amet, consectetur adipis cing elit, sed do eiusmod tempor"],
   "newInvitation": ["Undangan baru", "New invitation"],
   "fromTemplate": ["Template (Direkomendasi)", "Template (Recommended)"],
   "fromScratch": ["Mulai dari kertas kosong", "Create from scratch"]

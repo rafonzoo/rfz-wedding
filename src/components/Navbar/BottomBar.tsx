@@ -1,31 +1,37 @@
-import type { ForwardRef, iNavbar } from '@app/types'
+import type { ForwardRef } from '@app/types'
 import { For } from 'solid-js'
-import { useNavigate } from '@solidjs/router'
-import { text } from '@app/helpers/trans'
-import { routes } from '@app/config/const'
+import { useLocation } from '@solidjs/router'
+import { createHook, text } from '@app/helpers'
+import { ROUTES_NAVIGATION } from '@app/config'
 import clsx from 'clsx'
 import ButtonBase from '@app/components/Button/Base'
 
-const BottomBar: ForwardRef<'nav', iNavbar> = ({ path, ...props }) => {
-  const navigate = useNavigate()
+const BottomBar: ForwardRef<'nav'> = (props) => {
+  const { pathname: path } = useLocation()
+  const { screen } = createHook()
 
   return (
     <nav {...props} class={clsx(styles.nav, props.class)}>
       <ul role='list' class={styles.ul}>
-        <For each={routes}>
-          {(item) => (
+        <For each={ROUTES_NAVIGATION}>
+          {({ child, ...item }) => (
             <li role='listitem' class={styles.li}>
               <ButtonBase
-                onclick={() => navigate(item.path)}
-                class={clsx(styles.a, path === item.path && styles.a_active)}
+                onclick={() => screen(item.alias)}
+                class={clsx(
+                  styles.a,
+                  (path === item.path || child.some((c) => c === path)) &&
+                    styles.a_active
+                )}
               >
                 <span
                   class={clsx(
                     styles.a_icon,
-                    path === item.path && styles.a_icon_active
+                    (path === item.path || child.some((c) => c === path)) &&
+                      styles.a_icon_active
                   )}
                 />
-                <span class={styles.a_text}>{text(item.name)}</span>
+                <span class={styles.a_text}>{text(item.translation)}</span>
               </ButtonBase>
             </li>
           )}

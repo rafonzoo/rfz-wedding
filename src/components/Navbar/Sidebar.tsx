@@ -1,47 +1,44 @@
-import type { Component } from 'solid-js'
-import type { ForwardRef, iNavbar } from '@app/types'
+import type { ForwardRef } from '@app/types'
 import { For } from 'solid-js'
-import { A } from '@solidjs/router'
-import { text } from '@app/helpers/trans'
-import { routes } from '@app/config/const'
+import { A, useLocation } from '@solidjs/router'
+import { text } from '@app/helpers'
+import { ROUTES_NAVIGATION } from '@app/config'
 import clsx from 'clsx'
 import Topbar from '@app/components/Navbar/Topbar'
 
-const List: Component<iNavbar> = ({ path }) => {
-  return (
-    <ul role='list' class={styles.list_ul}>
-      <For each={routes}>
-        {(item) => (
-          <li role='listitem' class={styles.list_li}>
-            <A
-              href={item.path}
-              class={clsx(styles.list_a, {
-                [styles.list_a_active]: path === item.path,
-              })}
-            >
-              <span
-                class={clsx(styles.list_span, {
-                  [styles.list_span_active]: path === item.path,
-                })}
-              />
-              <span>{text(item.name)}</span>
-            </A>
-          </li>
-        )}
-      </For>
-    </ul>
-  )
-}
+const Sidebar: ForwardRef<'aside'> = (props) => {
+  const { pathname: path } = useLocation()
 
-const Sidebar: ForwardRef<'aside', iNavbar> = ({ path, ...props }) => {
   return (
     <aside {...props} class={clsx(styles.aside, props.class)}>
-      <Topbar />
+      <Topbar position='relative' />
       <div class={styles.aside_header}>
         <h1 class={styles.aside_title}>Mantu</h1>
       </div>
       <nav class={styles.list}>
-        <List path={path} />
+        <ul role='list' class={styles.list_ul}>
+          <For each={ROUTES_NAVIGATION}>
+            {({ child, ...item }) => (
+              <li role='listitem' class={styles.list_li}>
+                <A
+                  href={item.path}
+                  class={clsx(styles.list_a, {
+                    [styles.list_a_active]:
+                      path === item.path || child.some((c) => c === path),
+                  })}
+                >
+                  <span
+                    class={clsx(styles.list_span, {
+                      [styles.list_span_active]:
+                        path === item.path || child.some((c) => c === path),
+                    })}
+                  />
+                  <span>{text(item.translation)}</span>
+                </A>
+              </li>
+            )}
+          </For>
+        </ul>
       </nav>
     </aside>
   )

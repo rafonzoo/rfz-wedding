@@ -54,6 +54,11 @@
             "pattern": "@app/screen/**",
             "group": "internal",
             "position": "after"
+          },
+          {
+            "pattern": "@app/locale/**",
+            "group": "internal",
+            "position": "after"
           }
         ],
         "pathGroupsExcludedImportTypes": ["internal", "type", "sibling"],

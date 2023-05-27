@@ -1,5 +1,7 @@
 import type { Component, ComponentProps, JSX } from 'solid-js'
 
+export type Unarray<T> = T extends Array<infer U> ? U : T
+
 export type Callable<T> = (() => T) | T
 
 export type Nullable<T> = T | null | undefined

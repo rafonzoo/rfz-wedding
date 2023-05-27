@@ -1,6 +1,7 @@
 import type { Component, lazy } from 'solid-js'
-import { Suspense } from 'solid-js'
-import { useLocation } from '@solidjs/router'
+import { createEffect, Suspense } from 'solid-js'
+import { useIsRouting } from '@solidjs/router'
+import { currentPage } from '@app/helpers'
 import clsx from 'clsx'
 import Sidebar from '@app/components/Navbar/Sidebar'
 import BottomBar from '@app/components/Navbar/BottomBar'
@@ -9,19 +10,34 @@ import Header from '@app/components/Header'
 
 interface ContainerProps {
   comp: ReturnType<typeof lazy>
+  isPrimary?: boolean
 }
 
-const Container: Component<ContainerProps> = ({ comp: Comp }) => {
-  const { pathname } = useLocation()
+const Container: Component<ContainerProps> = ({
+  comp: Comp,
+  isPrimary = true,
+}) => {
+  const isRouting = useIsRouting()
+
+  createEffect(() => {
+    const { background } = currentPage()
+    const { className } = document.body
+
+    if (background) {
+      document.body.className = !isRouting()
+        ? [className, background].join(' ')
+        : className.replace(' ' + background, '')
+    }
+  })
 
   return (
     <div class={styles.wrapper}>
-      <Sidebar path={pathname} />
+      <Sidebar />
       <main class={styles.main}>
-        <Header path={pathname} />
+        {isPrimary && <Header />}
         <Suspense fallback={<Loading />} children={<Comp />} />
       </main>
-      <BottomBar path={pathname} />
+      <BottomBar />
     </div>
   )
 }

@@ -12,8 +12,8 @@ const Loading: Component = () => {
 
 const styles = {
   wrapper: clsx(
-    'absolute left-0 top-0 flex h-screen w-screen',
-    'items-center justify-center text-gray-500 translate-z-0'
+    'absolute left-0 top-0 flex h-screen w-screen tc:h-full tc:w-full',
+    'items-center justify-center text-gray-500'
   ),
 }
 
