@@ -4,6 +4,7 @@ import { useLocation } from '@solidjs/router'
 import clsx from 'clsx'
 import Sidebar from '@app/components/Navbar/Sidebar'
 import BottomBar from '@app/components/Navbar/BottomBar'
+import Loading from '@app/components/Loading'
 import Header from '@app/components/Header'
 
 interface ContainerProps {
@@ -18,7 +19,7 @@ const Container: Component<ContainerProps> = ({ comp: Comp }) => {
       <Sidebar path={pathname} />
       <main class={styles.main}>
         <Header path={pathname} />
-        <Suspense fallback={<>Loading...</>} children={<Comp />} />
+        <Suspense fallback={<Loading />} children={<Comp />} />
       </main>
       <BottomBar path={pathname} />
     </div>

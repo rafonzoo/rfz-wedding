@@ -2,9 +2,9 @@ import type { Children, iNavbar } from '@app/types'
 import { text } from '@app/helpers/trans'
 import { routes } from '@app/config/const'
 import clsx from 'clsx'
-import Separator from './Separator'
-import IconPersonCircle from './Icon/PersonCircle'
-import ButtonIcon from './Button/Icon'
+import Separator from '@app/components/Separator'
+import IconPersonCircle from '@app/components/Icon/Circle/Person'
+import ButtonIcon from '@app/components/Button/Icon'
 
 const Header: Children<iNavbar> = ({ path: pathname }) => {
   function setTitle() {

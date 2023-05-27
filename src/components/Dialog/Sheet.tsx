@@ -4,7 +4,7 @@ import { createEffect, createSignal } from 'solid-js'
 import { Dialog } from '@kobalte/core'
 import { callable, delay } from '@app/helpers/util'
 import clsx from 'clsx'
-import IconCloseCircle from '@app/components/Icon/CloseCircle'
+import IconCircleClose from '@app/components/Icon/Circle/Close'
 import ButtonIcon from '@app/components/Button/Icon'
 
 interface iSheet extends iDialog {
@@ -55,7 +55,7 @@ const Sheet: Component<iSheet> = ({
             <div class={styles.header}>
               <div class={styles.title}>{callable(title)}</div>
               <Dialog.CloseButton as={ButtonIcon} class={styles.close}>
-                <IconCloseCircle label='Tutup panel' />
+                <IconCircleClose label='Tutup panel' />
               </Dialog.CloseButton>
             </div>
           </Dialog.Title>

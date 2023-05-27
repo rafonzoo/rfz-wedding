@@ -1,7 +1,7 @@
 import type { Icon } from '@app/components/Icon/Base'
 import IconSvg from '@app/components/Icon/Base'
 
-const IconCloseCircle: Icon = (props) => {
+const IconCircleClose: Icon = (props) => {
   return (
     <IconSvg {...props}>
       <g clip-path='url(#a)'>
@@ -19,4 +19,4 @@ const IconCloseCircle: Icon = (props) => {
   )
 }
 
-export default IconCloseCircle
+export default IconCircleClose

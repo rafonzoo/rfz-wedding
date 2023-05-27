@@ -1,20 +1,22 @@
 import type { ForwardRef, iNavbar } from '@app/types'
 import { For } from 'solid-js'
-import { A } from '@solidjs/router'
+import { useNavigate } from '@solidjs/router'
 import { text } from '@app/helpers/trans'
 import { routes } from '@app/config/const'
 import clsx from 'clsx'
+import ButtonBase from '@app/components/Button/Base'
 
 const BottomBar: ForwardRef<'nav', iNavbar> = ({ path, ...props }) => {
+  const navigate = useNavigate()
+
   return (
     <nav {...props} class={clsx(styles.nav, props.class)}>
       <ul role='list' class={styles.ul}>
         <For each={routes}>
           {(item) => (
             <li role='listitem' class={styles.li}>
-              <A
-                href={item.path}
-                onclick={() => console.log(item)}
+              <ButtonBase
+                onclick={() => navigate(item.path)}
                 class={clsx(styles.a, path === item.path && styles.a_active)}
               >
                 <span
@@ -24,7 +26,7 @@ const BottomBar: ForwardRef<'nav', iNavbar> = ({ path, ...props }) => {
                   )}
                 />
                 <span class={styles.a_text}>{text(item.name)}</span>
-              </A>
+              </ButtonBase>
             </li>
           )}
         </For>
@@ -40,9 +42,9 @@ const styles = {
   ),
   ul: clsx('flex w-full'),
   li: clsx('flex w-full justify-center'),
-  a_text: clsx('mx-auto mt-0.5 text-small font-medium tracking-base'),
+  a_text: clsx('mx-auto text-small font-medium tracking-base'),
   a_icon_active: clsx('!bg-primary dark:!bg-primary-dark'),
-  a_icon: clsx('mx-auto h-6 w-6 rounded bg-gray-500 dark:bg-gray-500'),
+  a_icon: clsx('mx-auto h-7 w-7 rounded bg-gray-500 dark:bg-gray-500'),
   a_active: clsx('!text-primary dark:!text-primary-dark'),
   a: clsx(
     'flex h-12 w-full select-none flex-col items-center justify-center !rounded-none text-gray-600',

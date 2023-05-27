@@ -36,6 +36,7 @@ module.exports = {
         'overlay-out': `overlay-out ${duration['overlay']} ${ease['opacity']}`,
         'slide-up': `slide-up ${duration['panel']} ${ease['panel']}`,
         'slide-down': `slide-down ${duration['panel']} ${ease['panel']}`,
+        'spinner': `spinner 1s ${duration['overlay']} infinite`
       },
       boxShadow: {
         outline: `0 0 0 2px ${color.dark}`,
@@ -93,6 +94,22 @@ module.exports = {
           from: { transform: translate['3d-0'] },
           to: { transform: translate['3d-bottom-full'] },
         },
+        'spinner': {
+          '0%': {
+            'opacity': '1',
+            'stroke-dasharray': '1 98',
+            'stroke-dashoffset': '-105'
+          },
+          '50%': {
+            'stroke-dasharray': '80 10',
+            'stroke-dashoffset': '-160',
+          },
+          '100%': {
+            'stroke-dasharray': '1 98',
+            'stroke-dashoffset': '-300',
+            'opacity': '1',
+          }
+        }
       },
       letterSpacing: {
         base: '0.0013em',
