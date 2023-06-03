@@ -34,7 +34,7 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
       if (!atSnappingPoint) return
 
       const offset = Array.from(children).map(
-        (child, i) => child.parentElement!.clientHeight * (i + 1)
+        (child, i) => child.parentElement!.clientHeight * i
       )
 
       const snapped = offset.find((child) => target.scrollTop === child)
@@ -55,7 +55,7 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
     if (selected) {
       element.scrollTo({
         behavior,
-        top: ITEM_HEIGHT * (items.indexOf(selected.dataset.value!) + 1),
+        top: ITEM_HEIGHT * items.indexOf(selected.dataset.value!),
       })
     }
   }
@@ -78,14 +78,13 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
             onscroll={(e) => scrollValue(e.target as HTMLElement)}
             onTouchEnd={() => isMobile() && setState('isCapturing', true)}
             class={clsx(
-              'flex w-full flex-wrap overflow-auto bg-red-200 snap-y-mandatory',
-              'before:content-[" "] before:sticky before:top-14 before:h-7 before:w-full',
+              'flex w-full flex-wrap bg-red-200 py-14 snap-y-mandatory overflow-touch',
+              'before:content-[" "] before:absolute before:top-14 before:h-7 before:w-full',
               'before:flex before:outline before:outline-amber-500'
             )}
           >
-            {items.map((item, index) => (
+            {items.map((item) => (
               <>
-                {index === 0 && <div class='block h-14 w-full'></div>}
                 <li
                   class=' basis-full snap-center text-picker'
                   style={{ height: `${ITEM_HEIGHT}px` }}
@@ -99,9 +98,6 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
                     {item}
                   </button>
                 </li>
-                {index === items.length - 1 && (
-                  <div class='block h-14 w-full'></div>
-                )}
               </>
             ))}
           </ul>
