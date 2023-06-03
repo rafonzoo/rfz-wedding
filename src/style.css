@@ -6,4 +6,8 @@
   html {
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   }
+
+  .snap-y-mandatory {
+    scroll-snap-type: y mandatory;
+  }
 }

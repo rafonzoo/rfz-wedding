@@ -17,7 +17,7 @@ const BottomBar: ForwardRef<'nav'> = (props) => {
           {({ child, ...item }) => (
             <li role='listitem' class={styles.li}>
               <ButtonBase
-                onclick={() => screen(item.alias)}
+                onclick={() => screen({ name: item.alias })}
                 class={clsx(
                   styles.a,
                   (path === item.path || child.some((c) => c === path)) &&

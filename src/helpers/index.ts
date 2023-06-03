@@ -1,8 +1,7 @@
-import type { Unarray } from '@app/types'
-import type { ROUTES_NAME } from '@app/config'
-import { useLocation, useNavigate } from '@solidjs/router'
+import type { iScreen } from '@app/types'
+import { useLocation, useNavigate, useSearchParams } from '@solidjs/router'
 import { store } from '@app/state/store'
-import { delay } from '@app/helpers/util'
+import { delay, promise } from '@app/helpers/util'
 import { THEME } from '@app/config/theme'
 import { ROUTES } from '@app/config'
 import dictionary from '@app/locale/dictionary.json'
@@ -25,26 +24,29 @@ export function currentPage() {
 
 export function createHook() {
   const go = useNavigate()
+  const [param, setParam] = useSearchParams()
 
-  return {
-    screen: (
-      name: Unarray<typeof ROUTES_NAME>,
-      callback?: () => void,
-      duration?: keyof typeof THEME.animation.duration
-    ) => {
-      const path = ROUTES.find((item) => item.alias === name)?.path
-      const second = THEME.animation.duration[duration || 'panel']
+  const screen: iScreen = (props) => {
+    const { name, params, callback, delay: d, ...opt } = props
+    const path = ROUTES.find((item) => item.alias === name)?.path
+    const second = THEME.animation.duration[d || 'panel']
 
-      if (!path) {
-        throw new Error(`Route path is not found. Alias: "${name}"`)
-      }
+    if (!path) {
+      throw new Error(`Route path is not found. Alias: "${name}"`)
+    }
 
-      return !callback
-        ? go(path)
-        : delay(0)
-            .then(() => callback?.())
-            .then(() => delay(second))
-            .then(() => go(path))
-    },
+    if (!callback) {
+      return promise()
+        .then(() => go(path, opt))
+        .then(() => params && setParam({ ...param, ...params }))
+    }
+
+    return promise()
+      .then(() => callback?.())
+      .then(() => delay(second))
+      .then(() => go(path, opt))
+      .then(() => params && setParam({ ...param, ...params }))
   }
+
+  return { screen }
 }

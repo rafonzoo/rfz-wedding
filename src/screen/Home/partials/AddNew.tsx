@@ -20,46 +20,64 @@ const ButtonAddNew: Component<AddNewSheetProps> = ({ show, setShow }) => {
   const { screen } = createHook()
 
   return (
-    <Sheet
-      show={show}
-      setShow={setShow}
-      title={text.bind(null, 'newInvitation')}
-      trigger={<IconPlus class='m-1' />}
-      classes={{ trigger: '-mr-1 ml-auto', body: 'space-y-3' }}
-    >
-      {addNewSheetOption.map((item) => (
-        <ButtonBase
-          onclick={() => setAddNewMethod(item)}
-          class={clsx(styles.button, {
-            'shadow-outline': addNewMethod() === item,
-          })}
-        >
-          <IconPaper
-            size={32}
-            class='mb-auto mt-1'
-            filled={item === 'template'}
-          />
-          <span class={styles.headline}>
-            <span class='font-semibold'>
-              {item === 'template' ? text('fromTemplate') : text('fromScratch')}
-            </span>
-            <span class={styles.description}>{text('dummy')}</span>
-          </span>
-        </ButtonBase>
-      ))}
-      <Button
-        class='mt-3'
-        model='action'
-        onclick={() => screen('editor', () => setShow(false))}
+    <>
+      <Sheet
+        show={show}
+        setShow={setShow}
+        title={text.bind(null, 'newInvitation')}
+        trigger={<IconPlus class='m-1' />}
+        classes={{
+          trigger: styles.sheet_trigger,
+          body: styles.sheet_body,
+          content: styles.sheet_content,
+        }}
       >
-        {text('buat')}
-      </Button>
-    </Sheet>
+        {addNewSheetOption.map((item) => (
+          <ButtonBase
+            onclick={() => setAddNewMethod(item)}
+            class={clsx(styles.button, {
+              'shadow-outline': addNewMethod() === item,
+            })}
+          >
+            <IconPaper
+              size={32}
+              class='mb-auto mt-1'
+              filled={item === 'template'}
+            />
+            <span class={styles.headline}>
+              <span class='font-semibold'>
+                {item === 'template'
+                  ? text('fromTemplate')
+                  : text('fromScratch')}
+              </span>
+              <span class={styles.description}>{text('dummy')}</span>
+            </span>
+          </ButtonBase>
+        ))}
+        <Button
+          class='mt-3'
+          model='action'
+          onclick={() =>
+            screen({
+              name: 'editor',
+              delay: 'panel',
+              params: { from: addNewMethod() },
+              callback: () => setShow(false),
+            })
+          }
+        >
+          {text('buat')}
+        </Button>
+      </Sheet>
+    </>
   )
 }
 
 const styles = {
-  headline: 'ml-4 block flex-1 text-left',
+  sheet_trigger: clsx('-mr-1 ml-auto'),
+  sheet_body: clsx('space-y-3'),
+  sheet_content: clsx('rounded-t-3xl sm:max-w-[390px] sm:rounded-lg'),
+  headline: clsx('ml-4 block flex-1 text-left'),
   description: clsx(
     'mt-1 line-clamp-2 text-sm tracking-normal',
     'text-gray-600 dark:text-gray-400'

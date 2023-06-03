@@ -2,6 +2,16 @@ export async function delay(timer = 1000) {
   return new Promise((res) => setTimeout(res, timer))
 }
 
+export async function promise<T = boolean>(value?: T) {
+  return new Promise<T>((res) => res(value!))
+}
+
+export function isMobile() {
+  return !!(
+    navigator.maxTouchPoints || 'ontouchstart' in document.documentElement
+  )
+}
+
 export function callable<T>(
   param: T
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

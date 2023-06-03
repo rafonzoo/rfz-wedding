@@ -50,6 +50,8 @@ module.exports = {
           900: '#18181B',
         },
         devider: 'rgba(147 147 147 / 0.2)',
+        'blur-light': 'rgba(255 255 255 / 0.7)',
+        'blur-dark': 'rgba(0 0 0 / 0.7)',
       },
       fontFamily: {
         inter: ['Inter', ...defaultTheme.fontFamily.sans],
@@ -57,9 +59,17 @@ module.exports = {
       fontSize: {
         small: ['11px', '15px'],
         base: ['16px', '24px'],
+        picker: ['20px', '24px'],
         hero: ['30px', '34px'],
       },
+      gridTemplateRows: {
+        '7': 'repeat(7, minmax(0, 1fr))',
+      },
       keyframes: {
+        'swipe-up': {
+          from: { transform: translate['3d-bottom-dialog'] },
+          to: { transform: translate['3d-center'] },
+        },
         'dialog-in': {
           from: { opacity: '0', transform: translate['3d-bottom-dialog'] },
           to: { opacity: '1', transform: translate['3d-center'] },
@@ -109,7 +119,10 @@ module.exports = {
         sm: '525px',
         tc: '1024px',
       },
-      transitionDuration: { ...duration },
+      transitionDuration: {
+        panel: duration.panel + 'ms',
+        overlay: duration.overlay + 'ms'
+      },
       transitionProperty: {
         fade: 'transform, opacity, visibility',
         shadow: 'box-shadow',

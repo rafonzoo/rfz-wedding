@@ -3,6 +3,7 @@ import type { Callable, iDialog } from '@app/types'
 import { createEffect, createSignal } from 'solid-js'
 import { Dialog } from '@kobalte/core'
 import { callable, delay } from '@app/helpers/util'
+import { THEME } from '@app/config/theme'
 import clsx from 'clsx'
 import IconCircleClose from '@app/components/Icon/Circle/Close'
 import ButtonIcon from '@app/components/Button/Icon'
@@ -13,6 +14,7 @@ interface iSheet extends iDialog {
   trigger?: JSX.Element
   classes?: {
     trigger?: string
+    content?: string
     body?: string
   }
 }
@@ -35,7 +37,7 @@ const Sheet: Component<iSheet> = ({
     callable(show) // Reactor
     setCanToggle(false)
 
-    await delay(560)
+    await delay(THEME.animation.duration.panel)
     setCanToggle(true)
   })
 
@@ -50,7 +52,7 @@ const Sheet: Component<iSheet> = ({
           onclick={() => controlledTrigger(false)} /* iOS 12 */
           role='button'
         />
-        <Dialog.Content class={styles.content}>
+        <Dialog.Content class={clsx(styles.content, classes?.content)}>
           <Dialog.Title>
             <div class={styles.header}>
               <div class={styles.title}>{callable(title)}</div>
@@ -77,11 +79,10 @@ const styles = {
     'opacity-50 translate-z-0 data-[expanded]:animate-overlay-in'
   ),
   content: clsx(
-    'fixed z-50 flex w-full flex-col rounded-t-3xl bg-white dark:bg-gray-900',
+    'fixed z-50 flex w-full flex-col bg-white dark:bg-gray-900',
     'backface-hidden max-sm:bottom-0 max-sm:left-0 max-sm:animate-slide-down',
     'data-[expanded]:max-sm:animate-slide-up data-[expanded]:sm:animate-dialog-in',
-    'sm:left-1/2 sm:animate-dialog-out sm:rounded-lg sm:translate-3d-center',
-    'sm:top-1/2 sm:max-w-[390px]'
+    'sm:left-1/2 sm:top-1/2 sm:animate-dialog-out sm:translate-3d-center'
   ),
   title: clsx(
     'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-semibold',
