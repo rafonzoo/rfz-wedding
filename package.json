@@ -21,10 +21,12 @@
     "@supabase/supabase-js": "^2.23.0",
     "clsx": "^1.2.1",
     "dayjs": "^1.11.7",
+    "smoothscroll-polyfill": "^0.4.4",
     "solid-js": "^1.7.5"
   },
   "devDependencies": {
     "@solidjs/testing-library": "^0.7.1",
+    "@types/smoothscroll-polyfill": "^0.3.1",
     "@typescript-eslint/eslint-plugin": "^5.59.7",
     "@typescript-eslint/parser": "^5.59.7",
     "autoprefixer": "^10.4.14",

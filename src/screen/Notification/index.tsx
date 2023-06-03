@@ -4,7 +4,7 @@ import DatePicker from '@app/components/DatePicker'
 
 const Notification: Component = () => {
   return (
-    <div>
+    <div class='min-h-[200vh]'>
       <DatePicker
         // min='24 May 2023'
         // max='20 August 2023'

@@ -21,7 +21,7 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
   let tickingTime: NodeJS.Timeout
 
   function scrollValue(target: HTMLElement) {
-    const children = target.querySelectorAll('li')
+    const children = target.querySelectorAll('button')
     const atSnappingPoint = target.scrollTop % ITEM_HEIGHT === 0
 
     if (isMobile() && atSnappingPoint && !state.isCapturing) {
@@ -34,11 +34,11 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
       if (!atSnappingPoint) return
 
       const offset = Array.from(children).map(
-        (child, i) => child.clientHeight * (i + 1)
+        (child, i) => child.parentElement!.clientHeight * (i + 1)
       )
 
       const snapped = offset.find((child) => target.scrollTop === child)
-      const val = children[offset.indexOf(snapped!)]?.textContent ?? ''
+      const val = children[offset.indexOf(snapped!)]?.dataset.value ?? ''
 
       setState((prev) => ({
         value: val === '' || prev.value === val ? prev.value : val,
@@ -47,17 +47,20 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
     }, 150)
   }
 
-  onMount(() => {
-    const selected = Array.from(element.children).find(
-      (li) => li.textContent === defaultValue
+  function scrollTo(value: string, behavior: ScrollBehavior = 'auto') {
+    const selected = Array.from(element.querySelectorAll('button')).find(
+      (li) => li.dataset.value === value
     )
 
     if (selected) {
       element.scrollTo({
-        top: ITEM_HEIGHT * (items.indexOf(selected.textContent!) + 1),
+        behavior,
+        top: ITEM_HEIGHT * (items.indexOf(selected.dataset.value!) + 1),
       })
     }
-  })
+  }
+
+  onMount(() => defaultValue && scrollTo(defaultValue))
 
   createEffect(() => {
     if (isMobile() && state.isCapturing) {
@@ -87,7 +90,14 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
                   class=' basis-full snap-center text-picker'
                   style={{ height: `${ITEM_HEIGHT}px` }}
                 >
-                  {item}
+                  <button
+                    data-value={item}
+                    onclick={({ currentTarget: target }) => {
+                      scrollTo(target.dataset.value!, 'smooth')
+                    }}
+                  >
+                    {item}
+                  </button>
                 </li>
                 {index === items.length - 1 && (
                   <div class='block h-14 w-full'></div>
