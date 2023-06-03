@@ -72,15 +72,18 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
     <div>
       <div class='mx-auto max-w-[262px] bg-gray-200 text-black'>
         <div class='relative'>
+          <div
+            class={clsx(
+              'absolute top-14 block h-7 w-full outline outline-amber-500'
+            )}
+          />
           <ul
             ref={(el) => (element = el)}
             style={{ 'max-height': `${ITEM_HEIGHT * 5}px` }}
             onscroll={(e) => scrollValue(e.target as HTMLElement)}
             onTouchEnd={() => isMobile() && setState('isCapturing', true)}
             class={clsx(
-              'flex w-full flex-wrap bg-red-200 py-14 snap-y-mandatory overflow-touch',
-              'before:content-[" "] before:absolute before:top-14 before:h-7 before:w-full',
-              'before:flex before:outline before:outline-amber-500'
+              'flex w-full flex-wrap bg-red-200 py-14 snap-y-mandatory overflow-touch'
             )}
           >
             {items.map((item) => (
