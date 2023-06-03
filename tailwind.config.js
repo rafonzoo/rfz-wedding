@@ -135,6 +135,7 @@ module.exports = {
     ({ addUtilities }) => {
       addUtilities({
         '.backface-hidden': { 'backface-visibility': 'hidden' },
+        '.snap-y-mandatory': { 'scroll-snap-type': 'y mandatory' },
 
         // Transform
         '.translate-z-0': { transform: translate['z-0'] },

@@ -14,7 +14,7 @@ interface ScrollPickerProps {
 const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
   const [state, setState] = createStore({
     value: '',
-    isCapturing: true,
+    isCapturing: !!defaultValue,
   })
 
   let element: HTMLElement
@@ -78,9 +78,9 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
             onscroll={(e) => scrollValue(e.target as HTMLElement)}
             onTouchEnd={() => isMobile() && setState('isCapturing', true)}
             class={clsx(
-              'snap-y-mandatory flex w-full flex-wrap overflow-auto bg-red-200',
+              'flex w-full flex-wrap overflow-auto bg-red-200 snap-y-mandatory',
               'before:content-[" "] before:sticky before:top-14 before:h-7 before:w-full',
-              'before:outline before:outline-amber-500'
+              'before:flex before:outline before:outline-amber-500'
             )}
           >
             {items.map((item, index) => (

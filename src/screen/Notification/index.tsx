@@ -30,6 +30,10 @@ const Notification: Component = () => {
           'December',
         ]}
       />
+      <ScrollPicker
+        defaultValue='18'
+        items={[...Array(24).keys()].map((hour) => `0${hour}`.slice(-2))}
+      />
     </div>
   )
 }
