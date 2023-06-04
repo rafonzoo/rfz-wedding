@@ -8,12 +8,23 @@ const MAX_HEIGHT = 28
 const MAX_LENGTH = 7
 const MAX_DELAY = 150
 
-interface ScrollPickerProps {
+interface ScrollOptionProps {
   defaultValue?: string
-  items: string[]
+  values: string[]
+  index: number
+  onchange?: (value: string) => void
 }
 
-const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
+interface ScrollPickerProps {
+  items: Omit<ScrollOptionProps, 'index'>[]
+}
+
+const ScrollOption: FC<ScrollOptionProps> = ({
+  defaultValue,
+  values,
+  index,
+  onchange,
+}) => {
   const [state, setState] = createStore({
     value: '',
     isCapturing: !!defaultValue,
@@ -58,13 +69,14 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
       delay(MAX_DELAY).then(() => setState('value', value))
       element.scrollTo({
         behavior,
-        top: MAX_HEIGHT * items.indexOf(selected.dataset.value!),
+        top: MAX_HEIGHT * values.indexOf(selected.dataset.value!),
       })
     }
   }
 
   onMount(() => defaultValue && scrollTo(defaultValue))
 
+  createEffect(() => onchange?.(state.value))
   createEffect(() => {
     if (isMobile() && state.isCapturing) {
       return scrollValue(element)
@@ -72,56 +84,80 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
   })
 
   return (
-    <div>
-      <div class='mx-auto flex bg-gray-200 text-black'>
-        <div
-          class={clsx('relative')}
-          ontouchend={() => isMobile() && setState('isCapturing', true)}
-        >
-          <div
-            class={clsx('absolute left-1 right-1 top-21 flex h-7 items-center')}
-          >
-            <span class=' block h-1.5 w-1.5 rounded-full bg-blue-500' />
-          </div>
-          <ul
-            ref={(el) => (element = el)}
-            style={{ 'max-height': `${MAX_HEIGHT * MAX_LENGTH}px` }}
-            onscroll={(e) => scrollValue(e.target as HTMLElement)}
-            class={clsx(
-              'relative z-10 flex flex-col px-4 py-21 snap-y-mandatory overflow-y-touch'
-            )}
-          >
-            {items.map((item) => (
-              <li class='flex h-7 snap-center text-picker font-medium leading-7'>
-                <button
-                  data-value={item}
-                  onclick={({ currentTarget: target }) => {
-                    scrollTo(target.dataset.value!, 'smooth')
-                  }}
-                >
-                  {item}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div
-            class={clsx(
-              'pointer-events-none absolute h-21 opacity-50',
-              'left-4 right-4 top-0 z-10 bg-gray-200'
-            )}
-          />
-          <div
-            class={clsx(
-              'pointer-events-none absolute h-21 opacity-50',
-              'bottom-0 left-4 right-4 z-10 bg-gray-200'
-            )}
-          />
-        </div>
+    <div
+      class={clsx('relative', { [styles.wrapper]: index > 0 })}
+      ontouchend={() => isMobile() && setState('isCapturing', true)}
+    >
+      <div
+        class={clsx(styles.symbol_wrapper, {
+          [styles.symbol_nth]: index > 0,
+        })}
+      >
+        <span class={styles.symbol} />
       </div>
-      <br />
-      Value is: {state.value}
+      <ul
+        ref={(el) => (element = el)}
+        style={{ 'max-height': `${MAX_HEIGHT * MAX_LENGTH}px` }}
+        onscroll={(e) => scrollValue(e.target as HTMLElement)}
+        class={clsx(styles.ul, { [styles.ul_nth]: index > 0 })}
+      >
+        {values.map((value) => (
+          <li class={styles.li}>
+            <button
+              class={styles.li_button}
+              data-value={value}
+              onclick={({ currentTarget: target }) => {
+                scrollTo(target.dataset.value!, 'smooth')
+              }}
+            >
+              {value}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <div>
+        <div class={styles.mask_top} />
+        <div class={styles.mask_bottom} />
+      </div>
     </div>
   )
+}
+
+const ScrollPicker: FC<ScrollPickerProps> = ({ items }) => {
+  return (
+    <div class={styles.container}>
+      {items.map((item, index) => (
+        <ScrollOption
+          defaultValue={item.defaultValue}
+          values={item.values}
+          index={index}
+          onchange={item.onchange}
+        />
+      ))}
+    </div>
+  )
+}
+
+const styles = {
+  container: clsx('inline-flex rounded-xl bg-gray-200 px-2 py-4 text-black'),
+  wrapper: clsx('ml-4 border-l border-l-gray-300'),
+  symbol: clsx('block h-1.5 w-1.5 rounded-full bg-blue-500'),
+  symbol_nth: clsx('!left-4'),
+  symbol_wrapper: clsx('absolute left-1 right-1 top-21 flex h-7 items-center'),
+  ul: clsx(
+    'relative z-10 flex flex-col px-4 py-21 snap-y-mandatory overflow-y-touch'
+  ),
+  ul_nth: clsx('ml-4 !pl-3'),
+  li: clsx('flex h-7 snap-center'),
+  li_button: clsx('text-picker font-medium leading-7 tracking-tight'),
+  mask_top: clsx(
+    'pointer-events-none absolute left-4 right-4 top-0 h-21',
+    'z-10 bg-gradient-to-b from-gray-200 to-[175%]'
+  ),
+  mask_bottom: clsx(
+    'pointer-events-none absolute bottom-0 left-4 right-4 h-21',
+    'z-10 bg-gradient-to-t from-gray-200 to-[175%]'
+  ),
 }
 
 export default ScrollPicker

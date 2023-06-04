@@ -1,8 +1,16 @@
 import type { Component } from 'solid-js'
+import { createStore } from 'solid-js/store'
+import { createEffect } from 'solid-js'
 import ScrollPicker from '@app/components/ScrollPicker'
 import DatePicker from '@app/components/DatePicker'
 
 const Notification: Component = () => {
+  const [date, setDate] = createStore({
+    month: '',
+    year: '',
+  })
+
+  createEffect(() => console.log([date.month, date.year].join(', ')))
   return (
     <div class='min-h-[200vh]'>
       <DatePicker
@@ -13,27 +21,37 @@ const Notification: Component = () => {
         hideHighlight={false}
         markWeekend={true}
       />
-      <ScrollPicker
-        defaultValue='April'
-        items={[
-          'January',
-          'February',
-          'March',
-          'April',
-          'May',
-          'June',
-          'July',
-          'August',
-          'September',
-          'October',
-          'November',
-          'December',
-        ]}
-      />
-      <ScrollPicker
-        defaultValue='18'
-        items={[...Array(24).keys()].map((hour) => `0${hour}`.slice(-2))}
-      />
+      <div class='mx-6'>
+        <ScrollPicker
+          items={[
+            {
+              onchange: (value) => setDate('month', value),
+              defaultValue: 'September',
+              values: [
+                'January',
+                'February',
+                'March',
+                'April',
+                'May',
+                'June',
+                'July',
+                'August',
+                'September',
+                'October',
+                'November',
+                'December',
+              ],
+            },
+            {
+              onchange: (value) => setDate('year', value),
+              defaultValue: '2023',
+              values: [...Array(56).keys()]
+                .map((hour) => `0${hour}`.slice(-2))
+                .map((hour) => `20${hour}`.slice(-4)),
+            },
+          ]}
+        />
+      </div>
     </div>
   )
 }
