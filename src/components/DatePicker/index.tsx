@@ -2,18 +2,15 @@ import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
 import { createEffect } from 'solid-js'
 import dayjs from 'dayjs'
+import { promise } from '@app/helpers/util'
 import clsx from 'clsx'
+import ScrollPicker from '@app/components/ScrollPicker'
 
 interface TimeProps {
   date: number
   month: number
   year: number
   disabled?: boolean
-}
-
-interface MonthProps {
-  current: dayjs.Dayjs
-  dates: TimeProps[]
 }
 
 interface DatePickerProps {
@@ -27,7 +24,12 @@ interface DatePickerProps {
 
 interface DatePickerStore {
   value: string
-  month: MonthProps
+  slider: dayjs.Dayjs
+  dates: TimeProps[]
+  date: string
+  month: string
+  year: string
+  day: string
 }
 
 interface DatePickerState {
@@ -51,16 +53,19 @@ const DatePicker: FC<DatePickerProps> = ({
   min,
   max,
 }) => {
-  const now = dayjs(Date.now())
-  const weeks = DAYS.length
-
-  const [calendar, setCalendar] = createStore<DatePickerStore>({
+  // prettier-ignore
+  const def = {
+    dates: [],
     value: formatDate(defaultValue),
-    month: {
-      current: dayjs(defaultValue),
-      dates: [],
-    },
-  })
+    slider: dayjs(defaultValue),
+
+    get date() { return `0${this.slider.date()}`.slice(-2) },
+    get day() { return `${dayjs.weekdays()[this.slider.day()]}` },
+    get month() { return dayjs.months()[this.slider.month()] },
+    get year() { return `${this.slider.year()}` },
+  }
+
+  const [calendar, setCalendar] = createStore<DatePickerStore>(def)
 
   const [state, setState] = createStore<DatePickerState>({
     lastAction: 'prev',
@@ -70,26 +75,39 @@ const DatePicker: FC<DatePickerProps> = ({
 
   createEffect(async () => {
     const prevOffset =
-      calendar.month.current.add(-1, 'M').date(1).day() <= 0
+      calendar.slider.add(-1, 'M').date(1).day() <= 0
         ? []
-        : datesCreator(calendar.month.current.add(-2, 'M')).slice(
-            -calendar.month.current.add(-1, 'M').date(1).day()
+        : datesCreator(calendar.slider.add(-2, 'M')).slice(
+            -calendar.slider.add(-1, 'M').date(1).day()
           )
 
     const datesCurrent = [
       ...prevOffset,
-      ...datesCreator(calendar.month.current.add(-1, 'M')),
-      ...datesCreator(calendar.month.current),
-      ...datesCreator(calendar.month.current.add(1, 'M')),
+      ...datesCreator(calendar.slider.add(-1, 'M')),
+      ...datesCreator(calendar.slider),
+      ...datesCreator(calendar.slider.add(1, 'M')),
     ]
 
-    setCalendar('month', 'dates', [
+    setCalendar('dates', [
       ...datesCurrent,
-      ...datesCreator(calendar.month.current.add(2, 'M'), false).slice(
+      ...datesCreator(calendar.slider.add(2, 'M'), false).slice(
         0,
         TABLES - datesCurrent.length
       ),
     ])
+  })
+
+  createEffect(() => {
+    calendar.dates
+
+    promise().then(() => {
+      setState(
+        'offset',
+        -Array.from(
+          wrapperButton.querySelectorAll<HTMLElement>('[data-begin]')
+        )[1].offsetTop
+      )
+    })
   })
 
   function monthGo(states: 'next' | 'prev' | 'end') {
@@ -98,7 +116,7 @@ const DatePicker: FC<DatePickerProps> = ({
 
     return () => {
       // prettier-ignore
-      isEnd && setCalendar('month', 'current', (prev) =>
+      isEnd && setCalendar('slider', (prev) =>
         prev.add(state.lastAction === 'next' ? 1 : -1, 'M')
       )
 
@@ -116,8 +134,8 @@ const DatePicker: FC<DatePickerProps> = ({
   return (
     <div class='mx-4 my-6'>
       <p class='pb-4'>
-        <b>Now:</b> {now.format(format)} <br />
-        <b>Month:</b> {calendar.month.current.format('MMMM YYYY')}
+        <b>Now:</b> {dayjs(Date.now()).format(format)} <br />
+        <b>Month:</b> {calendar.slider.format('MMMM YYYY')}
       </p>
       <div class='grid grid-cols-7 gap-x-3 space-y-0.5'>
         {DAYS.map((dayName) => (
@@ -130,7 +148,7 @@ const DatePicker: FC<DatePickerProps> = ({
         <div
           style={{ transform: `translateY(${state.offset}px)` }}
           ontransitionend={monthGo('end')}
-          class={clsx('h-[226px]', {
+          class={clsx({
             'transition-transform duration-300': state.isAnimating === 'month',
           })}
         >
@@ -140,13 +158,13 @@ const DatePicker: FC<DatePickerProps> = ({
               'relative grid w-full grid-cols-7 gap-x-3 gap-y-0.5 translate-z-0'
             )}
           >
-            {calendar.month.dates.map((time) => (
+            {calendar.dates.map((time) => (
               <button
                 data-begin={time.date === 1 ? '' : undefined}
-                disabled={time.month !== calendar.month.current.get('M')}
+                disabled={time.month !== calendar.slider.get('M')}
                 class={clsx('flex h-9 w-full items-center justify-center', {
                   'opacity-50':
-                    time.month !== calendar.month.current.get('M') &&
+                    time.month !== calendar.slider.get('M') &&
                     state.isAnimating === 'none',
                 })}
               >
@@ -163,6 +181,38 @@ const DatePicker: FC<DatePickerProps> = ({
         <button class='mt-6' onclick={monthGo('next')}>
           Next
         </button>
+      </div>
+      <div class='mx-6'>
+        <ScrollPicker
+          items={[
+            {
+              selected: () => calendar.month,
+              values: dayjs.months(),
+              onchange: (value) => {
+                const indexMonth = dayjs
+                  .months()
+                  .findIndex((val) => val === value)
+
+                setCalendar('slider', (prev) =>
+                  prev.isSame(prev.month(indexMonth))
+                    ? prev
+                    : prev.month(indexMonth)
+                )
+              },
+            },
+            {
+              selected: () => calendar.year,
+              values: [...Array(56).keys()]
+                .map((hour) => `0${hour}`.slice(-2))
+                .map((hour) => `20${hour}`.slice(-4)),
+              onchange: (value) => {
+                setCalendar('slider', (prev) =>
+                  prev.isSame(prev.year(+value)) ? prev : prev.year(+value)
+                )
+              },
+            },
+          ]}
+        />
       </div>
     </div>
   )

@@ -1,7 +1,7 @@
-import type { FC } from '@app/types'
+import type { Callable, FC } from '@app/types'
 import { createStore } from 'solid-js/store'
-import { createEffect, onMount } from 'solid-js'
-import { delay, isMobile } from '@app/helpers/util'
+import { createEffect, onMount, splitProps } from 'solid-js'
+import { callable, delay, isMobile } from '@app/helpers/util'
 import clsx from 'clsx'
 
 const MAX_HEIGHT = 28
@@ -9,9 +9,9 @@ const MAX_LENGTH = 7
 const MAX_DELAY = 150
 
 interface ScrollOptionProps {
-  defaultValue?: string
   values: string[]
   index: number
+  selected?: Callable<string>
   onchange?: (value: string) => void
 }
 
@@ -20,14 +20,14 @@ interface ScrollPickerProps {
 }
 
 const ScrollOption: FC<ScrollOptionProps> = ({
-  defaultValue,
+  selected,
   values,
   index,
   onchange,
 }) => {
   const [state, setState] = createStore({
     value: '',
-    isCapturing: !!defaultValue,
+    isCapturing: !!callable(selected),
   })
 
   let element: HTMLElement
@@ -61,22 +61,33 @@ const ScrollOption: FC<ScrollOptionProps> = ({
   }
 
   function scrollTo(value: string, behavior: ScrollBehavior = 'auto') {
-    const selected = Array.from(element.querySelectorAll('button')).find(
+    const el = Array.from(element.querySelectorAll('button')).find(
       (li) => li.dataset.value === value
     )
 
-    if (selected) {
+    if (el) {
       delay(MAX_DELAY).then(() => setState('value', value))
       element.scrollTo({
         behavior,
-        top: MAX_HEIGHT * values.indexOf(selected.dataset.value!),
+        top: MAX_HEIGHT * values.indexOf(el.dataset.value!),
       })
     }
   }
 
-  onMount(() => defaultValue && scrollTo(defaultValue))
+  function scrollToSelected(behavior: ScrollBehavior = 'auto') {
+    return scrollTo(callable(selected) || values[0], behavior)
+  }
 
-  createEffect(() => onchange?.(state.value))
+  // Don't smooth in the first place
+  onMount(scrollToSelected)
+
+  createEffect(() => scrollToSelected('smooth'))
+  createEffect(() => {
+    if (state.value !== '') {
+      onchange?.(state.value)
+    }
+  })
+
   createEffect(() => {
     if (isMobile() && state.isCapturing) {
       return scrollValue(element)
@@ -123,14 +134,15 @@ const ScrollOption: FC<ScrollOptionProps> = ({
   )
 }
 
-const ScrollPicker: FC<ScrollPickerProps> = ({ items }) => {
+const ScrollPicker: FC<ScrollPickerProps> = (props) => {
+  const [{ items }] = splitProps(props, ['items'])
   return (
     <div class={styles.container}>
       {items.map((item, index) => (
         <ScrollOption
-          defaultValue={item.defaultValue}
           values={item.values}
           index={index}
+          selected={item.selected}
           onchange={item.onchange}
         />
       ))}
