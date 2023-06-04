@@ -46,12 +46,12 @@ const DAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 let wrapperButton: HTMLDivElement
 
 const DatePicker: FC<DatePickerProps> = ({
-  hideHighlight = false,
-  markWeekend = true,
+  // hideHighlight = false,
+  // markWeekend = true,
   format = 'dddd, DD MMMM YYYY',
   defaultValue,
-  min,
-  max,
+  // min,
+  // max,
 }) => {
   // prettier-ignore
   const def = {
@@ -98,15 +98,13 @@ const DatePicker: FC<DatePickerProps> = ({
   })
 
   createEffect(() => {
-    calendar.dates
+    const getMonth = dayjs.months()[calendar.slider.month()]
 
     promise().then(() => {
-      setState(
-        'offset',
-        -Array.from(
-          wrapperButton.querySelectorAll<HTMLElement>('[data-begin]')
-        )[1].offsetTop
-      )
+      const element = document.getElementById(`dpm-${getMonth}`)
+      const months = element?.querySelectorAll<HTMLElement>('[data-begin]')
+
+      setState('offset', -Array.from(months || [])[1]?.offsetTop)
     })
   })
 
@@ -154,6 +152,7 @@ const DatePicker: FC<DatePickerProps> = ({
         >
           <div
             ref={wrapperButton}
+            id={`dpm-${calendar.month}`}
             class={clsx(
               'relative grid w-full grid-cols-7 gap-x-3 gap-y-0.5 translate-z-0'
             )}

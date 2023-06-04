@@ -81,7 +81,7 @@ const ScrollOption: FC<ScrollOptionProps> = ({
   // Don't smooth in the first place
   onMount(scrollToSelected)
 
-  createEffect(() => scrollToSelected('smooth'))
+  createEffect(() => scrollToSelected())
   createEffect(() => {
     if (state.value !== '') {
       onchange?.(state.value)
