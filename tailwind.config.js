@@ -115,6 +115,9 @@ module.exports = {
         base: '0.0013em',
         hero: '0.0125em',
       },
+      spacing: {
+        '21': 84,
+      },
       screens: {
         sm: '525px',
         tc: '1024px',
@@ -136,8 +139,9 @@ module.exports = {
       addUtilities({
         '.backface-hidden': { 'backface-visibility': 'hidden' },
         '.snap-y-mandatory': { 'scroll-snap-type': 'y mandatory' },
-        '.overflow-touch': {
-          'overflow': 'auto',
+        '.overflow-y-touch': {
+          'overflow-x': 'hidden',
+          'overflow-y': 'auto',
           '-webkit-overflow-scrolling': 'touch',
         },
 

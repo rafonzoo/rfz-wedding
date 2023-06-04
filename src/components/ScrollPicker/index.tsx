@@ -1,10 +1,12 @@
 import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
 import { createEffect, onMount } from 'solid-js'
-import { isMobile } from '@app/helpers/util'
+import { delay, isMobile } from '@app/helpers/util'
 import clsx from 'clsx'
 
-const ITEM_HEIGHT = 28
+const MAX_HEIGHT = 28
+const MAX_LENGTH = 7
+const MAX_DELAY = 150
 
 interface ScrollPickerProps {
   defaultValue?: string
@@ -22,7 +24,7 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
 
   function scrollValue(target: HTMLElement) {
     const children = target.querySelectorAll('button')
-    const atSnappingPoint = target.scrollTop % ITEM_HEIGHT === 0
+    const atSnappingPoint = target.scrollTop % MAX_HEIGHT === 0
 
     if (isMobile() && atSnappingPoint && !state.isCapturing) {
       return
@@ -44,7 +46,7 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
         value: val === '' || prev.value === val ? prev.value : val,
         isCapturing: isMobile() ? false : prev.isCapturing,
       }))
-    }, 150)
+    }, MAX_DELAY)
   }
 
   function scrollTo(value: string, behavior: ScrollBehavior = 'auto') {
@@ -53,9 +55,10 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
     )
 
     if (selected) {
+      delay(MAX_DELAY).then(() => setState('value', value))
       element.scrollTo({
         behavior,
-        top: ITEM_HEIGHT * items.indexOf(selected.dataset.value!),
+        top: MAX_HEIGHT * items.indexOf(selected.dataset.value!),
       })
     }
   }
@@ -70,42 +73,49 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ defaultValue, items }) => {
 
   return (
     <div>
-      <div class='mx-auto max-w-[262px] bg-gray-200 text-black'>
+      <div class='mx-auto flex bg-gray-200 text-black'>
         <div
-          class='relative'
+          class={clsx('relative')}
           ontouchend={() => isMobile() && setState('isCapturing', true)}
         >
           <div
-            class={clsx(
-              'absolute top-14 block h-7 w-full outline outline-amber-500'
-            )}
-          />
+            class={clsx('absolute left-1 right-1 top-21 flex h-7 items-center')}
+          >
+            <span class=' block h-1.5 w-1.5 rounded-full bg-blue-500' />
+          </div>
           <ul
             ref={(el) => (element = el)}
-            style={{ 'max-height': `${ITEM_HEIGHT * 5}px` }}
+            style={{ 'max-height': `${MAX_HEIGHT * MAX_LENGTH}px` }}
             onscroll={(e) => scrollValue(e.target as HTMLElement)}
             class={clsx(
-              'flex w-full flex-wrap bg-red-200 py-14 snap-y-mandatory overflow-touch'
+              'relative z-10 flex flex-col px-4 py-21 snap-y-mandatory overflow-y-touch'
             )}
           >
             {items.map((item) => (
-              <>
-                <li
-                  class=' basis-full snap-center text-picker'
-                  style={{ height: `${ITEM_HEIGHT}px` }}
+              <li class='flex h-7 snap-center text-picker font-medium leading-7'>
+                <button
+                  data-value={item}
+                  onclick={({ currentTarget: target }) => {
+                    scrollTo(target.dataset.value!, 'smooth')
+                  }}
                 >
-                  <button
-                    data-value={item}
-                    onclick={({ currentTarget: target }) => {
-                      scrollTo(target.dataset.value!, 'smooth')
-                    }}
-                  >
-                    {item}
-                  </button>
-                </li>
-              </>
+                  {item}
+                </button>
+              </li>
             ))}
           </ul>
+          <div
+            class={clsx(
+              'pointer-events-none absolute h-21 opacity-50',
+              'left-4 right-4 top-0 z-10 bg-gray-200'
+            )}
+          />
+          <div
+            class={clsx(
+              'pointer-events-none absolute h-21 opacity-50',
+              'bottom-0 left-4 right-4 z-10 bg-gray-200'
+            )}
+          />
         </div>
       </div>
       <br />
