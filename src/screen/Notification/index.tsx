@@ -1,6 +1,5 @@
 import type { Component } from 'solid-js'
 import { createStore } from 'solid-js/store'
-import { createEffect } from 'solid-js'
 import ScrollPicker from '@app/components/ScrollPicker'
 import DatePicker from '@app/components/DatePicker'
 
@@ -10,7 +9,6 @@ const Notification: Component = () => {
     year: '',
   })
 
-  createEffect(() => console.log([date.month, date.year].join(', ')))
   return (
     <div class='min-h-[200vh]'>
       <DatePicker
@@ -51,6 +49,8 @@ const Notification: Component = () => {
             },
           ]}
         />
+        <br />
+        {[date.month, date.year].filter((d) => d !== '').join(', ')}
       </div>
     </div>
   )

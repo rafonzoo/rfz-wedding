@@ -148,7 +148,7 @@ const styles = {
     'relative z-10 flex flex-col px-4 py-21 snap-y-mandatory overflow-y-touch'
   ),
   ul_nth: clsx('ml-4 !pl-3'),
-  li: clsx('flex h-7 snap-center'),
+  li: clsx('block h-7 snap-center'),
   li_button: clsx('text-picker font-medium leading-7 tracking-tight'),
   mask_top: clsx(
     'pointer-events-none absolute left-4 right-4 top-0 h-21',
