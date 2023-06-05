@@ -185,30 +185,30 @@ const DatePicker: FC<DatePickerProps> = ({
         <ScrollPicker
           items={[
             {
-              selected: () => calendar.month,
+              selected: calendar.month,
               values: dayjs.months(),
-              onchange: (value) => {
-                const indexMonth = dayjs
-                  .months()
-                  .findIndex((val) => val === value)
+              // onchange: (value) => {
+              //   const indexMonth = dayjs
+              //     .months()
+              //     .findIndex((val) => val === value)
 
-                setCalendar('slider', (prev) =>
-                  prev.isSame(prev.month(indexMonth))
-                    ? prev
-                    : prev.month(indexMonth)
-                )
-              },
+              //   setCalendar('slider', (prev) =>
+              //     prev.isSame(prev.month(indexMonth))
+              //       ? prev
+              //       : prev.month(indexMonth)
+              //   )
+              // },
             },
             {
-              selected: () => calendar.year,
+              selected: calendar.year,
               values: [...Array(56).keys()]
                 .map((hour) => `0${hour}`.slice(-2))
                 .map((hour) => `20${hour}`.slice(-4)),
-              onchange: (value) => {
-                setCalendar('slider', (prev) =>
-                  prev.isSame(prev.year(+value)) ? prev : prev.year(+value)
-                )
-              },
+              // onchange: (value) => {
+              //   setCalendar('slider', (prev) =>
+              //     prev.isSame(prev.year(+value)) ? prev : prev.year(+value)
+              //   )
+              // },
             },
           ]}
         />
