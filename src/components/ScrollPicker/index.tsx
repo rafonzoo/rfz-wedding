@@ -2,7 +2,7 @@ import type { SetStoreFunction } from 'solid-js/store'
 import type { Callable, FC } from '@app/types'
 import { createStore } from 'solid-js/store'
 import { createEffect, For } from 'solid-js'
-import { callable, delay } from '@app/helpers/util'
+import { callable } from '@app/helpers/util'
 import clsx from 'clsx'
 
 const MAX_HEIGHT = 28
@@ -35,7 +35,6 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
   setState: parentSetState,
 }) => {
   const [state, setState] = createStore({
-    isScrolling: false,
     isTouch: false,
   })
 
@@ -43,30 +42,44 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
   let tickingTime: NodeJS.Timeout
 
   function scrollValue(target: HTMLElement) {
+    const children = target.querySelectorAll('button')
+    const snap = target.scrollTop % MAX_HEIGHT === 0
+
     clearTimeout(tickingTime)
     parentSetState(index(), 'isScrolling', true)
 
     tickingTime = setTimeout(() => {
-      const children = target.querySelectorAll('button')
-      const snap = target.scrollTop % MAX_HEIGHT === 0
+      const offset = Array.from(children).map(
+        (child, i) => child.parentElement!.clientHeight * i
+      )
 
       if (!snap) {
-        if (!state.isTouch) {
-          target.classList.remove('snap-y-mandatory')
+        let n = 0
 
-          return state.isTouch
-            ? void 0
-            : delay(10)
-                .then(() => target.classList.add('snap-y-mandatory'))
-                .then(() => scrollValue(target))
+        if (!state.isTouch) {
+          for (let i = 0; i < offset.length; i++) {
+            const prev = offset[i - 1]
+            const { scrollTop } = target
+
+            if (scrollTop - offset[i] < 0) {
+              n = i
+
+              if (
+                MAX_HEIGHT - (scrollTop - (prev || 0)) >
+                MAX_HEIGHT + (scrollTop - offset[i])
+              ) {
+                n = i - 1
+              }
+
+              break
+            }
+          }
+
+          return element.scroll({ behavior: 'smooth', top: offset[n] })
         }
 
         return
       }
-
-      const offset = Array.from(children).map(
-        (child, i) => child.parentElement!.clientHeight * i
-      )
 
       const snapped = offset.find((child) => element.scrollTop === child)
       const value = children[offset.indexOf(snapped!)]?.textContent ?? ''
@@ -79,11 +92,26 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
     }, MAX_DELAY * parentState.length)
   }
 
+  function onClickScroll(e: Event) {
+    const value = (e.target as HTMLElement).textContent
+    const index = option.findIndex((opt) => opt === value)
+
+    // Interup touch end
+    e.preventDefault()
+
+    if (index > -1) {
+      element.scroll({
+        behavior: 'smooth',
+        top: MAX_HEIGHT * index,
+      })
+    }
+  }
+
   createEffect(() => {
     const value = parentState[index()].value
 
     if (value) {
-      element.scrollTo({ top: MAX_HEIGHT * option.indexOf(value) })
+      element.scroll({ top: MAX_HEIGHT * option.indexOf(value) })
     }
   })
 
@@ -92,19 +120,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       class={clsx('relative', { [styles.wrapper]: index() > 0 })}
       ontouchstart={() => setState('isTouch', true)}
       ontouchend={() => setState('isTouch', false)}
-      onclick={(e) => {
-        const value = (e.target as HTMLElement).textContent
-
-        // Interup touch end
-        e.preventDefault()
-
-        if (value) {
-          element.scrollTo({
-            behavior: 'smooth',
-            top: MAX_HEIGHT * option.indexOf(value),
-          })
-        }
-      }}
+      onclick={onClickScroll}
     >
       <div
         class={clsx(styles.symbol_wrapper, {
