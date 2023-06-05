@@ -66,7 +66,6 @@ const DatePicker: FC<DatePickerProps> = ({
   }
 
   const [calendar, setCalendar] = createStore<DatePickerStore>(def)
-
   const [state, setState] = createStore<DatePickerState>({
     lastAction: 'prev',
     isAnimating: 'none',
@@ -183,32 +182,20 @@ const DatePicker: FC<DatePickerProps> = ({
       </div>
       <div class='mx-6'>
         <ScrollPicker
+          onchange={([month, year]) => {
+            const indexMonth = dayjs.months().findIndex((val) => val === month)
+            setCalendar('slider', (prev) => prev.month(indexMonth).year(+year))
+          }}
           items={[
             {
-              selected: calendar.month,
-              values: dayjs.months(),
-              // onchange: (value) => {
-              //   const indexMonth = dayjs
-              //     .months()
-              //     .findIndex((val) => val === value)
-
-              //   setCalendar('slider', (prev) =>
-              //     prev.isSame(prev.month(indexMonth))
-              //       ? prev
-              //       : prev.month(indexMonth)
-              //   )
-              // },
+              selected: () => calendar.month,
+              option: dayjs.months(),
             },
             {
-              selected: calendar.year,
-              values: [...Array(56).keys()]
+              selected: () => calendar.year,
+              option: [...Array(56).keys()]
                 .map((hour) => `0${hour}`.slice(-2))
                 .map((hour) => `20${hour}`.slice(-4)),
-              // onchange: (value) => {
-              //   setCalendar('slider', (prev) =>
-              //     prev.isSame(prev.year(+value)) ? prev : prev.year(+value)
-              //   )
-              // },
             },
           ]}
         />

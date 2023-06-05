@@ -10,17 +10,17 @@ const MAX_LENGTH = 7
 const MAX_DELAY = 150
 
 interface ScrollOptionProps {
-  values: string[]
-  index: () => number
-  state: ScrollPickerState[]
+  option: string[]
   selected?: Callable<string>
-  onchange?: (value: string) => void
-  // setState: SetStoreFunction<ScrollPickerState[]>
+
+  state: ScrollPickerState[]
+  index: () => number
   setState: SetStoreFunction<ScrollPickerState[]>
 }
 
 interface ScrollPickerProps {
   items: Omit<ScrollOptionProps, 'index' | 'state' | 'setState'>[]
+  onchange?: (values: string[]) => void
 }
 
 interface ScrollPickerState {
@@ -29,16 +29,12 @@ interface ScrollPickerState {
 }
 
 const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
-  selected,
-  values,
+  option,
   index,
-  onchange,
   state: parentState,
   setState: parentSetState,
 }) => {
   const [state, setState] = createStore({
-    value: '',
-    isCapturing: !!callable(selected),
     isScrolling: false,
     isTouch: false,
   })
@@ -58,12 +54,11 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
         if (!state.isTouch) {
           target.classList.remove('snap-y-mandatory')
 
-          return !state.isTouch
-            ? delay(10).then(() => {
-                target.classList.add('snap-y-mandatory')
-                scrollValue(target)
-              })
-            : void 0
+          return state.isTouch
+            ? void 0
+            : delay(10)
+                .then(() => target.classList.add('snap-y-mandatory'))
+                .then(() => scrollValue(target))
         }
 
         return
@@ -74,71 +69,41 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       )
 
       const snapped = offset.find((child) => element.scrollTop === child)
-      const value = children[offset.indexOf(snapped!)]?.dataset.value ?? ''
+      const value = children[offset.indexOf(snapped!)]?.textContent ?? ''
 
       parentSetState(index(), (prev) => ({
-        ...prev,
-        isScrolling: state.isTouch,
+        isScrolling:
+          prev.isScrolling === state.isTouch ? prev.isScrolling : state.isTouch,
         value: value === '' || prev.value === value ? prev.value : value,
       }))
     }, MAX_DELAY * parentState.length)
   }
 
-  function scrollTo(value: string, behavior: ScrollBehavior = 'auto') {
-    const el = Array.from(element.querySelectorAll('button')).find(
-      (li) => li.dataset.value === value
-    )
-
-    if (el) {
-      delay(MAX_DELAY).then(() => setState('value', value))
-      element.scrollTo({
-        behavior,
-        top: MAX_HEIGHT * values.indexOf(el.dataset.value!),
-      })
-    }
-  }
-
-  function scrollToSelected(behavior: ScrollBehavior = 'auto') {
-    return scrollTo(callable(selected) || values[0], behavior)
-  }
-
-  // Don't smooth in the first place
-  // onMount(() => {
-  //   scrollToSelected()
-  // })
-
   createEffect(() => {
-    // if (state.isScrolling) {
-    //   return setState('isScrolling', false)
-    // }
-    // parentSetState(index(), 'isScrolling', state.isScrolling)
+    const value = parentState[index()].value
+
+    if (value) {
+      element.scrollTo({ top: MAX_HEIGHT * option.indexOf(value) })
+    }
   })
-
-  createEffect(() => scrollToSelected())
-  // createEffect(() => {
-  //   if (state.value !== '') {
-  //     onchange?.(state.value)
-  //   }
-  // })
-
-  // createEffect(() => {
-  //   if (isMobile() && state.isCapturing) {
-  //     return scrollValue(element)
-  //   }
-  // })
 
   return (
     <div
       class={clsx('relative', { [styles.wrapper]: index() > 0 })}
-      onclick={(e) => {
-        const target = e.target
-
-        e.preventDefault()
-        console.log(target)
-      }}
       ontouchstart={() => setState('isTouch', true)}
-      ontouchend={() => {
-        setState('isTouch', false)
+      ontouchend={() => setState('isTouch', false)}
+      onclick={(e) => {
+        const value = (e.target as HTMLElement).textContent
+
+        // Interup touch end
+        e.preventDefault()
+
+        if (value) {
+          element.scrollTo({
+            behavior: 'smooth',
+            top: MAX_HEIGHT * option.indexOf(value),
+          })
+        }
       }}
     >
       <div
@@ -154,18 +119,9 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
         onscroll={(e) => scrollValue(e.currentTarget)}
         class={clsx(styles.ul, { [styles.ul_nth]: index() > 0 })}
       >
-        {values.map((value) => (
+        {option.map((value) => (
           <li class={styles.li}>
-            <button
-              class={styles.li_button}
-              data-value={value}
-              onclick={(e) => {
-                // const { currentTarget: target } = e
-                // scrollTo(target.dataset.value!, 'smooth')
-              }}
-            >
-              {value}
-            </button>
+            <button class={styles.li_button}>{value}</button>
           </li>
         ))}
       </ul>
@@ -177,8 +133,8 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
   )
 }
 
-const ScrollPicker: FC<ScrollPickerProps> = ({ items }) => {
-  const [states, setStates] = createStore(
+const ScrollPicker: FC<ScrollPickerProps> = ({ items, onchange }) => {
+  const [states, setStates] = createStore<ScrollPickerState[]>(
     items.map((item) => ({
       isScrolling: false,
       value: callable(item.selected),
@@ -186,12 +142,19 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ items }) => {
   )
 
   createEffect(() => {
-    const doupdate = states.every((state) => !state.isScrolling)
-
-    if (doupdate) {
-      // console.log('no scroll:', doupdate)
-      console.log(states.map((item) => item.value))
+    if (!states.every((state) => !state.isScrolling)) {
+      return
     }
+
+    onchange?.(
+      states.map((state, index) => state.value || items[index].option[0])
+    )
+  })
+
+  createEffect(() => {
+    items.forEach((item, index) =>
+      setStates(index, 'value', callable(item.selected))
+    )
   })
 
   return (
@@ -199,14 +162,11 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ items }) => {
       <For each={items}>
         {(item, index) => (
           <ScrollOption
-            values={item.values}
-            state={states}
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            setState={setStates}
-            index={index}
+            option={item.option}
             selected={item.selected}
-            onchange={item.onchange}
+            state={states}
+            index={index}
+            setState={setStates}
           />
         )}
       </For>
