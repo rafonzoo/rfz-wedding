@@ -1,5 +1,6 @@
 import type {
   PopoverContentProps,
+  PopoverPortalProps,
   PopoverRootProps,
   PopoverTriggerProps,
 } from '@kobalte/core/dist/types/popover'
@@ -13,6 +14,7 @@ interface iPopup extends iDialog {
     root?: PopoverRootProps
     trigger?: PopoverTriggerProps
     content?: PopoverContentProps
+    portal?: Omit<PopoverPortalProps, 'children'>
   }
 }
 
@@ -24,7 +26,7 @@ const Popup: FC<iPopup> = ({ children, show, setShow, ...rest }) => {
       onOpenChange={setShow}
     >
       <Popover.Trigger {...rest.props?.trigger} />
-      <Popover.Portal>
+      <Popover.Portal {...rest.props?.portal} ref={rest.props?.portal?.ref}>
         <Popover.Content
           {...rest.props?.content}
           class={clsx('outline-none', rest.props?.content?.class, {

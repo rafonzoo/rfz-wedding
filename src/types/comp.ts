@@ -8,7 +8,7 @@ export type iNavbar = {
 }
 
 export type iDialog = {
-  show: Callable<boolean>
+  show: () => boolean
   setShow: (isOpen: boolean) => void
 }
 
