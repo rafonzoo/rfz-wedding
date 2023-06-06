@@ -1,5 +1,5 @@
-import type { Component, JSX } from 'solid-js'
-import type { Callable, iDialog } from '@app/types'
+import type { JSX } from 'solid-js'
+import type { Callable, FC, iDialog } from '@app/types'
 import { createEffect, createSignal } from 'solid-js'
 import { Dialog } from '@kobalte/core'
 import { callable, delay } from '@app/helpers/util'
@@ -10,7 +10,6 @@ import ButtonIcon from '@app/components/Button/Icon'
 
 interface iSheet extends iDialog {
   title?: Callable<string>
-  children?: JSX.Element
   trigger?: JSX.Element
   classes?: {
     trigger?: string
@@ -19,13 +18,13 @@ interface iSheet extends iDialog {
   }
 }
 
-const Sheet: Component<iSheet> = ({
+const Sheet: FC<iSheet> = ({
   classes,
   show,
-  setShow,
   title,
   trigger,
-  ...props
+  children,
+  setShow,
 }) => {
   const [canToggle, setCanToggle] = createSignal(true)
 
@@ -62,7 +61,7 @@ const Sheet: Component<iSheet> = ({
             </div>
           </Dialog.Title>
           <Dialog.Description as='div' class={clsx(styles.desc, classes?.body)}>
-            {props.children}
+            {children}
           </Dialog.Description>
         </Dialog.Content>
       </Dialog.Portal>

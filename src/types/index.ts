@@ -14,4 +14,4 @@ export type ForwardRef<
   T = {}
 > = Component<T & Omit<ComponentProps<R>, 'prefix'>>
 
-export type FC<T = {}> = Component<T>
+export type FC<T = {}> = Component<{ children?: JSX.Element } & T>

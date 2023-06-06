@@ -20,6 +20,8 @@ module.exports = {
   theme: {
     extend: {
       animation: {
+        'popover-in': `popover-in 150ms ${easing['opacity']}`,
+        'popover-out': `popover-out 150ms ${easing['opacity']}`,
         'dialog-in': `dialog-in ${duration['panel']}ms ${easing['panel']}`,
         'dialog-out': `dialog-out ${duration['panel']}ms ${easing['panel']}`,
         'overlay-in': `overlay-in ${duration['overlay']}ms ${easing['opacity']}`,
@@ -59,16 +61,32 @@ module.exports = {
       fontSize: {
         small: ['11px', '15px'],
         base: ['16px', '24px'],
-        picker: ['20px', '24px'],
+        lead: ['20px', '24px'],
         hero: ['30px', '34px'],
       },
       gridTemplateRows: {
         '7': 'repeat(7, minmax(0, 1fr))',
       },
       keyframes: {
-        'swipe-up': {
-          from: { transform: translate['3d-bottom-dialog'] },
-          to: { transform: translate['3d-center'] },
+        'popover-in': {
+          from: {
+            opacity: '0',
+            transform: 'scale(0.75)'
+          },
+          to: {
+            opacity: '1',
+            transform: 'scale(1)'
+          },
+        },
+        'popover-out': {
+          from: {
+            opacity: '1',
+            transform: 'scale(1)'
+          },
+          to: {
+            opacity: '0',
+            transform: 'scale(0.75)'
+          },
         },
         'dialog-in': {
           from: { opacity: '0', transform: translate['3d-bottom-dialog'] },
@@ -113,6 +131,7 @@ module.exports = {
       },
       letterSpacing: {
         base: '0.0013em',
+        lead: '0.0015em',
         hero: '0.0125em',
       },
       spacing: {

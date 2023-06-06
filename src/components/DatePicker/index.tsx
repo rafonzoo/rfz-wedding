@@ -1,9 +1,10 @@
 import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
 import { createEffect } from 'solid-js'
-import dayjs from 'dayjs'
+import { Popover } from '@kobalte/core'
 import { promise } from '@app/helpers/util'
 import clsx from 'clsx'
+import dayjs from 'dayjs'
 import ScrollPicker from '@app/components/ScrollPicker'
 
 interface TimeProps {
@@ -36,6 +37,7 @@ interface DatePickerState {
   offset: number
   lastAction: 'next' | 'prev'
   isAnimating: 'none' | 'month' | 'year'
+  showScrollPicker: boolean
 }
 
 // const TABLES = 42
@@ -70,6 +72,7 @@ const DatePicker: FC<DatePickerProps> = ({
     lastAction: 'prev',
     isAnimating: 'none',
     offset: OFFSET,
+    showScrollPicker: false,
   })
 
   createEffect(async () => {
@@ -180,26 +183,47 @@ const DatePicker: FC<DatePickerProps> = ({
           Next
         </button>
       </div>
-      <div class='mx-6'>
-        <ScrollPicker
-          onchange={([month, year]) => {
-            const indexMonth = dayjs.months().findIndex((val) => val === month)
-            setCalendar('slider', (prev) => prev.month(indexMonth).year(+year))
-          }}
-          items={[
-            {
-              selected: () => calendar.month,
-              option: dayjs.months(),
-            },
-            {
-              selected: () => calendar.year,
-              option: [...Array(56).keys()]
-                .map((hour) => `0${hour}`.slice(-2))
-                .map((hour) => `20${hour}`.slice(-4)),
-            },
-          ]}
-        />
-      </div>
+      <Popover.Root
+        placement='bottom-start'
+        open={state.showScrollPicker}
+        onOpenChange={(isOpen) => setState('showScrollPicker', isOpen)}
+      >
+        <Popover.Trigger>Show picker</Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Content
+            class='origin-top-left outline-none'
+            classList={{
+              'animate-popover-in': state.showScrollPicker,
+              'animate-popover-out': !state.showScrollPicker,
+            }}
+          >
+            <ScrollPicker
+              show={state.showScrollPicker}
+              onchange={([month, year]) => {
+                const indexMonth = dayjs
+                  .months()
+                  .findIndex((val) => val === month)
+
+                setCalendar('slider', (prev) =>
+                  prev.month(indexMonth).year(+year)
+                )
+              }}
+              items={[
+                {
+                  selected: () => calendar.month,
+                  option: dayjs.months(),
+                },
+                {
+                  selected: () => calendar.year,
+                  option: [...Array(56).keys()]
+                    .map((hour) => `0${hour}`.slice(-2))
+                    .map((hour) => `20${hour}`.slice(-4)),
+                },
+              ]}
+            />
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
     </div>
   )
 }

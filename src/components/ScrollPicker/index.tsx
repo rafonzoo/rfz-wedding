@@ -20,6 +20,7 @@ interface ScrollOptionProps {
 
 interface ScrollPickerProps {
   items: Omit<ScrollOptionProps, 'index' | 'state' | 'setState'>[]
+  show: Callable<boolean>
   onchange?: (values: string[]) => void
 }
 
@@ -42,7 +43,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
   let tickingTime: NodeJS.Timeout
 
   function scrollValue(target: HTMLElement) {
-    const children = target.querySelectorAll('button')
+    const children = target.querySelectorAll('li > *')
     const snap = target.scrollTop % MAX_HEIGHT === 0
 
     clearTimeout(tickingTime)
@@ -92,18 +93,19 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
     }, MAX_DELAY * parentState.length)
   }
 
-  function onClickScroll(e: Event) {
-    const value = (e.target as HTMLElement).textContent
-    const index = option.findIndex((opt) => opt === value)
+  function clickHandler(event: Event) {
+    const value = (event.target as HTMLElement).textContent
+    const idx = option.findIndex((opt) => opt === value)
 
     // Interup touch end
-    e.preventDefault()
+    event.preventDefault()
 
-    if (index > -1) {
-      element.scroll({
-        behavior: 'smooth',
-        top: MAX_HEIGHT * index,
-      })
+    if (parentState[index()].isScrolling) {
+      return
+    }
+
+    if (idx > -1) {
+      element.scroll({ behavior: 'smooth', top: MAX_HEIGHT * idx })
     }
   }
 
@@ -120,7 +122,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       class={clsx('relative', { [styles.wrapper]: index() > 0 })}
       ontouchstart={() => setState('isTouch', true)}
       ontouchend={() => setState('isTouch', false)}
-      onclick={onClickScroll}
+      onclick={clickHandler}
     >
       <div
         class={clsx(styles.symbol_wrapper, {
@@ -137,7 +139,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       >
         {option.map((value) => (
           <li class={styles.li}>
-            <button class={styles.li_button}>{value}</button>
+            <p class={styles.li_button}>{value}</p>
           </li>
         ))}
       </ul>
@@ -149,7 +151,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
   )
 }
 
-const ScrollPicker: FC<ScrollPickerProps> = ({ items, onchange }) => {
+const ScrollPicker: FC<ScrollPickerProps> = ({ items, show, onchange }) => {
   const [states, setStates] = createStore<ScrollPickerState[]>(
     items.map((item) => ({
       isScrolling: false,
@@ -157,29 +159,37 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ items, onchange }) => {
     }))
   )
 
+  createEffect(updateItems)
   createEffect(() => {
+    // Exit if one of the item is still scrolling
     if (!states.every((state) => !state.isScrolling)) {
       return
     }
 
-    onchange?.(
-      states.map((state, index) => state.value || items[index].option[0])
-    )
+    // Update if shown only
+    if (callable(show)) {
+      return onchange?.(
+        states.map((state, index) => state.value || items[index].option[0])
+      )
+    }
+
+    // Update scroll position from previous value
+    return updateItems()
   })
 
-  createEffect(() => {
+  function updateItems() {
     items.forEach((item, index) =>
       setStates(index, 'value', callable(item.selected))
     )
-  })
+  }
 
   return (
-    <div class={styles.container}>
+    <div class={clsx(styles.container)}>
       <For each={items}>
         {(item, index) => (
           <ScrollOption
             option={item.option}
-            selected={item.selected}
+            // selected={item.selected}
             state={states}
             index={index}
             setState={setStates}
@@ -191,7 +201,7 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ items, onchange }) => {
 }
 
 const styles = {
-  container: clsx('inline-flex rounded-xl bg-gray-200 px-2 py-4'),
+  container: clsx('relative inline-flex rounded-xl bg-gray-200 px-2 py-4'),
   wrapper: clsx('ml-4 border-l border-l-gray-300'),
   symbol: clsx('block h-1.5 w-1.5 rounded-full bg-blue-500'),
   symbol_nth: clsx('!left-4'),
@@ -201,7 +211,7 @@ const styles = {
   ),
   ul_nth: clsx('ml-4 !pl-3'),
   li: clsx('block h-7 snap-center'),
-  li_button: clsx('text-picker font-medium leading-7'),
+  li_button: clsx('text-lead font-medium leading-7 -tracking-lead'),
   mask_top: clsx(
     'pointer-events-none absolute left-4 right-4 top-0 h-21',
     'z-10 bg-gradient-to-b from-gray-200 to-[175%]'
