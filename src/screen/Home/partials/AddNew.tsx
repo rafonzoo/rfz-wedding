@@ -6,6 +6,7 @@ import clsx from 'clsx'
 import IconPlus from '@app/components/Icon/Plus'
 import IconPaper from '@app/components/Icon/Colored/Paper'
 import Sheet from '@app/components/Dialog/Sheet'
+import ButtonIcon from '@app/components/Button/Icon'
 import ButtonBase from '@app/components/Button/Base'
 import Button from '@app/components/Button'
 
@@ -20,56 +21,56 @@ const ButtonAddNew: Component<AddNewSheetProps> = ({ show, setShow }) => {
   const { screen } = createHook()
 
   return (
-    <>
-      <Sheet
-        show={show}
-        setShow={setShow}
-        title={text.bind(null, 'newInvitation')}
-        trigger={<IconPlus class='m-1' />}
-        classes={{
-          trigger: styles.sheet_trigger,
-          body: styles.sheet_body,
-          content: styles.sheet_content,
-        }}
-      >
-        {addNewSheetOption.map((item) => (
-          <ButtonBase
-            onclick={() => setAddNewMethod(item)}
-            class={clsx(styles.button, {
-              'shadow-outline': addNewMethod() === item,
-            })}
-          >
-            <IconPaper
-              size={32}
-              class='mb-auto mt-1'
-              filled={item === 'template'}
-            />
-            <span class={styles.headline}>
-              <span class='font-semibold'>
-                {item === 'template'
-                  ? text('fromTemplate')
-                  : text('fromScratch')}
-              </span>
-              <span class={styles.description}>{text('dummy')}</span>
-            </span>
-          </ButtonBase>
-        ))}
-        <Button
-          class='mt-3'
-          model='action'
-          onclick={() =>
-            screen({
-              name: 'editor',
-              delay: 'panel',
-              params: { from: addNewMethod() },
-              callback: () => setShow(false),
-            })
-          }
+    <Sheet
+      label={text.bind(null, 'newInvitation')}
+      show={show}
+      setShow={setShow}
+      props={{
+        content: { class: styles.sheet_content },
+        closeButton: { as: ButtonIcon },
+        description: { as: 'div', class: styles.sheet_body },
+        trigger: {
+          as: ButtonIcon,
+          class: styles.sheet_trigger,
+          children: <IconPlus class='m-1' />,
+        },
+      }}
+    >
+      {addNewSheetOption.map((item) => (
+        <ButtonBase
+          onclick={() => setAddNewMethod(item)}
+          class={clsx(styles.button, {
+            'shadow-outline': addNewMethod() === item,
+          })}
         >
-          {text('buat')}
-        </Button>
-      </Sheet>
-    </>
+          <IconPaper
+            size={32}
+            class='mb-auto mt-1'
+            filled={item === 'template'}
+          />
+          <span class={styles.headline}>
+            <span class='font-semibold'>
+              {item === 'template' ? text('fromTemplate') : text('fromScratch')}
+            </span>
+            <span class={styles.description}>{text('dummy')}</span>
+          </span>
+        </ButtonBase>
+      ))}
+      <Button
+        class='mt-3'
+        model='action'
+        onclick={() =>
+          screen({
+            name: 'editor',
+            delay: 'panel',
+            params: { from: addNewMethod() },
+            callback: () => setShow(false),
+          })
+        }
+      >
+        {text('buat')}
+      </Button>
+    </Sheet>
   )
 }
 

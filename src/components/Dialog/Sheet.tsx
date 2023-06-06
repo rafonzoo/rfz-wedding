@@ -1,66 +1,89 @@
-import type { JSX } from 'solid-js'
+import type {
+  DialogCloseButtonProps,
+  DialogContentProps,
+  DialogDescriptionProps,
+  DialogOverlayProps,
+  DialogRootProps,
+  DialogTitleProps,
+  DialogTriggerProps,
+} from '@kobalte/core/dist/types/dialog'
 import type { Callable, FC, iDialog } from '@app/types'
-import { createEffect, createSignal } from 'solid-js'
+import { createSignal } from 'solid-js'
 import { Dialog } from '@kobalte/core'
-import { callable, delay } from '@app/helpers/util'
-import { THEME } from '@app/config/theme'
+import { callable } from '@app/helpers/util'
 import clsx from 'clsx'
 import IconCircleClose from '@app/components/Icon/Circle/Close'
-import ButtonIcon from '@app/components/Button/Icon'
 
 interface iSheet extends iDialog {
-  title?: Callable<string>
-  trigger?: JSX.Element
-  classes?: {
-    trigger?: string
-    content?: string
-    body?: string
+  label: Callable<string>
+  props?: {
+    root?: Omit<DialogRootProps, 'open' | 'onOpenChange'>
+    title?: DialogTitleProps
+    trigger?: DialogTriggerProps
+    overlay?: DialogOverlayProps
+    content?: DialogContentProps
+    description?: DialogDescriptionProps
+    closeButton?: DialogCloseButtonProps
   }
 }
 
-const Sheet: FC<iSheet> = ({
-  classes,
-  show,
-  title,
-  trigger,
-  children,
-  setShow,
-}) => {
-  const [canToggle, setCanToggle] = createSignal(true)
-
-  function controlledTrigger(isOpen: boolean): void {
-    return void (canToggle() && setShow(isOpen))
-  }
-
-  createEffect(async () => {
-    callable(show) // Reactor
-    setCanToggle(false)
-
-    await delay(THEME.animation.duration.panel)
-    setCanToggle(true)
-  })
+const Sheet: FC<iSheet> = ({ children, label, show, setShow, ...rest }) => {
+  const [disableTrigger, setDisabledTrigger] = createSignal(false)
 
   return (
-    <Dialog.Root open={callable(show)} onOpenChange={controlledTrigger}>
-      <Dialog.Trigger as={ButtonIcon} class={clsx(classes?.trigger)}>
-        {trigger}
-      </Dialog.Trigger>
+    <Dialog.Root
+      {...rest.props?.root}
+      open={callable(show)}
+      onOpenChange={(isOpen) => !disableTrigger() && setShow(isOpen)}
+    >
+      <Dialog.Trigger {...rest.props?.trigger} />
       <Dialog.Portal>
         <Dialog.Overlay
-          class={styles.overlay}
-          onclick={() => controlledTrigger(false)} /* iOS 12 */
-          role='button'
+          {...rest.props?.overlay}
+          class={clsx(styles.overlay, rest.props?.overlay?.class)}
+          role={rest.props?.overlay?.role || 'button'}
+          onclick={(e) => {
+            /* iOS 12 */
+            !disableTrigger() && setShow(false)
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            rest.props?.overlay?.onclick?.(e)
+          }}
         />
-        <Dialog.Content class={clsx(styles.content, classes?.content)}>
-          <Dialog.Title>
+        <Dialog.Content
+          {...rest.props?.content}
+          class={clsx(styles.content, rest.props?.content?.class)}
+          onanimationstart={(e) => {
+            setDisabledTrigger(true)
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            rest.props?.overlay?.onanimationstart?.(e)
+          }}
+          onanimationend={(e) => {
+            setDisabledTrigger(false)
+
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error
+            rest.props?.overlay?.onanimationend?.(e)
+          }}
+        >
+          <Dialog.Title {...rest.props?.title}>
             <div class={styles.header}>
-              <div class={styles.title}>{callable(title)}</div>
-              <Dialog.CloseButton as={ButtonIcon} class={styles.close}>
+              <div class={styles.title}>{callable(label)}</div>
+              <Dialog.CloseButton
+                {...rest.props?.closeButton}
+                class={clsx(styles.close, rest.props?.closeButton?.class)}
+              >
                 <IconCircleClose label='Tutup panel' />
               </Dialog.CloseButton>
             </div>
           </Dialog.Title>
-          <Dialog.Description as='div' class={clsx(styles.desc, classes?.body)}>
+          <Dialog.Description
+            {...rest.props?.description}
+            class={clsx(styles.desc, rest.props?.description?.class)}
+          >
             {children}
           </Dialog.Description>
         </Dialog.Content>

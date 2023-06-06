@@ -1,5 +1,5 @@
 import type { SetStoreFunction } from 'solid-js/store'
-import type { Callable, FC } from '@app/types'
+import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
 import { createEffect, For } from 'solid-js'
 import { callable } from '@app/helpers/util'
@@ -11,25 +11,29 @@ const MAX_DELAY = 150
 
 interface ScrollOptionProps {
   option: string[]
-  selected?: Callable<string>
+  selected?: () => string
 
-  state: ScrollPickerState[]
+  state: ScrollPickerState
   index: () => number
-  setState: SetStoreFunction<ScrollPickerState[]>
+  setState: SetStoreFunction<ScrollPickerState>
 }
 
 interface ScrollPickerProps {
   items: Omit<ScrollOptionProps, 'index' | 'state' | 'setState'>[]
-  show: Callable<boolean>
+  show: () => boolean
   onchange?: (values: string[]) => void
 }
 
 interface ScrollPickerState {
-  isScrolling: boolean
-  value?: string
+  active: () => boolean
+  items: {
+    isScrolling: boolean
+    value?: string
+  }[]
 }
 
 const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
+  selected,
   option,
   index,
   state: parentState,
@@ -47,7 +51,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
     const snap = target.scrollTop % MAX_HEIGHT === 0
 
     clearTimeout(tickingTime)
-    parentSetState(index(), 'isScrolling', true)
+    parentSetState('items', index(), 'isScrolling', true)
 
     tickingTime = setTimeout(() => {
       const offset = Array.from(children).map(
@@ -85,12 +89,12 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       const snapped = offset.find((child) => element.scrollTop === child)
       const value = children[offset.indexOf(snapped!)]?.textContent ?? ''
 
-      parentSetState(index(), (prev) => ({
+      parentSetState('items', index(), (prev) => ({
         isScrolling:
           prev.isScrolling === state.isTouch ? prev.isScrolling : state.isTouch,
         value: value === '' || prev.value === value ? prev.value : value,
       }))
-    }, MAX_DELAY * parentState.length)
+    }, MAX_DELAY * parentState.items.length)
   }
 
   function clickHandler(event: Event) {
@@ -100,7 +104,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
     // Interup touch end
     event.preventDefault()
 
-    if (parentState[index()].isScrolling) {
+    if (parentState.items[index()].isScrolling) {
       return
     }
 
@@ -110,10 +114,10 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
   }
 
   createEffect(() => {
-    const value = parentState[index()].value
+    const value = selected?.()
 
     if (value) {
-      element.scroll({ top: MAX_HEIGHT * option.indexOf(value) })
+      element.scrollTo({ top: MAX_HEIGHT * option.indexOf(value) })
     }
   })
 
@@ -152,36 +156,32 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
 }
 
 const ScrollPicker: FC<ScrollPickerProps> = ({ items, show, onchange }) => {
-  const [states, setStates] = createStore<ScrollPickerState[]>(
-    items.map((item) => ({
+  const [state, setState] = createStore<ScrollPickerState>({
+    active: show,
+    items: items.map((item) => ({
       isScrolling: false,
-      value: callable(item.selected),
-    }))
-  )
+      value: item.selected?.(),
+    })),
+  })
 
-  createEffect(updateItems)
   createEffect(() => {
     // Exit if one of the item is still scrolling
-    if (!states.every((state) => !state.isScrolling)) {
+    if (!state.items.every((state) => !state.isScrolling)) {
       return
     }
 
     // Update if shown only
     if (callable(show)) {
       return onchange?.(
-        states.map((state, index) => state.value || items[index].option[0])
+        state.items.map((state, index) => state.value || items[index].option[0])
       )
     }
 
     // Update scroll position from previous value
-    return updateItems()
-  })
-
-  function updateItems() {
     items.forEach((item, index) =>
-      setStates(index, 'value', callable(item.selected))
+      setState('items', index, 'value', callable(item.selected))
     )
-  }
+  })
 
   return (
     <div class={clsx(styles.container)}>
@@ -189,10 +189,10 @@ const ScrollPicker: FC<ScrollPickerProps> = ({ items, show, onchange }) => {
         {(item, index) => (
           <ScrollOption
             option={item.option}
-            // selected={item.selected}
-            state={states}
+            selected={item.selected}
+            state={state}
             index={index}
-            setState={setStates}
+            setState={setState}
           />
         )}
       </For>
