@@ -61,7 +61,7 @@ module.exports = {
       fontSize: {
         small: ['11px', '15px'],
         base: ['16px', '24px'],
-        lead: ['20px', '24px'],
+        lead: ['21px', '24px'],
         hero: ['30px', '34px'],
       },
       gridTemplateRows: {

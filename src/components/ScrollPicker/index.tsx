@@ -6,8 +6,7 @@ import { callable } from '@app/helpers/util'
 import clsx from 'clsx'
 import Popup from '@app/components/Dialog/Popup'
 
-const MAX_HEIGHT = 28
-const MAX_LENGTH = 7
+const MAX_HEIGHT = 32
 const MAX_DELAY = 150
 
 interface ScrollOptionProps {
@@ -121,35 +120,25 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
     if (value && show()) {
       element.scrollTo({ top: MAX_HEIGHT * option.indexOf(value) })
     }
-
-    // delay(0) // Due to Popover forceMount: false
-    //   .then(() => MAX_HEIGHT * option.indexOf(value))
-    //   .then((number) => element.scrollTo({ top: number }))
   })
 
   return (
     <div
-      class={clsx('relative', { [styles.wrapper]: index() > 0 })}
+      class={clsx('relative')}
       ontouchstart={() => setTouch(true)}
       ontouchend={() => setTouch(false)}
       onclick={clickHandler}
     >
-      <div
-        class={clsx(styles.symbol_wrapper, {
-          [styles.symbol_nth]: index() > 0,
-        })}
-      >
-        <span class={styles.symbol} />
-      </div>
       <ul
         ref={(el) => (element = el)}
-        style={{ 'max-height': `${MAX_HEIGHT * MAX_LENGTH}px` }}
         onscroll={(e) => scrollValue(e.currentTarget)}
-        class={clsx(styles.ul, { [styles.ul_nth]: index() > 0 })}
+        class={clsx(styles.ul, { 'pr-6': index() !== state.items.length - 1 })}
       >
         {option.map((value) => (
           <li class={styles.li}>
-            <p class={styles.li_button}>{value}</p>
+            <p class={styles.li_item} style={{ height: MAX_HEIGHT + 'px' }}>
+              {value}
+            </p>
           </li>
         ))}
       </ul>
@@ -208,7 +197,10 @@ const ScrollPicker: FC<ScrollPickerProps> = ({
         },
       }}
     >
-      <div class={clsx(styles.container)}>
+      <div
+        class={clsx(styles.container)}
+        style={{ 'font-size': MAX_HEIGHT + 'px' }}
+      >
         <For each={items}>
           {(item, index) => (
             <ScrollOption
@@ -222,30 +214,31 @@ const ScrollPicker: FC<ScrollPickerProps> = ({
             />
           )}
         </For>
+        <div class={clsx(styles.symbol_wrapper)} />
       </div>
     </Popup>
   )
 }
 
 const styles = {
-  container: clsx('relative inline-flex rounded-xl bg-gray-200 px-2 py-4'),
-  wrapper: clsx('ml-4 border-l border-l-gray-300'),
-  symbol: clsx('block h-1.5 w-1.5 rounded-full bg-blue-500'),
-  symbol_nth: clsx('!left-4'),
-  symbol_wrapper: clsx('absolute left-1 right-1 top-21 flex h-7 items-center'),
-  ul: clsx(
-    'relative z-10 flex flex-col px-4 py-21 snap-y-mandatory overflow-y-touch'
+  container: clsx('relative inline-flex rounded-xl bg-gray-200 p-4'),
+  symbol_wrapper: clsx(
+    'absolute left-4 right-4 top-[3em] mt-4 flex h-[1em] items-center',
+    '!ml-0 border-b border-t border-gray-400'
   ),
-  ul_nth: clsx('ml-4 !pl-3'),
-  li: clsx('block h-7 snap-center'),
-  li_button: clsx('text-lead font-medium leading-7 -tracking-lead'),
+  ul: clsx(
+    'relative z-10 flex max-h-[7em] flex-col py-[3em]',
+    'snap-y-mandatory overflow-y-touch'
+  ),
+  li: clsx('snap-center'),
+  li_item: clsx('flex items-center text-lead font-medium -tracking-lead'),
   mask_top: clsx(
-    'pointer-events-none absolute left-4 right-4 top-0 h-21',
-    'z-10 bg-gradient-to-b from-gray-200 to-[175%]'
+    'pointer-events-none absolute left-0 right-0 top-0 h-[3em]',
+    'z-10 bg-gradient-to-b from-gray-200 from-[5%] to-[rgb(228_228_228_/_70%)]'
   ),
   mask_bottom: clsx(
-    'pointer-events-none absolute bottom-0 left-4 right-4 h-21',
-    'z-10 bg-gradient-to-t from-gray-200 to-[175%]'
+    'pointer-events-none absolute bottom-0 left-0 right-0 h-[3em]',
+    'z-10 bg-gradient-to-t from-gray-200 from-[5%] to-[rgb(228_228_228_/_70%)]'
   ),
 }
 
