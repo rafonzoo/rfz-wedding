@@ -34,7 +34,6 @@ interface ScrollPickerState {
 const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
   option,
   state,
-  // dialog,
   show,
   setState,
   selected,
@@ -132,13 +131,14 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       <ul
         ref={(el) => (element = el)}
         onscroll={(e) => scrollValue(e.currentTarget)}
-        class={clsx(styles.ul, { 'pr-6': index() !== state.items.length - 1 })}
+        class={clsx(styles.ul, {
+          'pl-4 pr-8': index() > 0,
+          'pl-8 pr-4': index() === 0,
+        })}
       >
         {option.map((value) => (
           <li class={styles.li}>
-            <p class={styles.li_item} style={{ height: MAX_HEIGHT + 'px' }}>
-              {value}
-            </p>
+            <p class={styles.li_item}>{value}</p>
           </li>
         ))}
       </ul>
@@ -221,24 +221,24 @@ const ScrollPicker: FC<ScrollPickerProps> = ({
 }
 
 const styles = {
-  container: clsx('relative inline-flex rounded-xl bg-gray-200 p-4'),
+  container: clsx('relative inline-flex rounded-xl bg-gray-200 py-4'),
   symbol_wrapper: clsx(
-    'absolute left-4 right-4 top-[3em] mt-4 flex h-[1em] items-center',
-    '!ml-0 border-b border-t border-gray-400'
+    'absolute left-4 right-4 top-[3em] mt-4 flex h-[1em]',
+    '!ml-0 items-center rounded-lg bg-gray-300'
   ),
   ul: clsx(
     'relative z-10 flex max-h-[7em] flex-col py-[3em]',
-    'snap-y-mandatory overflow-y-touch'
+    'scroll-picker snap-y-mandatory overflow-y-touch'
   ),
-  li: clsx('snap-center'),
-  li_item: clsx('flex items-center text-lead font-medium -tracking-lead'),
+  li: clsx('flex min-h-[1em] snap-center items-center'),
+  li_item: clsx('flex w-full select-none text-lead font-medium -tracking-wide'),
   mask_top: clsx(
     'pointer-events-none absolute left-0 right-0 top-0 h-[3em]',
-    'z-10 bg-gradient-to-b from-gray-200 from-[5%] to-[rgb(228_228_228_/_70%)]'
+    'z-10 bg-gradient-to-b from-gray-200 from-[10%] to-[rgb(228_228_228_/_50%)]'
   ),
   mask_bottom: clsx(
     'pointer-events-none absolute bottom-0 left-0 right-0 h-[3em]',
-    'z-10 bg-gradient-to-t from-gray-200 from-[5%] to-[rgb(228_228_228_/_70%)]'
+    'z-10 bg-gradient-to-t from-gray-200 from-[10%] to-[rgb(228_228_228_/_50%)]'
   ),
 }
 
