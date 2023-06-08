@@ -71,7 +71,8 @@ module.exports = {
         'popover-in': {
           from: {
             opacity: '0',
-            transform: 'scale(0.75)'
+            transform: 'scale(0.75)',
+            'will-change': 'opacity, transform'
           },
           to: {
             opacity: '1',
@@ -81,7 +82,8 @@ module.exports = {
         'popover-out': {
           from: {
             opacity: '1',
-            transform: 'scale(1)'
+            transform: 'scale(1)',
+            'will-change': 'opacity, transform'
           },
           to: {
             opacity: '0',

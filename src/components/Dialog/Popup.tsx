@@ -29,10 +29,14 @@ const Popup: FC<iPopup> = ({ children, show, setShow, ...rest }) => {
       <Popover.Portal {...rest.props?.portal} ref={rest.props?.portal?.ref}>
         <Popover.Content
           {...rest.props?.content}
-          class={clsx('outline-none', rest.props?.content?.class, {
-            'animate-popover-in': callable(show),
-            'animate-popover-out': !callable(show),
-          })}
+          class={clsx(
+            'outline-none will-change-[opacity,transform]',
+            rest.props?.content?.class,
+            {
+              'animate-popover-in': callable(show),
+              'animate-popover-out': !callable(show),
+            }
+          )}
         >
           {children}
         </Popover.Content>

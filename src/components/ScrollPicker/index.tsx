@@ -1,4 +1,5 @@
 import type { SetStoreFunction } from 'solid-js/store'
+import type { PopoverTriggerProps } from '@kobalte/core/dist/types/popover'
 import type { FC, iDialog } from '@app/types'
 import { createStore } from 'solid-js/store'
 import { createEffect, createSignal, For } from 'solid-js'
@@ -9,9 +10,14 @@ import Popup from '@app/components/Dialog/Popup'
 const MAX_HEIGHT = 32
 const MAX_DELAY = 150
 
+type ScrollClasses = {
+  [P in 'ul' | 'li' | 'wrapper']?: string
+}
+
 interface ScrollOptionProps {
-  option: string[]
+  option: () => string[]
   selected?: () => string
+  classes?: ScrollClasses
 
   state: ScrollPickerState
   show: () => boolean
@@ -20,6 +26,7 @@ interface ScrollOptionProps {
 }
 
 interface ScrollPickerProps extends iDialog {
+  trigger: PopoverTriggerProps
   items: Omit<ScrollOptionProps, 'index' | 'state' | 'setState' | 'show'>[]
   onchange?: (values: string[]) => void
 }
@@ -32,8 +39,9 @@ interface ScrollPickerState {
 }
 
 const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
-  option,
   state,
+  classes,
+  option,
   show,
   setState,
   selected,
@@ -43,6 +51,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
 
   let element: HTMLElement
   let tickingTime: NodeJS.Timeout
+  let tickingClick: NodeJS.Timeout
 
   function scrollValue(target: HTMLElement) {
     const children = target.querySelectorAll('li > *')
@@ -90,7 +99,7 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       setState('items', index(), (prev) => {
         return {
           isScrolling:
-            prev.isScrolling === isTouch() ? prev.isScrolling : isTouch(),
+            prev.isScrolling === isTouch() ? prev.isScrolling : false,
           value: prev.value === value || !show() ? prev.value : value,
         }
       })
@@ -99,12 +108,20 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
 
   function clickHandler(event: Event) {
     const value = (event.target as HTMLElement).textContent
-    const idx = option.findIndex((opt) => opt === value)
+    const idx = option().findIndex((opt) => opt === value)
 
     // Interup touch end
     event.preventDefault()
 
-    if (state.items[index()].isScrolling) {
+    if (state.items.some((state) => state.isScrolling)) {
+      clearTimeout(tickingClick)
+
+      tickingClick = setTimeout(() => {
+        if (idx > -1) {
+          element.scroll({ behavior: 'smooth', top: MAX_HEIGHT * idx })
+        }
+      }, MAX_DELAY * state.items.length)
+
       return
     }
 
@@ -115,15 +132,16 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
 
   createEffect(() => {
     const value = selected?.()
+    const idx = option().indexOf(value!)
 
     if (value && show()) {
-      element.scrollTo({ top: MAX_HEIGHT * option.indexOf(value) })
+      element.scrollTo({ top: MAX_HEIGHT * idx })
     }
   })
 
   return (
     <div
-      class={clsx('relative')}
+      class={clsx('relative', classes?.wrapper)}
       ontouchstart={() => setTouch(true)}
       ontouchend={() => setTouch(false)}
       onclick={clickHandler}
@@ -131,26 +149,23 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       <ul
         ref={(el) => (element = el)}
         onscroll={(e) => scrollValue(e.currentTarget)}
-        class={clsx(styles.ul, {
+        class={clsx(styles.ul, classes?.ul, {
           'pl-4 pr-8': index() > 0,
           'pl-8 pr-4': index() === 0,
         })}
       >
-        {option.map((value) => (
-          <li class={styles.li}>
+        {option().map((value) => (
+          <li class={clsx(styles.li, classes?.li)}>
             <p class={styles.li_item}>{value}</p>
           </li>
         ))}
       </ul>
-      <div>
-        <div class={styles.mask_top} />
-        <div class={styles.mask_bottom} />
-      </div>
     </div>
   )
 }
 
 const ScrollPicker: FC<ScrollPickerProps> = ({
+  trigger,
   items,
   show,
   setShow,
@@ -189,7 +204,7 @@ const ScrollPicker: FC<ScrollPickerProps> = ({
       show={show}
       setShow={setShow}
       props={{
-        trigger: { children: 'Show picker' },
+        trigger: { ...trigger },
         root: { placement: 'bottom-start' },
         content: {
           class: 'origin-top-left',
@@ -197,48 +212,58 @@ const ScrollPicker: FC<ScrollPickerProps> = ({
         },
       }}
     >
-      <div
-        class={clsx(styles.container)}
-        style={{ 'font-size': MAX_HEIGHT + 'px' }}
-      >
-        <For each={items}>
-          {(item, index) => (
-            <ScrollOption
-              option={item.option}
-              selected={item.selected}
-              // private
-              state={state}
-              index={index}
-              setState={setState}
-              show={active}
-            />
-          )}
-        </For>
-        <div class={clsx(styles.symbol_wrapper)} />
+      <div class={styles.container}>
+        <div
+          class={clsx(styles.wrapper)}
+          style={{ 'font-size': MAX_HEIGHT + 'px' }}
+        >
+          <For each={items}>
+            {(item, index) => (
+              <ScrollOption
+                classes={item.classes}
+                option={item.option}
+                selected={item.selected}
+                // private
+                state={state}
+                index={index}
+                setState={setState}
+                show={active}
+              />
+            )}
+          </For>
+          <div>
+            <div class={clsx(styles.selected)}></div>
+            <div class={styles.mask_top} />
+            <div class={styles.mask_bottom} />
+          </div>
+        </div>
       </div>
     </Popup>
   )
 }
 
 const styles = {
-  container: clsx('relative inline-flex rounded-xl bg-gray-200 py-4'),
-  symbol_wrapper: clsx(
-    'absolute left-4 right-4 top-[3em] mt-4 flex h-[1em]',
-    '!ml-0 items-center rounded-lg bg-gray-300'
+  container: clsx('rounded-xl bg-gray-200'),
+  wrapper: clsx('relative my-4 inline-flex'),
+  selected: clsx(
+    'absolute left-4 right-4 top-[3em] flex h-[1em]',
+    'items-center rounded-lg bg-gray-300'
   ),
   ul: clsx(
     'relative z-10 flex max-h-[7em] flex-col py-[3em]',
     'scroll-picker snap-y-mandatory overflow-y-touch'
   ),
-  li: clsx('flex min-h-[1em] snap-center items-center'),
-  li_item: clsx('flex w-full select-none text-lead font-medium -tracking-wide'),
+  li: clsx('flex min-h-[1em] snap-center flex-col'),
+  li_item: clsx(
+    'flex w-full flex-grow select-none items-center text-lead font-medium -tracking-wide'
+  ),
   mask_top: clsx(
-    'pointer-events-none absolute left-0 right-0 top-0 h-[3em]',
-    'z-10 bg-gradient-to-b from-gray-200 from-[10%] to-[rgb(228_228_228_/_50%)]'
+    'pointer-events-none absolute left-0 right-0 top-0 z-10 h-[3em]',
+    'bg-gradient-to-b from-gray-200 from-[10%] to-[rgb(228_228_228_/_50%)]'
   ),
   mask_bottom: clsx(
-    'pointer-events-none absolute bottom-0 left-0 right-0 h-[3em]',
-    'z-10 bg-gradient-to-t from-gray-200 from-[10%] to-[rgb(228_228_228_/_50%)]'
+    'pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-[3em]',
+    'bg-gradient-to-t from-gray-200 from-[10%] to-[rgb(228_228_228_/_50%)]'
   ),
 }
 
