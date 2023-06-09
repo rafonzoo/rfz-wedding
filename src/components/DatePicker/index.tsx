@@ -256,8 +256,6 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     const month = months()
     const last = month[month.length - 1]
 
-    console.log(mintime ? month[0] : last)
-
     if (month.indexOf(calendar.month) > -1) {
       return calendar.month
     }
@@ -266,13 +264,15 @@ const DatePicker: FC<DatePickerProps> = (props) => {
       return calendar.slider.isAfter(maxtime) ? last : month[0]
     }
 
-    // console.log(mintime ? month[0] : last)
-
     return mintime ? month[0] : last
   }
 
   createEffect(onChangedMonthEffect)
   createEffect(onChangedYearEffect)
+
+  createEffect(() => {
+    // console.log(calendar.month)
+  })
 
   return (
     <div class='rounded-xl bg-translucent-light'>
@@ -390,7 +390,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
               onchange={onChangedPicker}
               items={[
                 {
-                  selected: calendar.month,
+                  selected: onChangedSelected(),
                   option: months(),
                   classes: { li: 'min-w-[107px]' },
                 },
