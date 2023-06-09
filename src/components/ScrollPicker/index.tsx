@@ -1,33 +1,34 @@
 import type { SetStoreFunction } from 'solid-js/store'
-import type { PopoverTriggerProps } from '@kobalte/core/dist/types/popover'
-import type { FC, iDialog } from '@app/types'
+import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
-import { createEffect, createSignal, For } from 'solid-js'
-import { callable } from '@app/helpers/util'
+import { createEffect, createSignal, For, onMount } from 'solid-js'
 import clsx from 'clsx'
-import Popup from '@app/components/Dialog/Popup'
 
 const MAX_HEIGHT = 32
 const MAX_DELAY = 150
 
-type ScrollClasses = {
-  [P in 'ul' | 'li' | 'wrapper']?: string
+interface ScrollOptionProps {
+  option: string[]
+  selected?: string
+  classes?: {
+    [P in 'ul' | 'li' | 'wrapper']?: string
+  }
 }
 
-interface ScrollOptionProps {
-  option: () => string[]
-  selected?: () => string
-  classes?: ScrollClasses
-
+interface ScrollOptionState extends ScrollOptionProps {
   state: ScrollPickerState
-  show: () => boolean
+  // show: () => boolean
   index: () => number
   setState: SetStoreFunction<ScrollPickerState>
+  onchange?: (values: string[]) => void
 }
 
-interface ScrollPickerProps extends iDialog {
-  trigger: PopoverTriggerProps
-  items: Omit<ScrollOptionProps, 'index' | 'state' | 'setState' | 'show'>[]
+interface ScrollPickerProps {
+  // show: boolean
+  // setShow: (isOpen: boolean) => void
+  // trigger: PopoverTriggerProps
+  // open: boolean
+  items: ScrollOptionProps[]
   onchange?: (values: string[]) => void
 }
 
@@ -38,15 +39,7 @@ interface ScrollPickerState {
   }[]
 }
 
-const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
-  state,
-  classes,
-  option,
-  show,
-  setState,
-  selected,
-  index,
-}) => {
+const ScrollOption: FC<ScrollOptionState> = (props) => {
   const [isTouch, setTouch] = createSignal(false)
 
   let element: HTMLElement
@@ -58,12 +51,14 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
     const snap = target.scrollTop % MAX_HEIGHT === 0
 
     clearTimeout(tickingTime)
-    setState('items', index(), 'isScrolling', true)
+    props.setState('items', props.index(), 'isScrolling', true)
 
     tickingTime = setTimeout(() => {
       const offset = Array.from(children).map(
         (child, i) => child.parentElement!.clientHeight * i
       )
+
+      // console.log(snap, props.state.items[props.index()])
 
       if (!snap) {
         let n = 0
@@ -96,31 +91,31 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       const snapped = offset.find((child) => element.scrollTop === child)
       const value = children[offset.indexOf(snapped!)]?.textContent ?? ''
 
-      setState('items', index(), (prev) => {
+      props.setState('items', props.index(), (prev) => {
         return {
           isScrolling:
             prev.isScrolling === isTouch() ? prev.isScrolling : false,
-          value: prev.value === value || !show() ? prev.value : value,
+          value: prev.value === value ? prev.value : value,
         }
       })
-    }, MAX_DELAY * state.items.length)
+    }, MAX_DELAY * props.state.items.length)
   }
 
   function clickHandler(event: Event) {
     const value = (event.target as HTMLElement).textContent
-    const idx = option().findIndex((opt) => opt === value)
+    const idx = props.option.findIndex((opt) => opt === value)
 
     // Interup touch end
     event.preventDefault()
 
-    if (state.items.some((state) => state.isScrolling)) {
+    if (props.state.items.some((state) => state.isScrolling)) {
       clearTimeout(tickingClick)
 
       tickingClick = setTimeout(() => {
         if (idx > -1) {
           element.scroll({ behavior: 'smooth', top: MAX_HEIGHT * idx })
         }
-      }, MAX_DELAY * state.items.length)
+      }, MAX_DELAY * props.state.items.length)
 
       return
     }
@@ -130,18 +125,16 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
     }
   }
 
-  createEffect(() => {
-    const value = selected?.()
-    const idx = option().indexOf(value!)
+  onMount(() => {
+    const idx = props.option.indexOf(props.selected!)
 
-    if (value && show()) {
+    if (idx > -1) {
       element.scrollTo({ top: MAX_HEIGHT * idx })
     }
   })
-
   return (
     <div
-      class={clsx('relative', classes?.wrapper)}
+      class={clsx('relative', props.classes?.wrapper)}
       ontouchstart={() => setTouch(true)}
       ontouchend={() => setTouch(false)}
       onclick={clickHandler}
@@ -149,13 +142,13 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
       <ul
         ref={(el) => (element = el)}
         onscroll={(e) => scrollValue(e.currentTarget)}
-        class={clsx(styles.ul, classes?.ul, {
-          'pl-4 pr-8': index() > 0,
-          'pl-8 pr-4': index() === 0,
+        class={clsx(styles.ul, props.classes?.ul, {
+          'pl-4 pr-8': props.index() > 0,
+          'pl-8 pr-4': props.index() === 0,
         })}
       >
-        {option().map((value) => (
-          <li class={clsx(styles.li, classes?.li)}>
+        {props.option.map((value) => (
+          <li class={clsx(styles.li, props.classes?.li)}>
             <p class={styles.li_item}>{value}</p>
           </li>
         ))}
@@ -164,81 +157,64 @@ const ScrollOption: FC<ScrollOptionProps & Partial<ScrollPickerState>> = ({
   )
 }
 
-const ScrollPicker: FC<ScrollPickerProps> = ({
-  trigger,
-  items,
-  show,
-  setShow,
-  onchange,
-}) => {
-  const [active, setActive] = createSignal(false)
+const ScrollPicker: FC<ScrollPickerProps> = (props) => {
   const [state, setState] = createStore<ScrollPickerState>({
-    items: items.map((item) => ({
+    items: props.items.map((item) => ({
       isScrolling: false,
-      value: item.selected?.(),
+      value: item.selected,
     })),
   })
 
-  createEffect(() => setActive((prev) => (prev === show() ? prev : show())))
   createEffect(() => {
     // Exit if one of the item is still scrolling
-    if (state.items.some((state) => state.isScrolling) && active()) {
+    if (state.items.some((state) => state.isScrolling)) {
       return
     }
 
     // Update if shown only
-    onchange?.(
-      state.items.map((state, index) => state.value || items[index].selected!())
+    props.onchange?.(
+      state.items.map(
+        (state, index) => state.value || props.items[index].selected!
+      )
     )
   })
 
   createEffect(() => {
     // Sync updated scroll position in the background
-    items.forEach((item, index) =>
-      setState('items', index, 'value', callable(item.selected))
+    props.items.forEach((item, index) =>
+      setState('items', index, 'value', (prev) =>
+        prev === item.selected ? prev : item.selected
+      )
     )
   })
 
   return (
-    <Popup
-      show={show}
-      setShow={setShow}
-      props={{
-        trigger: { ...trigger },
-        root: { placement: 'bottom-start' },
-        content: {
-          class: 'origin-top-left',
-          ref: (el) => setActive(!!el),
-        },
-      }}
-    >
-      <div class={styles.container}>
-        <div
-          class={clsx(styles.wrapper)}
-          style={{ 'font-size': MAX_HEIGHT + 'px' }}
-        >
-          <For each={items}>
-            {(item, index) => (
-              <ScrollOption
-                classes={item.classes}
-                option={item.option}
-                selected={item.selected}
-                // private
-                state={state}
-                index={index}
-                setState={setState}
-                show={active}
-              />
-            )}
-          </For>
-          <div>
-            <div class={clsx(styles.selected)}></div>
-            <div class={styles.mask_top} />
-            <div class={styles.mask_bottom} />
-          </div>
+    <div class={styles.container}>
+      <div
+        class={clsx(styles.wrapper)}
+        style={{ 'font-size': MAX_HEIGHT + 'px' }}
+      >
+        <For each={props.items}>
+          {(item, index) => (
+            <ScrollOption
+              classes={item.classes}
+              option={item.option}
+              selected={item.selected}
+              // private
+              state={state}
+              index={index}
+              setState={setState}
+              onchange={props.onchange}
+            />
+          )}
+        </For>
+        <div>
+          <div class={clsx(styles.selected)}></div>
+          <div class={styles.mask_top} />
+          <div class={styles.mask_bottom} />
         </div>
       </div>
-    </Popup>
+    </div>
   )
 }
 
@@ -255,7 +231,7 @@ const styles = {
   ),
   li: clsx('flex min-h-[1em] snap-center flex-col'),
   li_item: clsx(
-    'flex w-full flex-grow select-none items-center text-lead font-medium -tracking-wide'
+    'flex w-full flex-grow select-none items-center text-picker font-medium -tracking-heading text-black'
   ),
   mask_top: clsx(
     'pointer-events-none absolute left-0 right-0 top-0 z-10 h-[3em]',

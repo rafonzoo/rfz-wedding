@@ -11,7 +11,8 @@ const styles = {
   index: clsx(
     'flex appearance-none items-center justify-center',
     'rounded-md text-center text-base -tracking-base',
-    'outline-none focus-visible:shadow-focus disabled:opacity-50'
+    'outline-none focus-visible:shadow-focus',
+    'disabled:pointer-events-none disabled:opacity-50'
   ),
 }
 

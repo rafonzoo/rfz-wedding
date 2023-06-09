@@ -1,4 +1,5 @@
 import type { ForwardRef } from '@app/types'
+import { splitProps } from 'solid-js'
 import clsx from 'clsx'
 
 interface TopbarProps {
@@ -6,14 +7,14 @@ interface TopbarProps {
   separator?: boolean
 }
 
-const Topbar: ForwardRef<'div', TopbarProps> = ({
-  position = 'absolute',
-  separator = false,
-  ...props
-}) => {
+const Topbar: ForwardRef<'div', TopbarProps> = (props) => {
+  const [{ position = 'absolute', separator = false }, rest] = splitProps(
+    props,
+    ['position', 'separator']
+  )
   return (
     <div
-      {...props}
+      {...rest}
       class={clsx(styles.index, position, props.class, {
         [styles.border]: separator,
         [styles.backdrop]: position !== 'relative',

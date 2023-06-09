@@ -7,14 +7,14 @@ import type {
   DialogTitleProps,
   DialogTriggerProps,
 } from '@kobalte/core/dist/types/dialog'
-import type { Callable, FC, iDialog } from '@app/types'
-import { createSignal } from 'solid-js'
+import type { Callable, FC, iState } from '@app/types'
+import { createSignal, splitProps } from 'solid-js'
 import { Dialog } from '@kobalte/core'
 import { callable } from '@app/helpers/util'
 import clsx from 'clsx'
 import IconCircleClose from '@app/components/Icon/Circle/Close'
 
-interface iSheet extends iDialog {
+interface iSheet extends iState {
   label: Callable<string>
   props?: {
     root?: Omit<DialogRootProps, 'open' | 'onOpenChange'>
@@ -27,8 +27,13 @@ interface iSheet extends iDialog {
   }
 }
 
-const Sheet: FC<iSheet> = ({ children, label, show, setShow, ...rest }) => {
+const Sheet: FC<iSheet> = (props) => {
   const [disableTrigger, setDisabledTrigger] = createSignal(false)
+  const [{ label, show, setShow }, rest] = splitProps(props, [
+    'label',
+    'show',
+    'setShow',
+  ])
 
   return (
     <Dialog.Root
@@ -84,7 +89,7 @@ const Sheet: FC<iSheet> = ({ children, label, show, setShow, ...rest }) => {
             {...rest.props?.description}
             class={clsx(styles.desc, rest.props?.description?.class)}
           >
-            {children}
+            {rest.children}
           </Dialog.Description>
         </Dialog.Content>
       </Dialog.Portal>

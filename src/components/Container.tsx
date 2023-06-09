@@ -1,5 +1,5 @@
 import type { Component, lazy } from 'solid-js'
-import { createEffect, Suspense } from 'solid-js'
+import { createEffect, splitProps, Suspense } from 'solid-js'
 import { useIsRouting } from '@solidjs/router'
 import { currentPage } from '@app/helpers'
 import clsx from 'clsx'
@@ -13,11 +13,12 @@ interface ContainerProps {
   isPrimary?: boolean
 }
 
-const Container: Component<ContainerProps> = ({
-  comp: Comp,
-  isPrimary = true,
-}) => {
+const Container: Component<ContainerProps> = (props) => {
   const isRouting = useIsRouting()
+  const [{ comp: Comp, isPrimary = true }] = splitProps(props, [
+    'comp',
+    'isPrimary',
+  ])
 
   createEffect(() => {
     const { background } = currentPage()

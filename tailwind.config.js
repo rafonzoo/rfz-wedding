@@ -51,7 +51,6 @@ module.exports = {
           800: '#27272A',
           900: '#18181B',
         },
-        devider: 'rgba(147 147 147 / 0.2)',
         'blur-light': 'rgba(255 255 255 / 0.7)',
         'blur-dark': 'rgba(0 0 0 / 0.7)',
       },
@@ -60,8 +59,11 @@ module.exports = {
       },
       fontSize: {
         small: ['11px', '15px'],
+        caption: ['12px', '16px'],
         base: ['16px', '24px'],
-        lead: ['21px', '24px'],
+        lead: ['20px', '24px'],
+        picker: ['21px', '24px'],
+        heading: ['24px', '28px'],
         hero: ['30px', '34px'],
       },
       gridTemplateRows: {
@@ -132,8 +134,9 @@ module.exports = {
         }
       },
       letterSpacing: {
-        base: '0.0013em',
-        lead: '0.0015em',
+        base: '0.013em',
+        lead: '0.015em',
+        heading: '0.021em',
         hero: '0.0125em',
       },
       spacing: {
@@ -164,6 +167,16 @@ module.exports = {
           'overflow-x': 'hidden',
           'overflow-y': 'auto',
           '-webkit-overflow-scrolling': 'touch',
+        },
+        '.bg-translucent-light': {
+          background: `linear-gradient(${[
+            '154.34deg',
+            'rgba(245, 245, 255, 0.9) 0%',
+            'rgba(225, 225, 230, 0.9) 32.02%',
+            'rgba(210, 210, 218, 0.9) 65.63%',
+            'rgba(210, 210, 218, 0.9) 65.63%',
+            'rgba(195, 195, 205, 0.9) 100%',
+          ].join(', ')})`,
         },
 
         // Transform

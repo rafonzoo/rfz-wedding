@@ -4,41 +4,42 @@ import type {
   PopoverRootProps,
   PopoverTriggerProps,
 } from '@kobalte/core/dist/types/popover'
-import type { FC, iDialog } from '@app/types'
+import type { FC } from '@app/types'
+import { splitProps } from 'solid-js'
 import { Popover } from '@kobalte/core'
-import { callable } from '@app/helpers/util'
 import clsx from 'clsx'
 
-interface iPopup extends iDialog {
-  props?: {
-    root?: PopoverRootProps
-    trigger?: PopoverTriggerProps
-    content?: PopoverContentProps
-    portal?: Omit<PopoverPortalProps, 'children'>
-  }
+interface iPopup {
+  root?: PopoverRootProps
+  trigger?: PopoverTriggerProps
+  content?: PopoverContentProps
+  portal?: Omit<PopoverPortalProps, 'children'>
 }
 
-const Popup: FC<iPopup> = ({ children, show, setShow, ...rest }) => {
+const Popup: FC<iPopup> = (prop) => {
+  const [props, rest] = splitProps(prop, [
+    'root',
+    'trigger',
+    'content',
+    'portal',
+  ])
+
   return (
-    <Popover.Root
-      {...rest.props?.root}
-      open={callable(show)}
-      onOpenChange={setShow}
-    >
-      <Popover.Trigger {...rest.props?.trigger} />
-      <Popover.Portal {...rest.props?.portal} ref={rest.props?.portal?.ref}>
+    <Popover.Root {...props?.root}>
+      <Popover.Trigger {...props?.trigger} />
+      <Popover.Portal {...props?.portal}>
         <Popover.Content
-          {...rest.props?.content}
+          {...props?.content}
           class={clsx(
             'outline-none will-change-[opacity,transform]',
-            rest.props?.content?.class,
+            props?.content?.class,
             {
-              'animate-popover-in': callable(show),
-              'animate-popover-out': !callable(show),
+              'animate-popover-in': props?.root?.open,
+              'animate-popover-out': !props?.root?.open,
             }
           )}
         >
-          {children}
+          {rest.children}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

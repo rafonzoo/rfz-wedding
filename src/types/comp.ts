@@ -7,7 +7,7 @@ export type iNavbar = {
   path: string
 }
 
-export type iDialog = {
+export type iState = {
   show: () => boolean
   setShow: (isOpen: boolean) => void
 }

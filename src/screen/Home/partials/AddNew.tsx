@@ -1,5 +1,5 @@
 import type { Component } from 'solid-js'
-import type { iDialog } from '@app/types'
+import type { iState } from '@app/types'
 import { createSignal } from 'solid-js'
 import { createHook, text } from '@app/helpers'
 import clsx from 'clsx'
@@ -10,7 +10,7 @@ import ButtonIcon from '@app/components/Button/Icon'
 import ButtonBase from '@app/components/Button/Base'
 import Button from '@app/components/Button'
 
-interface AddNewSheetProps extends iDialog {
+interface AddNewSheetProps extends iState {
   element?: HTMLButtonElement
 }
 
