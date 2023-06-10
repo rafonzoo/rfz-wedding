@@ -1,5 +1,5 @@
 import type { FC } from '@app/types'
-import { createStore, unwrap } from 'solid-js/store'
+import { createStore } from 'solid-js/store'
 import { createEffect, createSignal } from 'solid-js'
 import { promise } from '@app/helpers/util'
 import clsx from 'clsx'
@@ -25,9 +25,8 @@ interface DatePickerProps {
 }
 
 interface DatePickerStore {
-  dates: TimeProps[]
-  value: string
-  slider: dayjs.Dayjs
+  // value: string
+  instance: dayjs.Dayjs
   date: string
   year: string
   days: string
@@ -35,10 +34,13 @@ interface DatePickerStore {
 }
 
 interface DatePickerState {
-  offset: number
-  lastAction: 'next' | 'prev'
-  isAnimating: 'none' | 'month' | 'year'
   showYearMonthPicker: boolean
+  calendar: {
+    dates: TimeProps[]
+    offset: number
+    lastAction: 'next' | 'prev'
+    isAnimating: boolean
+  }
 }
 
 const TABLES = 105
@@ -47,37 +49,37 @@ const OFFSET = -136
 const YEAR_START_AT = 1950
 const YEAR_STOP_AT = 2050
 
-let wrapperButton: HTMLDivElement
-
 const [pickerData, setPickerData] = createSignal<
-  { id: string; slider: dayjs.Dayjs }[]
+  { id: string; instance: dayjs.Dayjs }[]
 >([])
 
 const DatePicker: FC<DatePickerProps> = (props) => {
   const mintime = props.min ? dayjs(props.min) : undefined
   const maxtime = props.max ? dayjs(props.max) : undefined
-  const current = pickerData().find(({ id }) => id === props.id)?.slider
+  const current = pickerData().find(({ id }) => id === props.id)?.instance
 
   // prettier-ignore
-  const def = {
-    dates: [],
-    value: formatInstance(Date.now()),
-    slider: current || (maxtime ?? dayjs(Date.now())),
-
-    get year() { return `${this.slider.year()}` },
-    get date() { return `0${this.slider.date()}`.slice(-2) },
-    get days() { return `${dayjs.weekdays()[this.slider.day()]}` },
-    get month() { return dayjs.months()[this.slider.month()] },
+  const config = {
+    // value: formatInstance(Date.now()),
+    instance: current || (maxtime ?? dayjs(Date.now())),
+    get year() { return `${this.instance.year()}` },
+    get date() { return `0${this.instance.date()}`.slice(-2) },
+    get days() { return `${dayjs.weekdays()[this.instance.day()]}` },
+    get month() { return dayjs.months()[this.instance.month()] },
   }
 
-  const [calendar, setCalendar] = createStore<DatePickerStore>(def)
+  const [picker, setPicker] = createStore<DatePickerStore>(config)
   const [state, setState] = createStore<DatePickerState>({
-    lastAction: 'prev',
-    isAnimating: 'none',
-    offset: OFFSET,
     showYearMonthPicker: false,
+    calendar: {
+      dates: [],
+      lastAction: 'prev',
+      isAnimating: false,
+      offset: OFFSET,
+    },
   })
 
+  // TODO: MOVE TO STATE CALENDAR ABOVE!!
   const [months, setMonths] = createSignal<string[]>([])
   const [years, setYears] = createSignal<string[]>([])
 
@@ -89,44 +91,46 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     throw new Error('Invalid date.')
   }
 
+  let wrapperButton: HTMLDivElement
+
   createEffect(() => {
-    const slider = calendar.slider
+    const instance = picker.instance
 
     setPickerData((prev) => {
       if (prev.find((item) => item.id === props.id)) {
-        const now = prev.find((p) => p.id === props.id)
+        const now = prev.find((data) => data.id === props.id)
 
-        if (now?.slider.isSame(slider, 'M')) {
+        if (now?.instance.isSame(instance, 'M')) {
           return prev
         }
 
-        return prev.map((p) =>
-          p.id !== props.id ? { ...p } : { id: props.id, slider }
+        return prev.map((data) =>
+          data.id !== props.id ? { ...data } : { id: props.id, instance }
         )
       }
 
-      return [...prev, { id: props.id, slider }]
+      return [...prev, { id: props.id, instance: instance }]
     })
   })
 
   createEffect(() => {
     const prevOffset =
-      calendar.slider.add(-1, 'M').date(1).day() <= 0
+      picker.instance.add(-1, 'M').date(1).day() <= 0
         ? []
-        : createMonthDate(calendar.slider.add(-2, 'M')).slice(
-            -calendar.slider.add(-1, 'M').date(1).day()
+        : createMonthDate(picker.instance.add(-2, 'M')).slice(
+            -picker.instance.add(-1, 'M').date(1).day()
           )
 
     const datesCurrent = [
       ...prevOffset,
-      ...createMonthDate(calendar.slider.add(-1, 'M')),
-      ...createMonthDate(calendar.slider),
-      ...createMonthDate(calendar.slider.add(1, 'M')),
+      ...createMonthDate(picker.instance.add(-1, 'M')),
+      ...createMonthDate(picker.instance),
+      ...createMonthDate(picker.instance.add(1, 'M')),
     ]
 
-    setCalendar('dates', [
+    setState('calendar', 'dates', [
       ...datesCurrent,
-      ...createMonthDate(calendar.slider.add(2, 'M')).slice(
+      ...createMonthDate(picker.instance.add(2, 'M')).slice(
         0,
         TABLES - datesCurrent.length
       ),
@@ -134,90 +138,155 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   })
 
   createEffect(() => {
-    const changedMonth = calendar.slider.month()
-
-    let el: HTMLElement | null
     let mo: NodeListOf<HTMLElement> | undefined
 
-    promise()
-      .then(() => dayjs.months()[changedMonth])
-      .then((selector) => {
-        el = document.getElementById(`dpm-${selector}`)
-        mo = el?.querySelectorAll<HTMLElement>('[data-begin]')
-
-        setState('offset', -Array.from(mo || [])[1]?.offsetTop)
-      })
+    promise(picker.month).then(() => {
+      mo = wrapperButton.querySelectorAll<HTMLElement>('[data-begin]')
+      setState('calendar', 'offset', -Array.from(mo || [])[1]?.offsetTop)
+    })
   })
 
   function monthGo(states: 'next' | 'prev' | 'end') {
     const isEnd = states === 'end'
     const index = states === 'next' ? 2 : isEnd ? 1 : 0
 
-    return () => {
+    return (e: Event) => {
+      e.preventDefault()
+
       // prettier-ignore
-      isEnd && setCalendar('slider', (prev) =>
-        prev.add(state.lastAction === 'next' ? 1 : -1, 'M')
+      isEnd && setPicker('instance', (prev) =>
+        prev.add(state.calendar.lastAction === 'next' ? 1 : -1, 'M')
       )
 
       const el = wrapperButton.querySelectorAll<HTMLElement>('[data-begin]')
       const offset = -Array.from(el)[index].offsetTop
 
-      setState((prev) => ({
+      setState('calendar', (prev) => ({
+        ...prev,
         offset,
         lastAction: isEnd ? prev.lastAction : states,
-        isAnimating: isEnd ? 'none' : 'month',
+        isAnimating: !isEnd,
       }))
     }
   }
 
-  function createMonthDate(day: dayjs.Dayjs) {
-    const keys = Array(day.endOf('M').date()).keys()
+  function createMonthDate(instance: dayjs.Dayjs) {
+    const keys = Array(instance.endOf('M').date()).keys()
     const dates = [...keys].map((num) => ({
-      days: day
+      days: instance
         .date(num + 1)
-        .month(day.month())
-        .year(day.year())
+        .month(instance.month())
+        .year(instance.year())
         .day(),
-      month: day.month(),
-      year: day.year(),
+      month: instance.month(),
+      year: instance.year(),
       date: num + 1,
     }))
 
     return dates
   }
 
-  function formatInstance<T>(time: T) {
-    if (dayjs.isDayjs(time)) {
-      return time.format(props.format)
-    }
-
-    // prettier-ignore
-    return typeof time === 'string' && !!time
-      ? dayjs(time).format(props.format)
-      : ''
+  function isHighlighted(datetime: TimeProps) {
+    return (
+      datetime.month !== picker.instance.get('M') && !state.calendar.isAnimating
+    )
   }
 
+  function isDisabledAction(state: 'next' | 'prev') {
+    let hasMinMax = false
+    let stopMinMax = false
+
+    switch (state) {
+      case 'prev':
+        stopMinMax = picker.instance.add(-1, 'M').year() < YEAR_START_AT
+        hasMinMax = !!(
+          mintime && picker.instance.add(-1, 'M').isBefore(mintime, 'M')
+        )
+
+        break
+      case 'next':
+        stopMinMax = picker.instance.add(1, 'M').year() > YEAR_STOP_AT
+        hasMinMax = !!(
+          maxtime && picker.instance.add(1, 'M').isAfter(maxtime, 'M')
+        )
+
+        break
+    }
+
+    return hasMinMax || stopMinMax
+  }
+
+  function onChangedPicker([month, year]: string[]) {
+    let monthIndex = dayjs.months().indexOf(month)
+    let values = [month, year]
+
+    if (monthIndex < 0) {
+      throw new Error(`ReferenceError: No index found, index of ${month}`)
+    }
+
+    setPicker('instance', (prev) => {
+      if (!months().includes(month) && picker.year === year) {
+        monthIndex = dayjs.months().indexOf(onChangedSelected())
+        values = [onChangedSelected(), year]
+      }
+
+      if (prev.month(monthIndex).year(+year).isSame(prev)) {
+        return prev
+      }
+
+      return prev.month(monthIndex).year(+year)
+    })
+
+    return values
+  }
+
+  function onChangedSelected() {
+    const fmonth = months()[0]
+    const lmonth = months()[months().length - 1]
+
+    if (months().indexOf(picker.month) > -1) {
+      return picker.month
+    }
+
+    if (mintime && maxtime) {
+      return picker.instance.isAfter(maxtime) ? lmonth : fmonth
+    }
+
+    return mintime ? fmonth : lmonth
+  }
+
+  // function formatInstance<T>(time: T) {
+  //   if (dayjs.isDayjs(time)) {
+  //     return time.format(props.format)
+  //   }
+
+  //   // prettier-ignore
+  //   return typeof time === 'string' && !!time
+  //     ? dayjs(time).format(props.format)
+  //     : ''
+  // }
+
   function onChangedMonthEffect() {
-    const year = calendar.slider.year()
-    const month = dayjs.months()
+    const year = +picker.year
+    const monthNames = dayjs.months()
 
     // Default show all months
     let mnt = dayjs.months() as string[]
 
     if (maxtime && year === maxtime.year()) {
-      mnt = month.slice(0, maxtime.month() + 1)
+      mnt = monthNames.slice(0, maxtime.month() + 1)
     }
 
     if (mintime && year === mintime.year()) {
-      mnt = month.slice(mintime.month())
+      mnt = monthNames.slice(mintime.month())
     }
 
     if (maxtime && mintime && mintime.year() === maxtime.year()) {
-      mnt = month.slice(mintime.month(), maxtime.month() + 1)
+      mnt = monthNames.slice(mintime.month(), maxtime.month() + 1)
     }
 
     setMonths((prev) => {
-      const exact = prev.every((p) => mnt.includes(p))
+      const exact = prev.every((prevMonths) => mnt.includes(prevMonths))
       const differentMonth = prev.length !== mnt.length
 
       return prev.length === 0 || differentMonth || !exact ? mnt : prev
@@ -236,158 +305,41 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     setYears(array)
   }
 
-  function onChangedPicker([month, year]: string[]) {
-    if (dayjs.months().indexOf(month) < 0) return
-
-    // console.log([month, year])
-
-    setCalendar('slider', (prev) => {
-      const indexMonth = dayjs.months().indexOf(month)
-
-      // if (prev.month(indexMonth).year(+year).isSame(prev)) {
-      //   return prev
-      // }
-
-      return prev.month(indexMonth).year(+year)
-    })
-  }
-
-  function onChangedSelected() {
-    const month = months()
-    const last = month[month.length - 1]
-
-    if (month.indexOf(calendar.month) > -1) {
-      return calendar.month
-    }
-
-    if (mintime && maxtime) {
-      return calendar.slider.isAfter(maxtime) ? last : month[0]
-    }
-
-    return mintime ? month[0] : last
-  }
-
   createEffect(onChangedMonthEffect)
   createEffect(onChangedYearEffect)
 
-  createEffect(() => {
-    // console.log(calendar.month)
-  })
-
   return (
-    <div class='rounded-xl bg-translucent-light'>
-      {/* <p class='pb-4'>
-          <b>Now:</b> {dayjs(Date.now()).format(format)} <br />
-          <b>Month:</b> {calendar.slider.format('MMMM YYYY')}
-        </p> */}
-      <div class='flex w-[320px] max-w-[320px] flex-col p-5'>
-        <div class='grid grid-cols-7 gap-x-3 space-y-0.5'>
-          <div class='col-span-5 flex flex-col'>
-            <p class='flex items-center text-sm font-semibold text-gray-500'>
-              <span class='mr-0.5 block'>{calendar.slider.year()}</span>
-              <IconChevron dir='right' size={10} weight='3' />
-            </p>
-            <p class='mt-0.5 text-heading font-bold -tracking-heading text-black'>
-              {calendar.month}
-            </p>
-          </div>
-          <div>
-            <ButtonBase
-              onclick={monthGo('prev')}
-              class={clsx(
-                'h-full w-full !items-end justify-center focus-visible:!shadow-none',
-                '!text-gray-400 focus:!text-primary'
-              )}
-              disabled={
-                (mintime &&
-                  calendar.slider.add(-1, 'M').isBefore(mintime, 'M')) ||
-                calendar.slider.add(-1, 'M').year() < YEAR_START_AT
-              }
-            >
-              <IconChevron size={16} />
-            </ButtonBase>
-          </div>
-          <div>
-            <ButtonBase
-              onclick={monthGo('next')}
-              class={clsx(
-                'h-full w-full !items-end justify-center !text-gray-400',
-                'focus:!text-primary focus-visible:!shadow-none'
-              )}
-              disabled={
-                (maxtime &&
-                  calendar.slider.add(1, 'M').isAfter(maxtime, 'M')) ||
-                calendar.slider.add(1, 'M').year() > YEAR_STOP_AT
-              }
-            >
-              <IconChevron size={16} dir='bottom' />
-            </ButtonBase>
-          </div>
-        </div>
-        <div class='mt-3 grid grid-cols-7 gap-x-3'>
-          {dayjs.weekdaysShort().map((dayName, index) => (
-            <div
-              class={clsx(
-                'flex h-8 w-full items-center justify-center text-caption',
-                'font-medium uppercase tracking-base text-gray-500',
-                {
-                  'text-red-500': index === 0,
-                }
-              )}
-            >
-              {dayName}
-            </div>
-          ))}
-        </div>
-        <div class='h-[202px] overflow-hidden'>
-          <div
-            style={{ transform: `translateY(${state.offset}px)` }}
-            ontransitionend={monthGo('end')}
-            class={clsx({
-              'transition-transform duration-300':
-                state.isAnimating === 'month',
-            })}
-          >
-            <div
-              ref={wrapperButton}
-              id={`dpm-${calendar.month}`}
-              class={clsx('relative grid w-full grid-cols-7 gap-x-3 gap-y-0.5')}
-            >
-              {calendar.dates.map((time) => (
-                <div
-                  role='button'
-                  data-begin={time.date === 1 ? '' : undefined}
-                  // disabled={time.month !== calendar.slider.get('M')}
-                  onclick={() => console.log(unwrap(time))}
-                  class={clsx(
-                    'flex h-8 w-full items-center justify-center text-lead font-medium -tracking-heading text-black',
-                    {
-                      'text-red-500': time.days === 0,
-                      'pointer-events-none opacity-25':
-                        time.month !== calendar.slider.get('M') &&
-                        state.isAnimating === 'none',
-                    }
-                  )}
-                >
-                  {time.date}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div class='flex space-x-4'>
+    <div class={styles.outer}>
+      <div class={styles.inner}>
+        <div class={styles.grid}>
           <Popup
-            trigger={{ children: 'Pick year' }}
+            open={state.showYearMonthPicker}
+            onOpenChange={(isOpen) => setState('showYearMonthPicker', isOpen)}
+            trigger={{
+              as: 'div',
+              class: styles.grid_picker,
+              children: (
+                <>
+                  <p class={styles.grid_year}>
+                    <span class='mr-0.5 block'>{picker.year}</span>
+                    <IconChevron dir='right' size={10} weight='3' />
+                  </p>
+                  <p class={styles.grid_month}>{picker.month}</p>
+                </>
+              ),
+            }}
+            content={{ class: 'origin-top-left' }}
             root={{
-              open: state.showYearMonthPicker,
-              onOpenChange: (isOpen) => setState('showYearMonthPicker', isOpen),
+              placement: 'bottom-start',
+              gutter: 12,
             }}
           >
             <ScrollPicker
-              // show={state.showYearMonthPicker}
-              // trigger={{ children: 'Pick year' }}
-              // setShow={(isOpen) => setState('showYearMonthPicker', isOpen)}
               onchange={onChangedPicker}
+              classes={{
+                outer: 'max-xxs:-ml-3 xxs:w-[280px]',
+                inner: 'w-full',
+              }}
               items={[
                 {
                   selected: onChangedSelected(),
@@ -395,16 +347,108 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                   classes: { li: 'min-w-[107px]' },
                 },
                 {
-                  selected: calendar.year,
+                  selected: picker.year,
                   option: years(),
+                  classes: { p: 'justify-center' },
                 },
               ]}
             />
           </Popup>
+          <div class={styles.grid_action}>
+            <ButtonBase
+              onclick={monthGo('prev')}
+              class={styles.grid_button}
+              children={<IconChevron size={16} dir='top' />}
+              disabled={isDisabledAction('prev')}
+            />
+          </div>
+          <div class={styles.grid_action}>
+            <ButtonBase
+              onclick={monthGo('next')}
+              class={styles.grid_button}
+              children={<IconChevron size={16} dir='bottom' />}
+              disabled={isDisabledAction('next')}
+            />
+          </div>
+        </div>
+        <div class={styles.grid}>
+          {dayjs.weekdaysShort().map((dayName, index) => (
+            <div
+              class={clsx(styles.grid_days)}
+              classList={{ [styles.weekend]: index === 0 }}
+              children={dayName}
+            />
+          ))}
+        </div>
+        <div class={styles.tiles}>
+          <div
+            style={{ transform: `translateY(${state.calendar.offset}px)` }}
+            class={clsx(state.calendar.isAnimating && styles.tiles_animation)}
+            ontransitionend={monthGo('end')}
+          >
+            <div ref={(el) => (wrapperButton = el)} class={styles.tiles_grid}>
+              {state.calendar.dates.map((time) => (
+                <div
+                  // disabled={time.month !== calendar.slider.get('M')}
+                  // onclick={() => console.log(unwrap(time))}
+                  role='button'
+                  data-begin={time.date === 1 ? '' : undefined}
+                  children={time.date}
+                  class={clsx(styles.tiles_dates, {
+                    [styles.weekend]: time.days === 0,
+                    [styles.tiles_highlight]: isHighlighted(time),
+                  })}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div class={styles.footer}>
+          <div class='flex items-center'>
+            <span class='mr-0.5 block'>
+              Time: {dayjs(Date.now()).format('hh.mm A')}
+            </span>
+            <IconChevron dir='right' size={10} weight='3' />
+          </div>
+          <button>Reset</button>
         </div>
       </div>
     </div>
   )
+}
+
+const styles = {
+  outer: clsx('rounded-xl bg-translucent-light'),
+  inner: clsx('flex w-[320px] max-w-[320px] flex-col p-5 max-xxs:w-[270px]'),
+  weekend: clsx('text-red-500'),
+  footer: clsx('mt-3 flex justify-between font-semibold text-black'),
+
+  // Header
+  grid: clsx('grid grid-cols-7 gap-x-3'),
+  grid_picker: clsx('col-span-5 flex flex-col'),
+  grid_action: clsx('flex items-end'),
+  grid_year: clsx('flex items-center text-sm font-semibold text-gray-500'),
+  grid_month: clsx(
+    'mt-0.5 text-heading font-bold -tracking-heading text-black'
+  ),
+  grid_button: clsx(
+    'h-6 w-6 !items-end justify-center !text-gray-400',
+    'focus-visible:!shadow-none active:!text-primary'
+  ),
+  grid_days: clsx(
+    'flex h-8 w-full items-center justify-center text-caption',
+    'pt-3 font-medium uppercase tracking-base text-gray-500'
+  ),
+
+  // Tiles
+  tiles: clsx('h-[202px] overflow-hidden'),
+  tiles_animation: clsx('transition-transform duration-300'),
+  tiles_grid: clsx('relative grid w-full grid-cols-7 gap-x-3 gap-y-0.5'),
+  tiles_highlight: clsx('pointer-events-none opacity-25'),
+  tiles_dates: clsx(
+    'flex h-8 w-full items-center justify-center text-black',
+    'text-lead font-medium -tracking-heading'
+  ),
 }
 
 export default DatePicker

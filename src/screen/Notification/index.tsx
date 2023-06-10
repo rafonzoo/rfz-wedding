@@ -10,16 +10,14 @@ const Notification: Component = () => {
     <div class='min-h-[200vh]'>
       <Popup
         trigger={{ children: 'Show calendar' }}
-        root={{
-          open: showCalendar(),
-          onOpenChange: setCalendar,
-        }}
+        open={showCalendar()}
+        onOpenChange={setCalendar}
       >
         <DatePicker
           // show={showCalendar()}
           id='datepicker-1'
-          min='24 May 2022'
-          max='20 August 2023'
+          // min='24 May 2022'
+          // max='20 August 2023'
           // format='YYYY-MM-DDThh:mm'
           // defaultValue='10 September 2019'
           // hideHighlight={false}

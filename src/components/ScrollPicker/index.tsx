@@ -1,14 +1,8 @@
 import type { SetStoreFunction } from 'solid-js/store'
 import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
-import {
-  batch,
-  createEffect,
-  createSignal,
-  For,
-  onMount,
-  splitProps,
-} from 'solid-js'
+import { createEffect, createSignal, For, onMount, splitProps } from 'solid-js'
+import { isEqualArray } from '@app/helpers/util'
 import clsx from 'clsx'
 
 const MAX_HEIGHT = 32
@@ -18,65 +12,63 @@ interface ScrollOptionProps {
   option: string[]
   selected?: string
   classes?: {
-    [P in 'ul' | 'li' | 'wrapper']?: string
+    [P in 'ul' | 'li' | 'p' | 'wrapper']?: string
   }
 }
 
 interface ScrollOptionState extends ScrollOptionProps {
-  // state: ScrollPickerState
-  // show: () => boolean
-  // onchange?: (values: string[]) => void
+  scroller: ScrollPickerState
   index: () => number
-  scroller: ScrollPickerState[]
-  setScroller: SetStoreFunction<ScrollPickerState[]>
+  setScroller: SetStoreFunction<ScrollPickerState>
 }
 
 interface ScrollPickerProps {
-  // show: boolean
-  // setShow: (isOpen: boolean) => void
-  // trigger: PopoverTriggerProps
-  // open: boolean
+  classes?: { [P in 'outer' | 'inner']?: string }
   items: ScrollOptionProps[]
-  onchange?: (values: string[]) => void
+  onchange?: (values: string[]) => string[] | void
 }
 
 interface ScrollPickerState {
-  isScrolling: boolean
-  value: string
+  values: string[]
+  state: {
+    isScrolling: boolean
+    value: string
+  }[]
 }
 
 const ScrollOption: FC<ScrollOptionState> = (props) => {
-  const [isTouch, setTouch] = createSignal(false)
+  const [touchEvent, setTouchEvent] = createSignal<'in' | 'out' | 'none'>(
+    'none'
+  )
 
-  let element: HTMLElement
+  let listElement: HTMLElement
   let tickingTime: NodeJS.Timeout
-  let preventScroll = false
-  // let tickingClick: NodeJS.Timeout
+  let preventedScroll = false
 
   function onScroll() {
-    const idx = props.index()
-    const scroller = props.scroller
-    const setScroller = props.setScroller
+    const index = props.index()
+    const state = props.scroller
+    const setState = props.setScroller
 
     // Prevent `scrollTo` firing on the first place
-    if (preventScroll) return (preventScroll = false)
+    if (preventedScroll) return (preventedScroll = false)
 
     clearTimeout(tickingTime)
-    setScroller(idx, 'isScrolling', (prev) => (prev ? prev : true))
+    setState('state', index, 'isScrolling', (prev) => (prev ? prev : true))
 
     tickingTime = setTimeout(() => {
-      const li = Array.from(element.querySelectorAll('li'))
+      const li = Array.from(listElement.querySelectorAll('li'))
 
-      if (!(element.scrollTop % MAX_HEIGHT === 0)) {
+      if (!(listElement.scrollTop % MAX_HEIGHT === 0)) {
         let n = 0
         let i = 0
 
-        if (!isTouch()) {
+        if (touchEvent() === 'out') {
           const offset = li.map(({ clientHeight }, i) => clientHeight * i)
 
           for (; i < offset.length; i++) {
             const prev = offset[i - 1]
-            const { scrollTop } = element
+            const { scrollTop } = listElement
 
             if (scrollTop - offset[i] < 0) {
               n = i
@@ -92,45 +84,63 @@ const ScrollOption: FC<ScrollOptionState> = (props) => {
             }
           }
 
-          return element.scrollTo({ behavior: 'smooth', top: offset[n] })
+          return listElement.scrollTo({ top: offset[n] })
         }
 
         return
       }
 
       const targetElement = li.find(({ clientHeight }, index) => {
-        return clientHeight * index === element.scrollTop
+        return clientHeight * index === listElement.scrollTop
       })
 
-      batch(() => {
-        const value = targetElement?.dataset.value ?? ''
+      if (targetElement) {
+        const value = targetElement?.dataset.value
 
-        setScroller(idx, 'isScrolling', (prev) => (!prev ? prev : false))
-        setScroller(idx, 'value', (prev) =>
-          prev === value || value === '' ? prev : value
-        )
-      })
-    }, MAX_DELAY * scroller.length)
+        if (!value) {
+          throw new Error(`TypeError: Expected string, given "${typeof value}"`)
+        }
+
+        setState('state', index, ({ isScrolling, value: val }) => ({
+          isScrolling: !isScrolling ? isScrolling : false,
+          value: val === value || value === '' ? val : value,
+        }))
+      }
+    }, MAX_DELAY * state.values.length)
+  }
+
+  function onClick(e: Event) {
+    if (props.scroller.state.some((state) => !!state.isScrolling)) {
+      return
+    }
+
+    const target = (e.target as HTMLElement).parentElement?.dataset.value
+    const index = target ? props.option.indexOf(target) : -1
+
+    if (index > -1) {
+      listElement.scrollTo({ behavior: 'smooth', top: MAX_HEIGHT * index })
+      preventedScroll = true
+    }
   }
 
   onMount(() => {
-    const idx = props.option.indexOf(props.selected!)
+    const index = props.option.indexOf(props.selected!)
 
-    if (idx > -1) {
-      element.scrollTo({ top: MAX_HEIGHT * idx })
-      preventScroll = true
+    if (index > -1) {
+      listElement.scrollTo({ top: MAX_HEIGHT * index })
+      preventedScroll = true
     }
   })
 
   return (
     <div
-      class={clsx('relative', props.classes?.wrapper)}
-      ontouchstart={() => setTouch(true)}
-      ontouchend={() => setTouch(false)}
-      // onclick={clickHandler}
+      class={clsx('relative flex-grow', props.classes?.wrapper)}
+      ontouchstart={() => setTouchEvent('in')}
+      ontouchend={() => setTouchEvent('out')}
+      onclick={onClick}
     >
       <ul
-        ref={(el) => (element = el)}
+        ref={(el) => (listElement = el)}
         onscroll={onScroll}
         class={clsx(styles.ul, props.classes?.ul, {
           'pl-4 pr-8': props.index() > 0,
@@ -139,7 +149,7 @@ const ScrollOption: FC<ScrollOptionState> = (props) => {
       >
         {props.option.map((value) => (
           <li data-value={value} class={clsx(styles.li, props.classes?.li)}>
-            <p class={styles.li_item}>{value}</p>
+            <p class={clsx(styles.li_item, props.classes?.p)}>{value}</p>
           </li>
         ))}
       </ul>
@@ -149,31 +159,45 @@ const ScrollOption: FC<ScrollOptionState> = (props) => {
 
 const ScrollPicker: FC<ScrollPickerProps> = (props) => {
   const [{ onchange }] = splitProps(props, ['onchange'])
-  const [values, setValues] = createSignal<string[]>([])
-  const [scroller, setScroller] = createStore<ScrollPickerState[]>(
-    props.items.map((item) => ({
+  const [scroller, setScroller] = createStore<ScrollPickerState>({
+    values: props.items.map((item) => item.selected || item.option[0]),
+    state: props.items.map((item) => ({
       isScrolling: false,
-      value: item.selected || item.option[0],
-    }))
-  )
+      value: item.selected ?? item.option[0],
+    })),
+  })
 
   createEffect(() => {
-    if (!scroller.some((p) => !!p.isScrolling)) {
-      const curr = scroller.map((sc) => sc.value)
+    const updatedValue = onchange?.(scroller.values)
+    const isUnchanged = updatedValue
+      ? isEqualArray(scroller.values, updatedValue)
+      : true
 
-      // Force update
-      setValues((prev) =>
-        JSON.stringify(curr) === JSON.stringify(prev) ? prev : curr
+    if (!Array.isArray(updatedValue) || isUnchanged) {
+      return
+    }
+
+    setScroller('values', (prev) =>
+      isEqualArray(updatedValue, prev) ? prev : updatedValue
+    )
+  })
+
+  createEffect(() => {
+    if (!scroller.state.some((state) => !!state.isScrolling)) {
+      const values = scroller.state.map((state) => state.value)
+
+      setScroller('values', (prev) =>
+        isEqualArray(values, prev) ? prev : values
       )
     }
   })
 
-  createEffect(() => onchange?.(values()))
+  // createEffect(() => console.log(unwrap(scroller.values)))
 
   return (
-    <div class={styles.container}>
+    <div class={clsx(styles.outer, props.classes?.outer)}>
       <div
-        class={clsx(styles.wrapper)}
+        class={clsx(styles.inner, props.classes?.inner)}
         style={{ 'font-size': MAX_HEIGHT + 'px' }}
       >
         <For each={props.items}>
@@ -182,14 +206,12 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
               classes={item.classes}
               option={item.option}
               selected={item.selected}
+              //
               // private
-              // state={state}
+              //
               scroller={scroller}
               setScroller={setScroller}
               index={index}
-
-              // setState={setState}
-              // onchange={props.onchange}
             />
           )}
         </For>
@@ -204,8 +226,8 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
 }
 
 const styles = {
-  container: clsx('rounded-xl bg-gray-200'),
-  wrapper: clsx('relative my-4 inline-flex'),
+  outer: clsx('flex overflow-hidden rounded-xl bg-gray-200 shadow-layer'),
+  inner: clsx('relative inline-flex'),
   selected: clsx(
     'absolute left-4 right-4 top-[3em] flex h-[1em]',
     'items-center rounded-lg bg-gray-300'
@@ -216,15 +238,16 @@ const styles = {
   ),
   li: clsx('flex min-h-[1em] snap-center flex-col'),
   li_item: clsx(
-    'flex w-full flex-grow select-none items-center text-picker font-medium -tracking-heading text-black'
+    'flex w-full flex-grow select-none items-center text-black',
+    'text-picker font-medium -tracking-heading'
   ),
   mask_top: clsx(
     'pointer-events-none absolute left-0 right-0 top-0 z-10 h-[3em]',
-    'bg-gradient-to-b from-gray-200 from-[10%] to-[rgb(228_228_228_/_50%)]'
+    'bg-gradient-to-b from-gray-200 from-[40%] to-[rgb(228_228_228_/_50%)]'
   ),
   mask_bottom: clsx(
     'pointer-events-none absolute bottom-0 left-0 right-0 z-10 h-[3em]',
-    'bg-gradient-to-t from-gray-200 from-[10%] to-[rgb(228_228_228_/_50%)]'
+    'bg-gradient-to-t from-gray-200 from-[40%] to-[rgb(228_228_228_/_50%)]'
   ),
 }
 

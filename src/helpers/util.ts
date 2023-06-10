@@ -6,10 +6,11 @@ export async function promise<T = boolean>(value?: T) {
   return new Promise<T>((res) => res(value!))
 }
 
-export function isMobile() {
-  return !!(
-    navigator.maxTouchPoints || 'ontouchstart' in document.documentElement
-  )
+export function isEqualArray<T extends unknown[], P extends unknown[]>(
+  arr1: T,
+  arr2: P
+) {
+  return JSON.stringify(arr1) === JSON.stringify(arr2)
 }
 
 export function callable<T>(
@@ -18,6 +19,16 @@ export function callable<T>(
 ): T extends (...args: any) => any ? ReturnType<T> : T {
   return typeof param === 'function' ? param() : param
 }
+
+// export function isTouchDevice() {
+//   return (
+//     'ontouchstart' in window ||
+//     navigator.maxTouchPoints > 0 ||
+//     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//     // @ts-expect-error
+//     navigator.msMaxTouchPoints > 0
+//   )
+// }
 
 // export function keys<T extends object, K extends keyof T>(o: T) {
 //   return Object.keys(o) as Array<K>

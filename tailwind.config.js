@@ -33,6 +33,7 @@ module.exports = {
       boxShadow: {
         outline: `0 0 0 2px ${color.dark}`,
         focus: `0 0 0 2px ${colors.amber[500]}`,
+        layer: '0px 0px 24px rgba(0, 0, 0, 0.2)'
       },
       colors: {
         primary: {
@@ -143,6 +144,7 @@ module.exports = {
         '21': 84,
       },
       screens: {
+        xxs: '359px',
         sm: '525px',
         tc: '1024px',
       },
