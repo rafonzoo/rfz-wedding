@@ -337,19 +337,19 @@ const DatePicker: FC<DatePickerProps> = (props) => {
             <ScrollPicker
               onchange={onChangedPicker}
               classes={{
-                outer: 'max-xxs:-ml-3 xxs:w-[280px]',
-                inner: 'w-full',
+                outer: styles.picker_outer,
+                inner: styles.picker_inner,
               }}
               items={[
                 {
                   selected: onChangedSelected(),
                   option: months(),
-                  classes: { li: 'min-w-[107px]' },
+                  classes: { li: styles.picker_month },
                 },
                 {
                   selected: picker.year,
                   option: years(),
-                  classes: { p: 'justify-center' },
+                  classes: { p: styles.picker_year },
                 },
               ]}
             />
@@ -423,9 +423,15 @@ const styles = {
   weekend: clsx('text-red-500'),
   footer: clsx('mt-3 flex justify-between font-semibold text-black'),
 
+  // Picker
+  picker_outer: clsx('max-xxs:-ml-3 xxs:w-[280px]'),
+  picker_inner: clsx('w-full'),
+  picker_month: clsx('min-w-[107px]'),
+  picker_year: clsx('justify-center'),
+
   // Header
   grid: clsx('grid grid-cols-7 gap-x-3'),
-  grid_picker: clsx('col-span-5 flex flex-col'),
+  grid_picker: clsx('col-span-5 flex flex-col focus:outline-none'),
   grid_action: clsx('flex items-end'),
   grid_year: clsx('flex items-center text-sm font-semibold text-gray-500'),
   grid_month: clsx(

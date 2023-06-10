@@ -227,7 +227,7 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
 
 const styles = {
   outer: clsx('flex overflow-hidden rounded-xl bg-gray-200 shadow-layer'),
-  inner: clsx('relative inline-flex'),
+  inner: clsx('relative inline-flex rounded-[inherit]'),
   selected: clsx(
     'absolute left-4 right-4 top-[3em] flex h-[1em]',
     'items-center rounded-lg bg-gray-300'
