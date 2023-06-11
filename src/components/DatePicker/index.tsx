@@ -10,6 +10,8 @@ import IconChevron from '@app/components/Icon/Chevron'
 import Popup from '@app/components/Dialog/Popup'
 import ButtonBase from '@app/components/Button/Base'
 
+type InputProps = Pick<TextFieldInputProps, 'max' | 'min'>
+
 interface TimeProps {
   date: number
   days: number
@@ -18,13 +20,15 @@ interface TimeProps {
   disabled?: boolean
 }
 
-interface DatePickerProps extends TextFieldInputProps {
+interface DatePickerProps extends InputProps {
   id: string
   format?: string
+  value?: string | number
+  onchange?: (value: string) => void
+  onreset?: (value: string) => void
 }
 
 interface DatePickerStore {
-  // value: dayjs.Dayjs | null
   selected: dayjs.Dayjs | undefined
   instance: dayjs.Dayjs
   date: string
@@ -58,15 +62,15 @@ const [pickerData, setPickerData] = createSignal<
 >([])
 
 const DatePicker: FC<DatePickerProps> = (props) => {
-  const [{ id }] = splitProps(props, ['id', 'format'])
-  const current = pickerData().find((data) => data.id === id)
-  const propval = Array.isArray(props.value)
-    ? props.value.join('')
-    : props.value
+  const [{ id, format = 'YYYY-MM-DDThh:mm' }] = splitProps(props, [
+    'id',
+    'format',
+  ])
 
+  const current = pickerData().find((data) => data.id === id)
   const mintime = props.min ? dayjs(props.min) : void 0
   const maxtime = props.max ? dayjs(props.max) : void 0
-  const initial = propval ? dayjs(propval) : void 0
+  const initial = props.value ? dayjs(props.value) : void 0
   const datenow = initial ?? maxtime ?? dayjs(Date.now())
 
   if (validateInput().invalid) {
@@ -75,7 +79,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
   // prettier-ignore
   const [picker, setPicker] = createStore<DatePickerStore>({
-    instance: current?.selected ?? current?.instance ?? datenow,
+    instance: current?.selected ?? datenow,
     selected: current?.selected ?? initial ?? maxtime ?? void 0,
     get year() { return `${this.instance.year()}` },
     get date() { return `0${this.instance.date()}`.slice(-2) },
@@ -112,13 +116,11 @@ const DatePicker: FC<DatePickerProps> = (props) => {
         }
 
         return prev.map((data) =>
-          data.id !== id
-            ? { ...data }
-            : { ...(selected ? { selected } : data), id, instance }
+          data.id !== id ? { ...data } : { id, instance, selected }
         )
       }
 
-      return [...prev, { ...(selected ? { selected } : {}), id, instance }]
+      return [...prev, { id, instance, selected }]
     })
   })
 
@@ -153,6 +155,18 @@ const DatePicker: FC<DatePickerProps> = (props) => {
       dates = wrapperButton.querySelectorAll<HTMLElement>('[data-begin]')
       setState('animation', 'offset', -Array.from(dates || [])[1]?.offsetTop)
     })
+  })
+
+  createEffect(() => {
+    let formatted = ''
+
+    if (!picker.selected) {
+      formatted = (initial ?? maxtime)?.format(format) ?? ''
+    } else {
+      formatted = picker.selected.format(format)
+    }
+
+    props.onchange?.(formatted)
   })
 
   function monthGo(states: 'next' | 'prev' | 'end') {
@@ -203,11 +217,11 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
   function isCurrentDate(datetime: TimeProps, weekend = false) {
     const selected = picker.selected
-
-    const isToday =
-      (selected?.date() || dayjs(Date.now()).date()) === datetime.date &&
-      (selected?.month() || dayjs(Date.now()).month()) === datetime.month &&
-      (selected?.year() || dayjs(Date.now()).year()) === datetime.year
+    const isToday = dayjs()
+      .date(datetime.date)
+      .month(datetime.month)
+      .year(datetime.year)
+      .isSame(selected ?? datenow, 'day')
 
     return weekend ? isToday && datetime.days === 0 : isToday
   }
@@ -299,16 +313,13 @@ const DatePicker: FC<DatePickerProps> = (props) => {
         setPicker('instance', (prev) =>
           prev.date(+value).month(month).year(year)
         )
+
         setPicker('selected', (prev) =>
           (prev || dayjs()).date(+value).month(month).year(year)
         )
       })
     }
   }
-
-  createEffect(() => {
-    console.log(pickerData())
-  })
 
   function onChangedPicker([month, year]: string[]) {
     let monthIndex = dayjs.months().indexOf(month)
@@ -509,15 +520,12 @@ const DatePicker: FC<DatePickerProps> = (props) => {
           </div>
           <button
             onclick={() => {
-              batch(() => {
-                setPicker('instance', (prev) =>
-                  prev.isSame(datenow) ? prev : datenow
-                )
-
-                setPicker('selected', (prev) =>
-                  !prev ? prev : picker.instance
-                )
-              })
+              setPicker((prev) => ({
+                selected: !prev.selected ? prev.selected : undefined,
+                instance: prev.instance.isSame(datenow)
+                  ? prev.instance
+                  : datenow,
+              }))
             }}
           >
             Reset
@@ -530,7 +538,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
 const baseStyles = {
   outer: clsx('rounded-xl bg-translucent-light'),
-  inner: clsx('flex w-[320px] max-w-[320px] flex-col p-5 max-xxs:w-[270px]'),
+  inner: clsx('flex w-[320px] max-w-[320px] flex-col p-5 max-xxs:w-[290px]'),
   weekend: clsx('text-red-500'),
   footer: clsx('mt-3 flex justify-between font-semibold text-black'),
 }
@@ -543,9 +551,9 @@ const pickerStyles = {
 }
 
 const headerStyles = {
-  header: clsx('grid grid-cols-7 gap-x-3'),
+  header: clsx('grid grid-cols-7'),
   header_picker: clsx('col-span-5 flex flex-col focus:outline-none'),
-  header_action: clsx('flex items-end'),
+  header_action: clsx('flex items-end justify-center'),
   header_year: clsx('flex items-center text-sm font-semibold text-gray-500'),
   header_month: clsx(
     'mt-0.5 text-heading font-bold -tracking-heading text-black'
@@ -561,19 +569,20 @@ const headerStyles = {
 }
 
 const tileStyles = {
-  tile: clsx('-ml-5 -mr-5 h-[202px] overflow-hidden px-5'),
+  tile: clsx('-ml-5 -mr-5 h-[206px] overflow-hidden px-5 pt-0.5'),
   tile_animation: clsx('transition-transform duration-300'),
-  tile_grid: clsx('relative grid w-full grid-cols-7 gap-x-3 gap-y-0.5'),
+  tile_grid: clsx('relative grid w-full grid-cols-7 gap-y-0.5'),
   tile_highlight: clsx('pointer-events-none opacity-25'),
   tile_today_weekend: clsx('before:!bg-red-500 before:!opacity-20'),
   tile_today: clsx(
     'before:absolute before:left-1/2 before:top-1/2 before:content-[""]',
     'before:h-9 before:w-9 before:rounded-full before:translate-3d-center',
-    'before:bg-black before:font-bold before:opacity-10'
+    'before:bg-black before:font-bold before:opacity-10 hover:!opacity-100'
   ),
   tile_dates: clsx(
     'flex h-8 w-full items-center justify-center text-black',
-    'relative text-lead font-medium -tracking-heading'
+    'relative w-8 text-lead font-medium -tracking-heading',
+    'hover:opacity-50'
   ),
 }
 

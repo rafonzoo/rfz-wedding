@@ -28,12 +28,12 @@ module.exports = {
         'overlay-out': `overlay-out ${duration['overlay']}ms ${easing['opacity']}`,
         'slide-up': `slide-up ${duration['panel']}ms ${easing['panel']}`,
         'slide-down': `slide-down ${duration['panel']}ms ${easing['panel']}`,
-        'spinner': `spinner 1s ${duration['overlay']}ms infinite`
+        spinner: `spinner 1s ${duration['overlay']}ms infinite`,
       },
       boxShadow: {
         outline: `0 0 0 2px ${color.dark}`,
         focus: `0 0 0 2px ${colors.amber[500]}`,
-        layer: '0px 0px 24px rgba(0, 0, 0, 0.2)'
+        layer: '0px 0px 24px rgba(0, 0, 0, 0.2)',
       },
       colors: {
         primary: {
@@ -68,29 +68,29 @@ module.exports = {
         hero: ['30px', '34px'],
       },
       gridTemplateRows: {
-        '7': 'repeat(7, minmax(0, 1fr))',
+        7: 'repeat(7, minmax(0, 1fr))',
       },
       keyframes: {
         'popover-in': {
           from: {
             opacity: '0',
             transform: 'scale(0.75)',
-            'will-change': 'opacity, transform'
+            'will-change': 'opacity, transform',
           },
           to: {
             opacity: '1',
-            transform: 'scale(1)'
+            transform: 'scale(1)',
           },
         },
         'popover-out': {
           from: {
             opacity: '1',
             transform: 'scale(1)',
-            'will-change': 'opacity, transform'
+            'will-change': 'opacity, transform',
           },
           to: {
             opacity: '0',
-            transform: 'scale(0.75)'
+            transform: 'scale(0.75)',
           },
         },
         'dialog-in': {
@@ -117,11 +117,11 @@ module.exports = {
           from: { transform: translate['3d-0'] },
           to: { transform: translate['3d-bottom-full'] },
         },
-        'spinner': {
+        spinner: {
           '0%': {
-            'opacity': '1',
+            opacity: '1',
             'stroke-dasharray': '1 98',
-            'stroke-dashoffset': '-105'
+            'stroke-dashoffset': '-105',
           },
           '50%': {
             'stroke-dasharray': '80 10',
@@ -130,9 +130,9 @@ module.exports = {
           '100%': {
             'stroke-dasharray': '1 98',
             'stroke-dashoffset': '-300',
-            'opacity': '1',
-          }
-        }
+            opacity: '1',
+          },
+        },
       },
       letterSpacing: {
         base: '0.013em',
@@ -141,7 +141,7 @@ module.exports = {
         hero: '0.0125em',
       },
       spacing: {
-        '21': 84,
+        21: 84,
       },
       screens: {
         xxs: '359px',
@@ -150,7 +150,7 @@ module.exports = {
       },
       transitionDuration: {
         panel: duration.panel + 'ms',
-        overlay: duration.overlay + 'ms'
+        overlay: duration.overlay + 'ms',
       },
       transitionProperty: {
         fade: 'transform, opacity, visibility',
@@ -188,7 +188,9 @@ module.exports = {
 
         // Safearea
         '.env-pb-0': { 'padding-bottom': 'max(env(safe-area-inset-bottom))' },
-        '.env-pb-4': { 'padding-bottom': 'max(env(safe-area-inset-bottom), 16px)' },
+        '.env-pb-4': {
+          'padding-bottom': 'max(env(safe-area-inset-bottom), 16px)',
+        },
         '.env-ml-0': { 'margin-left': 'max(env(safe-area-inset-left))' },
         '.env-mr-0': { 'margin-right': 'max(env(safe-area-inset-right))' },
       })
