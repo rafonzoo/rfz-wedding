@@ -28,20 +28,22 @@ const Popup: FC<iPopup> = (props) => {
       <Popover.Portal {...props?.portal}>
         <Popover.Content
           {...props?.content}
-          class={clsx(
-            'outline-none will-change-[opacity,transform]',
-            props?.content?.class,
-            {
-              'animate-popover-in': props.open,
-              'animate-popover-out': !props.open,
-            }
-          )}
+          class={clsx(styles.content, props?.content?.class, {
+            [styles.animate_in]: props.open,
+            [styles.animate_out]: !props.open,
+          })}
         >
           {props.children}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
   )
+}
+
+const styles = {
+  content: clsx('outline-none will-change-[opacity,transform]'),
+  animate_in: clsx('animate-popover-in'),
+  animate_out: clsx('animate-popover-out'),
 }
 
 export default Popup
