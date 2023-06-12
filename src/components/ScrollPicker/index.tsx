@@ -2,7 +2,7 @@ import type { SetStoreFunction } from 'solid-js/store'
 import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
 import { createEffect, createSignal, For, onMount, splitProps } from 'solid-js'
-import { isEqualArray } from '@app/helpers/util'
+import { compare } from '@app/helpers/util'
 import clsx from 'clsx'
 
 const MAX_HEIGHT = 32
@@ -170,7 +170,7 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
   createEffect(() => {
     const updatedValue = onchange?.(scroller.values)
     const isUnchanged = updatedValue
-      ? isEqualArray(scroller.values, updatedValue)
+      ? compare(scroller.values, updatedValue)
       : true
 
     if (!Array.isArray(updatedValue) || isUnchanged) {
@@ -178,7 +178,7 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
     }
 
     setScroller('values', (prev) =>
-      isEqualArray(updatedValue, prev) ? prev : updatedValue
+      compare(updatedValue, prev) ? prev : updatedValue
     )
   })
 
@@ -186,9 +186,7 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
     if (!scroller.state.some((state) => !!state.isScrolling)) {
       const values = scroller.state.map((state) => state.value)
 
-      setScroller('values', (prev) =>
-        isEqualArray(values, prev) ? prev : values
-      )
+      setScroller('values', (prev) => (compare(values, prev) ? prev : values))
     }
   })
 
@@ -238,8 +236,8 @@ const styles = {
   ),
   li: clsx('flex min-h-[1em] snap-center flex-col'),
   li_item: clsx(
-    'flex w-full flex-grow select-none items-center text-black',
-    'text-picker font-medium -tracking-heading'
+    'flex w-full flex-grow select-none flex-col justify-center',
+    'text-picker font-medium -tracking-heading text-black'
   ),
   mask_top: clsx(
     'pointer-events-none absolute left-0 right-0 top-0 z-10 h-[3em]',

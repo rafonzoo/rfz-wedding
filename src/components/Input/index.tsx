@@ -1,61 +1,45 @@
-import type {
-  TextFieldInputProps,
-  TextFieldLabelProps,
-  TextFieldRootProps,
-} from '@kobalte/core/dist/types/text-field'
+import type { TextFieldInputProps } from '@kobalte/core/dist/types/text-field'
 import type { FC } from '@app/types'
-import {
-  createEffect,
-  createSignal,
-  createUniqueId,
-  splitProps,
-} from 'solid-js'
+import { createStore } from 'solid-js/store'
+import { createUniqueId, splitProps } from 'solid-js'
 import { TextField } from '@kobalte/core'
 import dayjs from 'dayjs'
 import Popup from '@app/components/Dialog/Popup'
 import DatePicker from '@app/components/DatePicker'
 
+const FORMAT_DATE = 'YYYY-MM-DD'
+const FORMAT_TIME = 'YYYY-MM-DDThh:mm'
+
 interface InputProps extends TextFieldInputProps {
   value?: string | number
+
+  // Custom
   ondatechange?: (value: string) => void
-  root?: TextFieldRootProps
-  label?: TextFieldLabelProps
-  format?: string
 }
 
 const Input: FC<InputProps> = (props) => {
-  const [{ format = 'YYYY-MM-DDThh:mm', ondatechange }, prop] = splitProps(
-    props,
-    ['root', 'label', 'format', 'ondatechange']
-  )
+  const [{ ondatechange }, prop] = splitProps(props, ['ondatechange'])
 
-  const [showCalendar, setCalendar] = createSignal(false)
-  const [value, setValue] = createSignal(props.value)
+  const format = prop.type === 'date' ? FORMAT_DATE : FORMAT_TIME
+  const instance = dayjs(props.value).format(format)
+
   const id = createUniqueId()
-
-  createEffect(() => {
-    const val = value()
-
-    if (!val || val === '') {
-      return
-    }
-
-    ondatechange?.(dayjs(val).format(format))
+  const [state, setState] = createStore({
+    showCalendar: false,
+    value: props.value ? instance : '--Select date--',
   })
 
   return (
     <TextField.Root>
-      {prop.type === 'date' ? (
+      {prop.type === 'date' || prop.type === 'datetime-local' ? (
         <>
           <Popup
-            open={showCalendar()}
-            onOpenChange={setCalendar}
+            open={state.showCalendar}
+            onOpenChange={(isOpen) => setState('showCalendar', isOpen)}
             trigger={{
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ...(prop as any),
               as: 'input',
               type: 'button',
-              value: value() ? dayjs(value()).format(format) : format,
+              value: state.value ?? format,
             }}
           >
             <DatePicker
@@ -63,13 +47,17 @@ const Input: FC<InputProps> = (props) => {
               value={prop.value}
               max={prop.max}
               min={prop.min}
-              format={format}
-              onchange={setValue}
+              type={prop.type}
+              onclose={() => setState('showCalendar', false)}
+              onchange={(val) => {
+                setState('value', val)
+                ondatechange?.(val)
+              }}
             />
           </Popup>
         </>
       ) : (
-        <TextField.Input />
+        <TextField.Input {...prop} />
       )}
     </TextField.Root>
   )

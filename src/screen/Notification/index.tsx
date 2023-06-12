@@ -5,14 +5,15 @@ const Notification: Component = () => {
   return (
     <div class='min-h-[200vh]'>
       <Input
-        type='date'
+        type='datetime-local'
         // format='dddd, DD MMMM YYYY'
-        // value='7 January 2023'
-        ondatechange={(val) => {
-          console.log(val)
-        }}
-        // min='24 January 1952'
-        // max='20 December 2023'
+        // value='2017-04-07'
+        // min='2017-04-07'
+        // max='2017-04-30'
+        // min='2015-05-07T05:26'
+        // value='2017-04-07T05:00'
+        // max='2017-05-07T08:29'
+        // ondatechange={console.log}
       />
     </div>
   )

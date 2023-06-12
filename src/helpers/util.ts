@@ -6,11 +6,15 @@ export async function promise<T = boolean>(value?: T) {
   return new Promise<T>((res) => res(value!))
 }
 
-export function isEqualArray<T extends unknown[], P extends unknown[]>(
+export function compare<T extends unknown[], P extends unknown[]>(
   arr1: T,
   arr2: P
 ) {
   return JSON.stringify(arr1) === JSON.stringify(arr2)
+}
+
+export function leading<T>(data: T, attr = '0', slice = -2) {
+  return `${attr}${data}`.slice(slice)
 }
 
 export function callable<T>(
