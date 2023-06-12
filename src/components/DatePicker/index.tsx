@@ -91,10 +91,13 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     get year() { return this.instance.year() + '' },
     get date() { return leading(this.instance.date()) },
     get hour() { return leading((this.selected || this.instance).hour()) },
-    get minute() { return leading((this.selected || this.instance).minute()) },
     get days() { return dayjs.weekdays()[this.instance.day()] },
     get month() { return dayjs.months()[this.instance.month()] },
+    get minute() { return leading((this.selected || this.instance).minute()) },
   })
+
+  const hours = [...Array(24).keys()].map((i) => leading(i))
+  const minutes = [...Array(60).keys()].map((i) => leading(i))
 
   const [state, setState] = createStore<DatePickerState>({
     showYearMonthPicker: false,
@@ -103,9 +106,9 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     calendar: {
       dates: [],
       years: [],
-      hours: [],
       months: [],
-      minutes: [],
+      hours,
+      minutes,
     },
     animation: {
       lastAction: 'prev',
@@ -115,16 +118,6 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   })
 
   let wrapperButton: HTMLDivElement
-
-  createEffect(() => {
-    const hour = [...Array(24).keys()].map((i) => leading(i))
-    const minute = [...Array(60).keys()].map((i) => leading(i))
-
-    batch(() => {
-      setState('calendar', 'hours', hour)
-      setState('calendar', 'minutes', minute)
-    })
-  })
 
   createEffect(() => {
     if (props.type === 'datetime-local') {
@@ -481,22 +474,22 @@ const DatePicker: FC<DatePickerProps> = (props) => {
               open={state.showYearMonthPicker}
               onOpenChange={(isOpen) => setState('showYearMonthPicker', isOpen)}
               trigger={{
-                class: 'focus:outline-none',
+                class: styles.header_trigger,
                 children: (
                   <>
                     <span
                       class={clsx(styles.header_year, {
-                        '!text-blue-500': state.showYearMonthPicker,
+                        // [styles.active]: state.showYearMonthPicker,
                       })}
                     >
-                      <span class='mr-0.5 block'>{picker.year}</span>
+                      <span class={styles.chevron}>{picker.year}</span>
                       <IconChevron
                         dir='right'
                         size={10}
                         weight='3'
-                        class={clsx('transition-transform', {
-                          '!rotate-180': state.showYearMonthPicker,
-                        })}
+                        // class={clsx(styles.transition, {
+                        //   [styles.rotate('bottom')]: state.showYearMonthPicker,
+                        // })}
                       />
                     </span>
                     <span class={styles.header_month}>{picker.month}</span>
@@ -507,7 +500,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
               root={{
                 placement: 'bottom-start',
                 gutter: 12,
-                modal: true,
+                // modal: true,
               }}
             >
               <ScrollPicker
@@ -591,18 +584,27 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                   setState('showTimeLocalPicker', isOpen)
                 }
                 trigger={{
-                  class: 'flex focus:outline-none items-center',
+                  class: styles.footer_datetime_trigger,
                   children: (
                     <>
-                      <span class='mr-0.5 flex items-center space-x-0.5'>
+                      <span class={styles.footer_datetime_wrapper}>
                         <span>Time: </span>
-                        <span>
-                          {(picker.selected ?? picker.instance).format(
-                            'HH.mm A'
-                          )}
+                        <span
+                        // class={clsx({
+                        //   [styles.active]: state.showTimeLocalPicker,
+                        // })}
+                        >
+                          {(picker.selected ?? picker.instance).format('HH.mm')}
                         </span>
                       </span>
-                      <IconChevron dir='right' size={10} weight='3' />
+                      <IconChevron
+                        dir='right'
+                        size={10}
+                        weight='3'
+                        // class={clsx(styles.transition, {
+                        //   [styles.rotate('top')]: state.showTimeLocalPicker,
+                        // })}
+                      />
                     </>
                   ),
                 }}
@@ -610,7 +612,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                 root={{
                   placement: 'top-start',
                   gutter: 12,
-                  modal: true,
+                  // modal: true,
                 }}
               >
                 <ScrollPicker
@@ -619,12 +621,12 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                     {
                       selected: picker.hour,
                       option: state.calendar.hours,
-                      classes: { p: 'text-center min-w-[40px]' },
+                      classes: { p: styles.footer_datetime_picker },
                     },
                     {
                       selected: picker.minute,
                       option: state.calendar.minutes,
-                      classes: { p: 'text-center min-w-[40px]' },
+                      classes: { p: styles.footer_datetime_picker },
                     },
                   ]}
                 />
@@ -655,6 +657,12 @@ const baseStyles = {
   inner: clsx('flex w-[320px] max-w-[320px] flex-col p-5 max-xxs:w-[290px]'),
   weekend: clsx('text-red-500'),
   footer: clsx('mt-3 flex justify-between font-semibold text-black'),
+  active: clsx('!text-blue-500'),
+  chevron: clsx('mr-0.5 block'),
+  transition: clsx('transition-transform'),
+  rotate: (dir: 'bottom' | 'top') => {
+    return clsx(dir === 'bottom' ? '!rotate-180' : '!rotate-0', 'text-blue-500')
+  },
 }
 
 const pickerStyles = {
@@ -667,6 +675,7 @@ const pickerStyles = {
 const headerStyles = {
   header: clsx('grid grid-cols-7'),
   header_picker: clsx('col-span-5'),
+  header_trigger: clsx('focus:outline-none'),
   header_action: clsx('flex items-end justify-center'),
   header_year: clsx('flex items-center text-sm font-semibold text-gray-500'),
   header_month: clsx(
@@ -702,6 +711,10 @@ const tileStyles = {
 
 const footerStyles = {
   footer_datetime: clsx('mr-auto flex items-center'),
+  footer_datetime_trigger: clsx('flex items-center focus:outline-none'),
+  footer_datetime_wrapper: clsx('mr-0.5 flex items-center space-x-0.5'),
+  footer_datetime_picker: clsx('min-w-[40px] text-center'),
+  // footer_datetime_trigger: clsx(),
   footer_clear: clsx('select-none hover:opacity-50'),
   footer_clear_disabled: clsx(
     'pointer-events-none opacity-25 hover:opacity-25'
