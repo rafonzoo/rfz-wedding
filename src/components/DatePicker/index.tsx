@@ -405,18 +405,13 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   }
 
   function onChangedTimes([hour, minute]: string[]) {
-    const current = picker.selected || picker.instance
+    const current = dayjs(picker.selected)
 
     if (current.hour() === +hour && current.minute() === +minute) {
       return
     }
 
-    setPicker('selected', (prev) =>
-      dayjs(prev ?? picker.instance)
-        .hour(+hour)
-        .minute(+minute)
-    )
-
+    setPicker('selected', (prev) => dayjs(prev).hour(+hour).minute(+minute))
     props.onchange?.(current.hour(+hour).minute(+minute).format(format))
   }
 
