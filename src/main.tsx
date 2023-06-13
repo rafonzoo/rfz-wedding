@@ -1,14 +1,13 @@
 import { render } from 'solid-js/web'
 import { default as localeData } from 'dayjs/plugin/localeData'
+import { default as customParseFormat } from 'dayjs/plugin/customParseFormat'
 import { Router } from '@solidjs/router'
 import App from '@app/App'
-import { default as dayjs } from 'dayjs'
-
+import dayjs from 'dayjs'
 import '@app/style.css'
-import 'dayjs/locale/id'
 
 dayjs.extend(localeData)
-dayjs.locale('id')
+dayjs.extend(customParseFormat)
 
 render(
   () => <Router children={<App />} />,

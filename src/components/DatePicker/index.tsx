@@ -19,18 +19,16 @@ interface TimeProps {
 
 interface DatePickerProps {
   id: string
-  type: 'date' | 'datetime-local'
+  type?: string
   value?: string | number
   max?: string | number
   min?: string | number
-  oninvalid?: (value: boolean) => void
   onchange?: (value: string) => void
-  onreset?: () => void
   onclose?: () => void
 }
 
 interface DatePickerStore {
-  selected: dayjs.Dayjs | undefined
+  selected: dayjs.Dayjs
   instance: dayjs.Dayjs
   date: string
   year: string
@@ -43,7 +41,6 @@ interface DatePickerStore {
 interface DatePickerState {
   showYearMonthPicker: boolean
   showTimeLocalPicker: boolean
-  isValid: boolean
   calendar: {
     dates: TimeProps[]
     years: string[]
@@ -65,18 +62,18 @@ const YEAR_START_AT = 1950
 const YEAR_STOP_AT = 2050
 
 const [pickerData, setPickerData] = createSignal<
-  { id: string; selected?: dayjs.Dayjs }[]
+  { id: string; selected?: dayjs.Dayjs; instance: dayjs.Dayjs }[]
 >([])
 
 const DatePicker: FC<DatePickerProps> = (props) => {
+  const [{ id, type }] = splitProps(props, ['id', 'type'])
+
   const mintime = props.min ? dayjs(props.min) : void 0
   const maxtime = props.max ? dayjs(props.max) : void 0
   const initial = props.value ? dayjs(props.value) : void 0
 
-  const [{ id, type }] = splitProps(props, ['id', 'type'])
   const format = type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DDTHH:mm'
   const current = pickerData().find((data) => data.id === id)
-  const defaultValue = initial ?? maxtime ?? mintime
 
   if (onCheckValidation().invalid) {
     throw new Error(onCheckValidation().message)
@@ -84,8 +81,8 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
   // prettier-ignore
   const [picker, setPicker] = createStore<DatePickerStore>({
-    instance: dayjs(current?.selected ?? defaultValue),
-    selected: current?.selected ?? defaultValue ?? void 0,
+    instance: current?.selected ?? current?.instance ?? createInitialValue(),
+    selected: current?.selected ?? current?.instance ?? createInitialValue(),
 
     // READ ONLY!
     get year() { return this.instance.year() + '' },
@@ -102,7 +99,6 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   const [state, setState] = createStore<DatePickerState>({
     showYearMonthPicker: false,
     showTimeLocalPicker: false,
-    isValid: false,
     calendar: {
       dates: [],
       years: [],
@@ -120,43 +116,23 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   let wrapperButton: HTMLDivElement
 
   createEffect(() => {
-    if (props.type === 'datetime-local') {
-      const selected = dayjs(picker.selected)
-
-      if (mintime && maxtime) {
-        const minOK = !selected.isBefore(mintime, 'minutes')
-        const maxOK = !selected.isAfter(maxtime, 'minutes')
-
-        return setState('isValid', minOK && maxOK)
-      }
-
-      if (mintime) {
-        setState('isValid', !mintime.isAfter(selected, 'minutes'))
-      }
-
-      if (maxtime) {
-        setState('isValid', !maxtime.isBefore(selected, 'minutes'))
-      }
-    }
-  })
-
-  createEffect(() => {
+    const instance = picker.instance
     const selected = picker.selected
 
     setPickerData((prev) => {
       if (prev.find((item) => item.id === id)) {
         const now = prev.find((item) => item.id === id)
 
-        if (picker.selected?.isSame(now?.selected)) {
+        if (picker.selected.isSame(now?.selected)) {
           return prev
         }
 
         return prev.map((data) =>
-          data.id !== id ? { ...data } : { id, selected }
+          data.id !== id ? { ...data } : { id, instance, selected }
         )
       }
 
-      return [...prev, { id, selected }]
+      return [...prev, { id, instance, selected }]
     })
   })
 
@@ -193,6 +169,28 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     })
   })
 
+  function createInitialValue(clear = false) {
+    const now = !clear ? initial ?? dayjs() : dayjs()
+
+    if (mintime && maxtime) {
+      return now.isBefore(maxtime, 'day') && now.isAfter(mintime, 'day')
+        ? now
+        : now.isAfter(maxtime, 'day')
+        ? maxtime
+        : mintime
+    }
+
+    if (mintime) {
+      return mintime.isBefore(now, 'day') ? now : mintime
+    }
+
+    if (maxtime) {
+      return maxtime.isAfter(now, 'day') ? now : maxtime
+    }
+
+    return now
+  }
+
   function createAnimation(action: 'next' | 'prev' | 'end') {
     const isEnd = action === 'end'
     const index = action === 'next' ? 2 : isEnd ? 1 : 0
@@ -219,34 +217,41 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
   function createMonthDate(instance: dayjs.Dayjs) {
     const keys = Array(instance.endOf('M').date()).keys()
-    const dates = [...keys].map((num) => ({
-      days: instance
+    const dates = [...keys].map((num) => {
+      const djs = instance
         .date(num + 1)
         .month(instance.month())
         .year(instance.year())
-        .day(),
-      month: instance.month(),
-      year: instance.year(),
-      date: num + 1,
-    }))
+
+      return {
+        days: djs.day(),
+        month: instance.month(),
+        year: instance.year(),
+        date: num + 1,
+        disabled:
+          djs.month() !== picker.instance.month() ||
+          (maxtime && djs.isAfter(maxtime, 'D')) ||
+          (mintime && djs.isBefore(mintime, 'D')),
+      }
+    })
 
     return dates
   }
 
+  function createTimeDate(time: Pick<TimeProps, 'date' | 'month' | 'year'>) {
+    const { date, month, year } = time
+
+    return dayjs(`${date} ${dayjs.months()[month]} ${year}`, 'D MMMM YYYY')
+  }
+
   function isHighlighted(datetime: TimeProps) {
     return (
-      datetime.month !== picker.instance.get('M') && !state.animation.isAnimated
+      datetime.month !== picker.instance.month() && !state.animation.isAnimated
     )
   }
 
   function isCurrentDate(datetime: TimeProps, weekend = false) {
-    const datenow = dayjs(picker.selected || defaultValue)
-    const isToday =
-      datenow?.date() === datetime.date &&
-      datenow?.month() === datetime.month &&
-      datenow?.day() === datetime.days &&
-      datenow?.year() === datetime.year
-
+    const isToday = createTimeDate(datetime).isSame(picker.selected, 'day')
     return weekend ? isToday && datetime.days === 0 : isToday
   }
 
@@ -293,13 +298,6 @@ const DatePicker: FC<DatePickerProps> = (props) => {
       if (unsupLessYear || unsupMoreYear) {
         message = `Only support year within ${YEAR_START_AT} - ${YEAR_STOP_AT}.`
       }
-
-      if (
-        (mintime && initial.isBefore(mintime, unit)) ||
-        (maxtime && initial.isAfter(maxtime, unit))
-      ) {
-        message = 'Initial value mismatch with "min" or "max"'
-      }
     }
 
     if (
@@ -325,50 +323,34 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   }
 
   function onClickResetButton() {
-    const datenow = dayjs(defaultValue)
-
-    if (!picker.selected) {
-      return
-    }
-
     batch(() => {
-      setPicker('instance', datenow)
-      setPicker('selected', undefined)
+      setPicker('instance', createInitialValue(true))
+      setPicker('selected', createInitialValue(true))
 
-      props.onreset?.()
-      props.onchange?.('--Select date--')
+      props.onchange?.('')
     })
   }
 
   function onClickSelectDate(datetime: TimeProps) {
-    const { month, year } = datetime
-    const selected = dayjs(picker.selected)
+    const { date, month, year } = datetime
 
-    return (e: Event) => {
-      const value = (e.target as HTMLElement | null)?.textContent
-
-      if (!value) {
-        return
-      }
-
+    return () => {
       if (
-        selected.date() === +value &&
-        selected.month() === month &&
-        selected.year() === year
+        picker.selected.date() === date &&
+        picker.selected.month() === month &&
+        picker.selected.year() === year
       ) {
         return
       }
 
       setPicker('selected', (prev) => {
-        const selected = dayjs(prev)
-          .date(+value)
-          .month(month)
-          .year(year)
-          .hour(prev ? prev.hour() : dayjs(defaultValue).hour())
-          .minute(prev ? prev.minute() : dayjs(defaultValue).minute())
+        const now = createInitialValue()
+        const select = createTimeDate({ date, month, year })
+          .hour(prev ? prev.hour() : now.hour())
+          .minute(prev ? prev.minute() : now.minute())
 
-        props.onchange?.(selected.format(format))
-        return selected
+        props.onchange?.(select.format(format))
+        return select
       })
     }
   }
@@ -398,14 +380,16 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   }
 
   function onChangedTimes([hour, minute]: string[]) {
-    const current = dayjs(picker.selected)
+    const current = picker.selected
 
     if (current.hour() === +hour && current.minute() === +minute) {
       return
     }
 
-    setPicker('selected', (prev) => dayjs(prev).hour(+hour).minute(+minute))
-    props.onchange?.(current.hour(+hour).minute(+minute).format(format))
+    batch(() => {
+      setPicker('selected', current.hour(+hour).minute(+minute))
+      props.onchange?.(current.hour(+hour).minute(+minute).format(format))
+    })
   }
 
   function onChangedSelected() {
@@ -479,7 +463,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                   <>
                     <span
                       class={clsx(styles.header_year, {
-                        // [styles.active]: state.showYearMonthPicker,
+                        [styles.active]: state.showYearMonthPicker,
                       })}
                     >
                       <span class={styles.chevron}>{picker.year}</span>
@@ -487,9 +471,9 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                         dir='right'
                         size={10}
                         weight='3'
-                        // class={clsx(styles.transition, {
-                        //   [styles.rotate('bottom')]: state.showYearMonthPicker,
-                        // })}
+                        class={clsx(styles.transition, {
+                          [styles.rotate('bottom')]: state.showYearMonthPicker,
+                        })}
                       />
                     </span>
                     <span class={styles.header_month}>{picker.month}</span>
@@ -500,7 +484,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
               root={{
                 placement: 'bottom-start',
                 gutter: 12,
-                // modal: true,
+                modal: true,
               }}
             >
               <ScrollPicker
@@ -559,7 +543,6 @@ const DatePicker: FC<DatePickerProps> = (props) => {
             <div ref={(el) => (wrapperButton = el)} class={styles.tile_grid}>
               {state.calendar.dates.map((time) => (
                 <div
-                  // disabled={time.month !== calendar.slider.get('M')}
                   role='button'
                   onclick={onClickSelectDate(time)}
                   data-begin={time.date === 1 ? '' : undefined}
@@ -567,6 +550,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                   class={clsx(styles.tile_dates, {
                     [styles.weekend]: time.days === 0,
                     [styles.tile_highlight]: isHighlighted(time),
+                    [styles.tile_highlight]: !!time.disabled,
                     [styles.tile_today]: isCurrentDate(time),
                     [styles.tile_today_weekend]: isCurrentDate(time, true),
                   })}
@@ -577,33 +561,33 @@ const DatePicker: FC<DatePickerProps> = (props) => {
         </div>
         <div class={styles.footer}>
           {type === 'datetime-local' && (
-            <div class={styles.footer_datetime}>
+            <div class={styles.datetime}>
               <Popup
                 open={state.showTimeLocalPicker}
                 onOpenChange={(isOpen) =>
                   setState('showTimeLocalPicker', isOpen)
                 }
                 trigger={{
-                  class: styles.footer_datetime_trigger,
+                  class: styles.datetime_trigger,
                   children: (
                     <>
-                      <span class={styles.footer_datetime_wrapper}>
+                      <span class={styles.datetime_wrapper}>
                         <span>Time: </span>
                         <span
-                        // class={clsx({
-                        //   [styles.active]: state.showTimeLocalPicker,
-                        // })}
+                          class={clsx({
+                            [styles.active]: state.showTimeLocalPicker,
+                          })}
                         >
-                          {(picker.selected ?? picker.instance).format('HH.mm')}
+                          {picker.selected.format('HH.mm')}
                         </span>
                       </span>
                       <IconChevron
                         dir='right'
                         size={10}
                         weight='3'
-                        // class={clsx(styles.transition, {
-                        //   [styles.rotate('top')]: state.showTimeLocalPicker,
-                        // })}
+                        class={clsx(styles.transition, {
+                          [styles.rotate('top')]: state.showTimeLocalPicker,
+                        })}
                       />
                     </>
                   ),
@@ -612,7 +596,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                 root={{
                   placement: 'top-start',
                   gutter: 12,
-                  // modal: true,
+                  modal: true,
                 }}
               >
                 <ScrollPicker
@@ -621,12 +605,12 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                     {
                       selected: picker.hour,
                       option: state.calendar.hours,
-                      classes: { p: styles.footer_datetime_picker },
+                      classes: { p: styles.datetime_picker },
                     },
                     {
                       selected: picker.minute,
                       option: state.calendar.minutes,
-                      classes: { p: styles.footer_datetime_picker },
+                      classes: { p: styles.datetime_picker },
                     },
                   ]}
                 />
@@ -635,10 +619,9 @@ const DatePicker: FC<DatePickerProps> = (props) => {
           )}
           <button
             onclick={onClickResetButton}
-            disabled={!picker.selected || picker.selected.isSame(defaultValue)}
-            class={clsx(styles.footer_clear, {
-              [styles.footer_clear_disabled]:
-                !picker.selected || picker.selected.isSame(defaultValue),
+            disabled={!picker.selected}
+            class={clsx(styles.action_clear, {
+              [styles.action_clear_disabled]: !picker.selected,
             })}
           >
             Clear
@@ -683,7 +666,7 @@ const headerStyles = {
   ),
   header_button: clsx(
     'h-6 w-6 !items-end justify-center !text-gray-400',
-    'focus-visible:!shadow-none active:!text-primary'
+    'focus-visible:!shadow-none active:!text-blue-500'
   ),
   header_days: clsx(
     'flex h-8 w-full items-center justify-center text-caption',
@@ -710,14 +693,13 @@ const tileStyles = {
 }
 
 const footerStyles = {
-  footer_datetime: clsx('mr-auto flex items-center'),
-  footer_datetime_trigger: clsx('flex items-center focus:outline-none'),
-  footer_datetime_wrapper: clsx('mr-0.5 flex items-center space-x-0.5'),
-  footer_datetime_picker: clsx('min-w-[40px] text-center'),
-  // footer_datetime_trigger: clsx(),
-  footer_clear: clsx('select-none hover:opacity-50'),
-  footer_clear_disabled: clsx(
-    'pointer-events-none opacity-25 hover:opacity-25'
+  datetime: clsx('mr-auto flex items-center'),
+  datetime_trigger: clsx('flex items-center focus:outline-none'),
+  datetime_wrapper: clsx('mr-0.5 flex items-center space-x-0.5'),
+  datetime_picker: clsx('min-w-[40px] text-center'),
+  action_clear: clsx('select-none hover:opacity-50'),
+  action_clear_disabled: clsx(
+    'pointer-events-none opacity-25 hover:!opacity-25'
   ),
 }
 
