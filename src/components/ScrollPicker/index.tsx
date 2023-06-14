@@ -134,7 +134,7 @@ const ScrollOption: FC<ScrollOptionState> = (props) => {
 
   return (
     <div
-      class={clsx('relative flex-grow', props.classes?.wrapper)}
+      class={clsx('relative flex-grow overflow-hidden', props.classes?.wrapper)}
       ontouchstart={() => setTouchEvent('in')}
       ontouchend={() => setTouchEvent('out')}
       onclick={onClick}

@@ -593,6 +593,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                   placement: 'top-start',
                   gutter: 12,
                   modal: true,
+                  flip: false,
                 }}
               >
                 <ScrollPicker
