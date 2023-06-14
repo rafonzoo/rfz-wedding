@@ -3,9 +3,11 @@ import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
 import { createEffect, createUniqueId } from 'solid-js'
 import { TextField } from '@kobalte/core'
+import clsx from 'clsx'
 import dayjs from 'dayjs'
 import Popup from '@app/components/Dialog/Popup'
 import DatePicker from '@app/components/DatePicker'
+import ButtonBase from '@app/components/Button/Base'
 
 const FORMAT_DATE = 'YYYY-MM-DD'
 const FORMAT_TIME = 'YYYY-MM-DDThh:mm'
@@ -14,7 +16,7 @@ interface InputProps extends Omit<TextFieldInputProps, 'ref'> {
   value?: string | number
 }
 
-const TheDatePicker: FC<InputProps> = (props) => {
+const InputPicker: FC<InputProps> = (props) => {
   const format = props.type === 'date' ? FORMAT_DATE : FORMAT_TIME
   const instance = dayjs(props.value).format(format)
 
@@ -45,21 +47,28 @@ const TheDatePicker: FC<InputProps> = (props) => {
     <Popup
       open={state.showCalendar}
       onOpenChange={(isOpen) => setState('showCalendar', isOpen)}
+      content={{ class: '!shadow-none' }}
       trigger={{
         as: 'div',
         class: 'inline-flex',
         children: (
-          <TextField.Input
-            {...props}
-            ref={(el) => (inputField = el)}
-            value={state.value ?? undefined}
-            onclick={(e) => {
-              e.preventDefault()
+          <>
+            <InputBase
+              {...props}
+              ref={(el) => (inputField = el)}
+              value={state.value ?? undefined}
+              class={clsx('peer sr-only', props.class)}
+              onclick={(e) => {
+                e.preventDefault()
 
-              // @ts-expect-error solid problem
-              props.onclick?.(e)
-            }}
-          />
+                // @ts-expect-error solid problem
+                props.onclick?.(e)
+              }}
+            />
+            <ButtonBase class='peer-invalid:text-red-500'>
+              {state.value === '' ? format : state.value}
+            </ButtonBase>
+          </>
         ),
       }}
     >
@@ -76,15 +85,21 @@ const TheDatePicker: FC<InputProps> = (props) => {
   )
 }
 
+const InputBase: FC<TextFieldInputProps> = (props) => {
+  return (
+    <TextField.Input {...props} class={clsx(props.class, 'appearance-none')} />
+  )
+}
+
 const Input: FC<InputProps> = (props) => {
   // const [, prop] = splitProps(props, ['ondatechange'])
 
   return (
     <TextField.Root>
       {props.type === 'date' || props.type === 'datetime-local' ? (
-        <TheDatePicker {...props} />
+        <InputPicker {...props} />
       ) : (
-        <TextField.Input {...props} />
+        <InputBase {...props} />
       )}
     </TextField.Root>
   )

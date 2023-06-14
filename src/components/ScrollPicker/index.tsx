@@ -190,8 +190,6 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
     }
   })
 
-  // createEffect(() => console.log(unwrap(scroller.values)))
-
   return (
     <div class={clsx(styles.outer, props.classes?.outer)}>
       <div
@@ -224,8 +222,8 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
 }
 
 const styles = {
-  outer: clsx('flex overflow-hidden rounded-xl bg-gray-200 shadow-layer'),
-  inner: clsx('relative inline-flex rounded-[inherit]'),
+  outer: clsx('flex bg-gray-200'),
+  inner: clsx('relative inline-flex'),
   selected: clsx(
     'absolute left-4 right-4 top-[3em] flex h-[1em]',
     'items-center rounded-lg bg-gray-300'

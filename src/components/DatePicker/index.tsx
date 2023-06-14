@@ -240,14 +240,9 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
   function createTimeDate(time: Pick<TimeProps, 'date' | 'month' | 'year'>) {
     const { date, month, year } = time
+    const monthName = dayjs.months()[month]
 
-    return dayjs(`${date} ${dayjs.months()[month]} ${year}`, 'D MMMM YYYY')
-  }
-
-  function isHighlighted(datetime: TimeProps) {
-    return (
-      datetime.month !== picker.instance.month() && !state.animation.isAnimated
-    )
+    return dayjs(`${date} ${monthName} ${year}`, 'D MMMM YYYY')
   }
 
   function isCurrentDate(datetime: TimeProps, weekend = false) {
@@ -536,7 +531,9 @@ const DatePicker: FC<DatePickerProps> = (props) => {
         </div>
         <div class={styles.tile}>
           <div
-            style={{ transform: `translateY(${state.animation.offset}px)` }}
+            style={{
+              transform: `translate3d(0,${state.animation.offset}px,0)`,
+            }}
             class={clsx(state.animation.isAnimated && styles.tile_animation)}
             ontransitionend={createAnimation('end')}
           >
@@ -549,7 +546,6 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                   children={time.date}
                   class={clsx(styles.tile_dates, {
                     [styles.weekend]: time.days === 0,
-                    [styles.tile_highlight]: isHighlighted(time),
                     [styles.tile_highlight]: !!time.disabled,
                     [styles.tile_today]: isCurrentDate(time),
                     [styles.tile_today_weekend]: isCurrentDate(time, true),

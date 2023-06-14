@@ -21,7 +21,6 @@ const Notification: Component = () => {
       /> */}
       <Input
         type='datetime-local'
-        class='invalid:text-red-500'
         // value='2017-04-07'
         // min='2017-04-07'
         // max='2017-04-30'
