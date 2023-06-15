@@ -9,7 +9,7 @@ import { onCleanup, onMount } from 'solid-js'
 import { Popover } from '@kobalte/core'
 import clsx from 'clsx'
 
-interface iPopup {
+export interface iPopup {
   open: boolean
   onOpenChange?: (isOpen: boolean) => void
   root?: Omit<PopoverRootProps, 'open' | 'onOpenChange'>

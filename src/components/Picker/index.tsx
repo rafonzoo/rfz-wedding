@@ -1,14 +1,16 @@
 import type { SetStoreFunction } from 'solid-js/store'
 import type { FC } from '@app/types'
+import type { iPopup } from '@app/components/Dialog/Popup'
 import { createStore } from 'solid-js/store'
 import { createEffect, createSignal, For, onMount, splitProps } from 'solid-js'
 import { compare } from '@app/helpers/util'
 import clsx from 'clsx'
+import Popup from '@app/components/Dialog/Popup'
 
 const MAX_HEIGHT = 32
 const MAX_DELAY = 150
 
-interface ScrollOptionProps {
+interface PickerOption {
   option: string[]
   selected?: string
   classes?: {
@@ -16,19 +18,19 @@ interface ScrollOptionProps {
   }
 }
 
-interface ScrollOptionState extends ScrollOptionProps {
-  scroller: ScrollPickerState
+interface PickerItem extends PickerOption {
+  scroller: PickerState
   index: () => number
-  setScroller: SetStoreFunction<ScrollPickerState>
+  setScroller: SetStoreFunction<PickerState>
 }
 
-interface ScrollPickerProps {
+interface PickerList {
   classes?: { [P in 'outer' | 'inner']?: string }
-  items: ScrollOptionProps[]
+  items: PickerOption[]
   onchange?: (values: string[]) => string[] | void
 }
 
-interface ScrollPickerState {
+interface PickerState {
   values: string[]
   state: {
     isScrolling: boolean
@@ -36,7 +38,9 @@ interface ScrollPickerState {
   }[]
 }
 
-const ScrollOption: FC<ScrollOptionState> = (props) => {
+type PickerProps = PickerList & iPopup
+
+const PickerItem: FC<PickerItem> = (props) => {
   const [touchEvent, setTouchEvent] = createSignal<'in' | 'out' | 'none'>(
     'none'
   )
@@ -157,9 +161,8 @@ const ScrollOption: FC<ScrollOptionState> = (props) => {
   )
 }
 
-const ScrollPicker: FC<ScrollPickerProps> = (props) => {
-  const [{ onchange }] = splitProps(props, ['onchange'])
-  const [scroller, setScroller] = createStore<ScrollPickerState>({
+const PickerList: FC<PickerList> = (props) => {
+  const [scroller, setScroller] = createStore<PickerState>({
     values: props.items.map((item) => item.selected || item.option[0]),
     state: props.items.map((item) => ({
       isScrolling: false,
@@ -168,8 +171,8 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
   })
 
   createEffect(() => {
-    const updatedValue = onchange?.(scroller.values)
-    const isUnchanged = updatedValue
+    const updatedValue = props.onchange?.(scroller.values)
+    const isUnchanged = Array.isArray(updatedValue)
       ? compare(scroller.values, updatedValue)
       : true
 
@@ -198,7 +201,7 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
       >
         <For each={props.items}>
           {(item, index) => (
-            <ScrollOption
+            <PickerItem
               classes={item.classes}
               option={item.option}
               selected={item.selected}
@@ -218,6 +221,18 @@ const ScrollPicker: FC<ScrollPickerProps> = (props) => {
         </div>
       </div>
     </div>
+  )
+}
+
+export const Picker: FC<PickerProps> = (props) => {
+  const [picker, popup] = splitProps(props, ['onchange', 'classes', 'items'])
+
+  return (
+    <Popup
+      {...popup}
+      trigger={{ children: props.children }}
+      children={<PickerList {...picker} />}
+    />
   )
 }
 
@@ -247,4 +262,4 @@ const styles = {
   ),
 }
 
-export default ScrollPicker
+export default PickerList

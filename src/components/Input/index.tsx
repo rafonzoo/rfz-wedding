@@ -6,7 +6,7 @@ import { TextField } from '@kobalte/core'
 import clsx from 'clsx'
 import dayjs from 'dayjs'
 import Popup from '@app/components/Dialog/Popup'
-import DatePicker from '@app/components/DatePicker'
+import Calendar from '@app/components/Calendar'
 import ButtonBase from '@app/components/Button/Base'
 
 const FORMAT_DATE = 'YYYY-MM-DD'
@@ -58,12 +58,6 @@ const InputPicker: FC<InputProps> = (props) => {
               ref={(el) => (inputField = el)}
               value={state.value ?? undefined}
               class={clsx('peer sr-only', props.class)}
-              onclick={(e) => {
-                e.preventDefault()
-
-                // @ts-expect-error solid problem
-                props.onclick?.(e)
-              }}
             />
             <ButtonBase class='peer-invalid:text-red-500'>
               {state.value === '' ? format : state.value}
@@ -72,7 +66,7 @@ const InputPicker: FC<InputProps> = (props) => {
         ),
       }}
     >
-      <DatePicker
+      <Calendar
         id={props.id || id}
         value={props.value}
         max={props.max}
@@ -92,8 +86,6 @@ const InputBase: FC<TextFieldInputProps> = (props) => {
 }
 
 const Input: FC<InputProps> = (props) => {
-  // const [, prop] = splitProps(props, ['ondatechange'])
-
   return (
     <TextField.Root>
       {props.type === 'date' || props.type === 'datetime-local' ? (

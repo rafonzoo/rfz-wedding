@@ -4,12 +4,11 @@ import { batch, createEffect, createSignal, splitProps } from 'solid-js'
 import { leading, promise } from '@app/helpers/util'
 import clsx from 'clsx'
 import dayjs from 'dayjs'
-import ScrollPicker from '@app/components/ScrollPicker'
+import { Picker } from '@app/components/Picker'
 import IconChevron from '@app/components/Icon/Chevron'
-import Popup from '@app/components/Dialog/Popup'
 import ButtonBase from '@app/components/Button/Base'
 
-interface TimeProps {
+interface CalendarOption {
   date: number
   days: number
   year: number
@@ -17,7 +16,7 @@ interface TimeProps {
   disabled?: boolean
 }
 
-interface DatePickerProps {
+interface iCalendar {
   id: string
   type?: string
   value?: string | number
@@ -27,7 +26,7 @@ interface DatePickerProps {
   onclose?: () => void
 }
 
-interface DatePickerStore {
+interface CalendarStore {
   selected: dayjs.Dayjs
   instance: dayjs.Dayjs
   date: string
@@ -38,11 +37,11 @@ interface DatePickerStore {
   minute: string
 }
 
-interface DatePickerState {
+interface CalendarState {
   showYearMonthPicker: boolean
   showTimeLocalPicker: boolean
   calendar: {
-    dates: TimeProps[]
+    dates: CalendarOption[]
     years: string[]
     months: string[]
     hours: string[]
@@ -55,17 +54,21 @@ interface DatePickerState {
   }
 }
 
+interface CalendarData {
+  id: string
+  selected?: dayjs.Dayjs
+  instance: dayjs.Dayjs
+}
+
 const TABLES = 105
 const OFFSET = -136
 
 const YEAR_START_AT = 1950
 const YEAR_STOP_AT = 2050
 
-const [pickerData, setPickerData] = createSignal<
-  { id: string; selected?: dayjs.Dayjs; instance: dayjs.Dayjs }[]
->([])
+const [calendarData, setCalendarData] = createSignal<CalendarData[]>([])
 
-const DatePicker: FC<DatePickerProps> = (props) => {
+const Calendar: FC<iCalendar> = (props) => {
   const [{ id, type }] = splitProps(props, ['id', 'type'])
 
   const mintime = props.min ? dayjs(props.min) : void 0
@@ -73,16 +76,16 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   const initial = props.value ? dayjs(props.value) : void 0
 
   const format = type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DDTHH:mm'
-  const current = pickerData().find((data) => data.id === id)
+  const saved = calendarData().find((data) => data.id === id)
 
   if (onCheckValidation().invalid) {
     throw new Error(onCheckValidation().message)
   }
 
   // prettier-ignore
-  const [picker, setPicker] = createStore<DatePickerStore>({
-    instance: current?.selected ?? current?.instance ?? createInitialValue(),
-    selected: current?.selected ?? current?.instance ?? createInitialValue(),
+  const [controller, setController] = createStore<CalendarStore>({
+    instance: saved?.selected ?? saved?.instance ?? createInitialValue(),
+    selected: saved?.selected ?? saved?.instance ?? createInitialValue(),
 
     // READ ONLY!
     get year() { return this.instance.year() + '' },
@@ -93,18 +96,15 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     get minute() { return leading((this.selected || this.instance).minute()) },
   })
 
-  const hours = [...Array(24).keys()].map((i) => leading(i))
-  const minutes = [...Array(60).keys()].map((i) => leading(i))
-
-  const [state, setState] = createStore<DatePickerState>({
+  const [state, setState] = createStore<CalendarState>({
     showYearMonthPicker: false,
     showTimeLocalPicker: false,
     calendar: {
       dates: [],
       years: [],
       months: [],
-      hours,
-      minutes,
+      hours: [...Array(24).keys()].map((hour) => leading(hour)),
+      minutes: [...Array(60).keys()].map((min) => leading(min)),
     },
     animation: {
       lastAction: 'prev',
@@ -116,14 +116,14 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   let wrapperButton: HTMLDivElement
 
   createEffect(() => {
-    const instance = picker.instance
-    const selected = picker.selected
+    const instance = controller.instance
+    const selected = controller.selected
 
-    setPickerData((prev) => {
+    setCalendarData((prev) => {
       if (prev.find((item) => item.id === id)) {
         const now = prev.find((item) => item.id === id)
 
-        if (picker.selected.isSame(now?.selected)) {
+        if (controller.selected.isSame(now?.selected)) {
           return prev
         }
 
@@ -138,22 +138,22 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
   createEffect(() => {
     const prevOffset =
-      picker.instance.add(-1, 'M').date(1).day() <= 0
+      controller.instance.add(-1, 'M').date(1).day() <= 0
         ? []
-        : createMonthDate(picker.instance.add(-2, 'M')).slice(
-            -picker.instance.add(-1, 'M').date(1).day()
+        : createMonthDate(controller.instance.add(-2, 'M')).slice(
+            -controller.instance.add(-1, 'M').date(1).day()
           )
 
     const datesCurrent = [
       ...prevOffset,
-      ...createMonthDate(picker.instance.add(-1, 'M')),
-      ...createMonthDate(picker.instance),
-      ...createMonthDate(picker.instance.add(1, 'M')),
+      ...createMonthDate(controller.instance.add(-1, 'M')),
+      ...createMonthDate(controller.instance),
+      ...createMonthDate(controller.instance.add(1, 'M')),
     ]
 
     setState('calendar', 'dates', [
       ...datesCurrent,
-      ...createMonthDate(picker.instance.add(2, 'M')).slice(
+      ...createMonthDate(controller.instance.add(2, 'M')).slice(
         0,
         TABLES - datesCurrent.length
       ),
@@ -163,7 +163,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   createEffect(() => {
     let dates: NodeListOf<HTMLElement> | undefined
 
-    promise(picker.month).then(() => {
+    promise(controller.month).then(() => {
       dates = wrapperButton.querySelectorAll<HTMLElement>('[data-begin]')
       setState('animation', 'offset', -Array.from(dates || [])[1]?.offsetTop)
     })
@@ -199,7 +199,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
       e.preventDefault()
 
       // prettier-ignore
-      isEnd && setPicker('instance', (prev) =>
+      isEnd && setController('instance', (prev) =>
         prev.add(state.animation.lastAction === 'next' ? 1 : -1, 'M')
       )
 
@@ -229,7 +229,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
         year: instance.year(),
         date: num + 1,
         disabled:
-          djs.month() !== picker.instance.month() ||
+          djs.month() !== controller.instance.month() ||
           (maxtime && djs.isAfter(maxtime, 'D')) ||
           (mintime && djs.isBefore(mintime, 'D')),
       }
@@ -238,15 +238,17 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     return dates
   }
 
-  function createTimeDate(time: Pick<TimeProps, 'date' | 'month' | 'year'>) {
+  function createTimeDate(
+    time: Pick<CalendarOption, 'date' | 'month' | 'year'>
+  ) {
     const { date, month, year } = time
     const monthName = dayjs.months()[month]
 
     return dayjs(`${date} ${monthName} ${year}`, 'D MMMM YYYY')
   }
 
-  function isCurrentDate(datetime: TimeProps, weekend = false) {
-    const isToday = createTimeDate(datetime).isSame(picker.selected, 'day')
+  function isCurrentDate(datetime: CalendarOption, weekend = false) {
+    const isToday = createTimeDate(datetime).isSame(controller.selected, 'day')
     return weekend ? isToday && datetime.days === 0 : isToday
   }
 
@@ -256,16 +258,16 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
     switch (state) {
       case 'prev':
-        stopMinMax = picker.instance.add(-1, 'M').year() < YEAR_START_AT
+        stopMinMax = controller.instance.add(-1, 'M').year() < YEAR_START_AT
         hasMinMax = !!(
-          mintime && picker.instance.add(-1, 'M').isBefore(mintime, 'M')
+          mintime && controller.instance.add(-1, 'M').isBefore(mintime, 'M')
         )
 
         break
       case 'next':
-        stopMinMax = picker.instance.add(1, 'M').year() > YEAR_STOP_AT
+        stopMinMax = controller.instance.add(1, 'M').year() > YEAR_STOP_AT
         hasMinMax = !!(
-          maxtime && picker.instance.add(1, 'M').isAfter(maxtime, 'M')
+          maxtime && controller.instance.add(1, 'M').isAfter(maxtime, 'M')
         )
 
         break
@@ -319,26 +321,26 @@ const DatePicker: FC<DatePickerProps> = (props) => {
 
   function onClickResetButton() {
     batch(() => {
-      setPicker('instance', createInitialValue(true))
-      setPicker('selected', createInitialValue(true))
+      setController('instance', createInitialValue(true))
+      setController('selected', createInitialValue(true))
 
       props.onchange?.('')
     })
   }
 
-  function onClickSelectDate(datetime: TimeProps) {
+  function onClickSelectDate(datetime: CalendarOption) {
     const { date, month, year } = datetime
 
     return () => {
       if (
-        picker.selected.date() === date &&
-        picker.selected.month() === month &&
-        picker.selected.year() === year
+        controller.selected.date() === date &&
+        controller.selected.month() === month &&
+        controller.selected.year() === year
       ) {
         return
       }
 
-      setPicker('selected', (prev) => {
+      setController('selected', (prev) => {
         const now = createInitialValue()
         const select = createTimeDate({ date, month, year })
           .hour(prev ? prev.hour() : now.hour())
@@ -355,11 +357,11 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     let values = [month, year]
 
     if (monthIndex < 0) {
-      throw new Error(`ReferenceError: No index found, index of ${month}`)
+      return
     }
 
-    setPicker('instance', (prev) => {
-      if (!state.calendar.months.includes(month) && picker.year === year) {
+    setController('instance', (prev) => {
+      if (!state.calendar.months.includes(month) && controller.year === year) {
         monthIndex = dayjs.months().indexOf(onChangedSelected())
         values = [onChangedSelected(), year]
       }
@@ -375,14 +377,14 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   }
 
   function onChangedTimes([hour, minute]: string[]) {
-    const current = picker.selected
+    const current = controller.selected
 
     if (current.hour() === +hour && current.minute() === +minute) {
       return
     }
 
     batch(() => {
-      setPicker('selected', current.hour(+hour).minute(+minute))
+      setController('selected', current.hour(+hour).minute(+minute))
       props.onchange?.(current.hour(+hour).minute(+minute).format(format))
     })
   }
@@ -391,12 +393,12 @@ const DatePicker: FC<DatePickerProps> = (props) => {
     const fmonth = state.calendar.months[0]
     const lmonth = state.calendar.months[state.calendar.months.length - 1]
 
-    if (state.calendar.months.indexOf(picker.month) > -1) {
-      return picker.month
+    if (state.calendar.months.indexOf(controller.month) > -1) {
+      return controller.month
     }
 
     if (mintime && maxtime) {
-      return picker.instance.isAfter(maxtime, 'M') ? lmonth : fmonth
+      return controller.instance.isAfter(maxtime, 'M') ? lmonth : fmonth
     }
 
     return mintime ? fmonth : lmonth
@@ -415,7 +417,7 @@ const DatePicker: FC<DatePickerProps> = (props) => {
   }
 
   function onChangedMonthEffect() {
-    const year = +picker.year
+    const year = +controller.year
     const monthNames = dayjs.months()
 
     // Default show all months
@@ -449,59 +451,53 @@ const DatePicker: FC<DatePickerProps> = (props) => {
       <div class={styles.inner}>
         <div class={styles.header}>
           <div class={styles.header_picker}>
-            <Popup
+            <Picker
               open={state.showYearMonthPicker}
+              onchange={onChangedMonth}
               onOpenChange={(isOpen) => setState('showYearMonthPicker', isOpen)}
-              trigger={{
-                class: styles.header_trigger,
-                children: (
-                  <>
-                    <span
-                      class={clsx(styles.header_year, {
-                        [styles.active]: state.showYearMonthPicker,
-                      })}
-                    >
-                      <span class={styles.chevron}>{picker.year}</span>
-                      <IconChevron
-                        dir='right'
-                        size={10}
-                        weight='3'
-                        class={clsx(styles.transition, {
-                          [styles.rotate('bottom')]: state.showYearMonthPicker,
-                        })}
-                      />
-                    </span>
-                    <span class={styles.header_month}>{picker.month}</span>
-                  </>
-                ),
-              }}
+              trigger={{ class: styles.header_trigger }}
               content={{ class: 'origin-top-left' }}
               root={{
                 placement: 'bottom-start',
                 gutter: 12,
                 modal: true,
               }}
+              classes={{
+                outer: styles.picker_outer,
+                inner: styles.picker_inner,
+              }}
+              items={[
+                {
+                  selected: onChangedSelected(),
+                  option: state.calendar.months,
+                  classes: { p: styles.picker_month },
+                },
+                {
+                  selected: controller.year,
+                  option: state.calendar.years,
+                  classes: { p: styles.picker_year },
+                },
+              ]}
             >
-              <ScrollPicker
-                onchange={onChangedMonth}
-                classes={{
-                  outer: styles.picker_outer,
-                  inner: styles.picker_inner,
-                }}
-                items={[
-                  {
-                    selected: onChangedSelected(),
-                    option: state.calendar.months,
-                    classes: { p: styles.picker_month },
-                  },
-                  {
-                    selected: picker.year,
-                    option: state.calendar.years,
-                    classes: { p: styles.picker_year },
-                  },
-                ]}
-              />
-            </Popup>
+              <span
+                class={clsx({
+                  [styles.header_year]: true,
+                  [styles.active]: state.showYearMonthPicker,
+                })}
+              >
+                <span class={styles.chevron}>{controller.year}</span>
+                <IconChevron
+                  dir='right'
+                  size={10}
+                  weight='3'
+                  class={clsx({
+                    [styles.transition]: true,
+                    [styles.rotate('bottom')]: state.showYearMonthPicker,
+                  })}
+                />
+              </span>
+              <span class={styles.header_month}>{controller.month}</span>
+            </Picker>
           </div>
           <div class={styles.header_action}>
             <ButtonBase
@@ -558,35 +554,11 @@ const DatePicker: FC<DatePickerProps> = (props) => {
         <div class={styles.footer}>
           {type === 'datetime-local' && (
             <div class={styles.datetime}>
-              <Popup
+              <Picker
                 open={state.showTimeLocalPicker}
-                onOpenChange={(isOpen) =>
-                  setState('showTimeLocalPicker', isOpen)
-                }
+                onOpenChange={(open) => setState('showTimeLocalPicker', open)}
                 trigger={{
                   class: styles.datetime_trigger,
-                  children: (
-                    <>
-                      <span class={styles.datetime_wrapper}>
-                        <span>Time: </span>
-                        <span
-                          class={clsx({
-                            [styles.active]: state.showTimeLocalPicker,
-                          })}
-                        >
-                          {picker.selected.format('HH.mm')}
-                        </span>
-                      </span>
-                      <IconChevron
-                        dir='right'
-                        size={10}
-                        weight='3'
-                        class={clsx(styles.transition, {
-                          [styles.rotate('top')]: state.showTimeLocalPicker,
-                        })}
-                      />
-                    </>
-                  ),
                 }}
                 content={{ class: 'origin-bottom-left' }}
                 root={{
@@ -595,30 +567,46 @@ const DatePicker: FC<DatePickerProps> = (props) => {
                   modal: true,
                   flip: false,
                 }}
+                onchange={onChangedTimes}
+                items={[
+                  {
+                    selected: controller.hour,
+                    option: state.calendar.hours,
+                    classes: { p: styles.datetime_picker },
+                  },
+                  {
+                    selected: controller.minute,
+                    option: state.calendar.minutes,
+                    classes: { p: styles.datetime_picker },
+                  },
+                ]}
               >
-                <ScrollPicker
-                  onchange={onChangedTimes}
-                  items={[
-                    {
-                      selected: picker.hour,
-                      option: state.calendar.hours,
-                      classes: { p: styles.datetime_picker },
-                    },
-                    {
-                      selected: picker.minute,
-                      option: state.calendar.minutes,
-                      classes: { p: styles.datetime_picker },
-                    },
-                  ]}
-                />
-              </Popup>
+                <span class={styles.datetime_wrapper}>
+                  <span>Time: </span>
+                  <span
+                    class={clsx({
+                      [styles.active]: state.showTimeLocalPicker,
+                    })}
+                  >
+                    {controller.selected.format('HH.mm')}
+                  </span>
+                  <IconChevron
+                    dir='right'
+                    size={10}
+                    weight='3'
+                    class={clsx(styles.transition, {
+                      [styles.rotate('top')]: state.showTimeLocalPicker,
+                    })}
+                  />
+                </span>
+              </Picker>
             </div>
           )}
           <button
             onclick={onClickResetButton}
-            disabled={!picker.selected}
+            // disabled={value() === ''}
             class={clsx(styles.action_clear, {
-              [styles.action_clear_disabled]: !picker.selected,
+              [styles.action_clear_disabled]: !controller.selected,
             })}
           >
             Clear
@@ -708,4 +696,4 @@ const styles = {
   ...footerStyles,
 }
 
-export default DatePicker
+export default Calendar
