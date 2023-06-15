@@ -3,7 +3,7 @@ import type { iWedding } from '@app/types/invitation'
 import { createStore } from 'solid-js/store'
 import { createMemo } from 'solid-js'
 import { store } from '@app/state/store'
-import { dayjs } from '@app/module'
+import dayjs from 'dayjs'
 import Topbar from '@app/components/Navbar/Topbar'
 
 const template: iWedding = {

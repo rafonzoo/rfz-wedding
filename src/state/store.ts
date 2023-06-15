@@ -1,4 +1,3 @@
-import type { AuthSession } from '@supabase/supabase-js'
 import { createStore } from 'solid-js/store'
 
 const locale = localStorage.getItem('locale')
@@ -8,7 +7,7 @@ interface AppStore {
   darkMode: boolean
   overlay: boolean
   locale: number // 0: Indonesia, 1: English
-  session: AuthSession | null
+  session: /* AuthSession */ null
 }
 
 export const [store, setStore] = createStore<AppStore>({

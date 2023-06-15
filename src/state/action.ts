@@ -1,10 +1,8 @@
-import { unwrap } from 'solid-js/store'
-import { createMemo } from 'solid-js'
-import { setStore, store } from '@app/state/store'
+import { setStore } from '@app/state/store'
 
-export function getUserMeta(key: 'avatar_url' | 'picture' | 'full_name') {
-  return createMemo(() => unwrap(store.session?.user.user_metadata[key]))()
-}
+// export function getUserMeta(key: 'avatar_url' | 'picture' | 'full_name') {
+//   return createMemo(() => unwrap(store.session?.user.user_metadata[key]))()
+// }
 
 export function toggleDarkMode() {
   let isDarkMode = false
