@@ -1,10 +1,10 @@
 import type { FC } from '@app/types'
 import { createStore } from 'solid-js/store'
-import { batch, createEffect, createSignal, splitProps } from 'solid-js'
+import { batch, createEffect } from 'solid-js'
 import { leading, promise } from '@app/helpers/util'
 import clsx from 'clsx'
 import dayjs from 'dayjs'
-import { Picker } from '@app/components/Picker'
+import Roller from '@app/components/Roller'
 import IconChevron from '@app/components/Icon/Chevron'
 import ButtonBase from '@app/components/Button/Base'
 
@@ -54,38 +54,21 @@ interface CalendarState {
   }
 }
 
-interface CalendarData {
-  id: string
-  selected?: dayjs.Dayjs
-  instance: dayjs.Dayjs
-}
-
 const TABLES = 105
 const OFFSET = -136
 
 const YEAR_START_AT = 1950
 const YEAR_STOP_AT = 2050
 
-const [calendarData, setCalendarData] = createSignal<CalendarData[]>([])
-
 const Calendar: FC<iCalendar> = (props) => {
-  const [{ id, type }] = splitProps(props, ['id', 'type'])
-
-  const mintime = props.min ? dayjs(props.min) : void 0
-  const maxtime = props.max ? dayjs(props.max) : void 0
-  const initial = props.value ? dayjs(props.value) : void 0
-
-  const format = type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DDTHH:mm'
-  const saved = calendarData().find((data) => data.id === id)
-
   if (onCheckValidation().invalid) {
     throw new Error(onCheckValidation().message)
   }
 
   // prettier-ignore
   const [controller, setController] = createStore<CalendarStore>({
-    instance: saved?.selected ?? saved?.instance ?? createInitialValue(),
-    selected: saved?.selected ?? saved?.instance ?? createInitialValue(),
+    instance: createInitialValue(),
+    selected: createInitialValue(),
 
     // READ ONLY!
     get year() { return this.instance.year() + '' },
@@ -113,28 +96,8 @@ const Calendar: FC<iCalendar> = (props) => {
     },
   })
 
+  const format = props.type === 'date' ? 'YYYY-MM-DD' : 'YYYY-MM-DDTHH:mm'
   let wrapperButton: HTMLDivElement
-
-  createEffect(() => {
-    const instance = controller.instance
-    const selected = controller.selected
-
-    setCalendarData((prev) => {
-      if (prev.find((item) => item.id === id)) {
-        const now = prev.find((item) => item.id === id)
-
-        if (controller.selected.isSame(now?.selected)) {
-          return prev
-        }
-
-        return prev.map((data) =>
-          data.id !== id ? { ...data } : { id, instance, selected }
-        )
-      }
-
-      return [...prev, { id, instance, selected }]
-    })
-  })
 
   createEffect(() => {
     const prevOffset =
@@ -169,25 +132,31 @@ const Calendar: FC<iCalendar> = (props) => {
     })
   })
 
+  function createDayjs(value?: string | number | null | dayjs.Dayjs) {
+    return !value || value === '' || !dayjs(value).isValid()
+      ? void 0
+      : dayjs(value)
+  }
+
   function createInitialValue(clear = false) {
-    const now = !clear ? initial ?? dayjs() : dayjs()
+    const min = createDayjs(props.min)
+    const max = createDayjs(props.max)
+    const now = dayjs(
+      clear || !props.value || !!!props.value || !dayjs(props.value).isValid()
+        ? void 0
+        : props.value
+    )
 
-    if (mintime && maxtime) {
-      return now.isBefore(maxtime, 'day') && now.isAfter(mintime, 'day')
+    if (min && max) {
+      return now.isBefore(max, 'day') && now.isAfter(min, 'day')
         ? now
-        : now.isAfter(maxtime, 'day')
-        ? maxtime
-        : mintime
+        : now.isAfter(max, 'day')
+        ? max
+        : min
     }
 
-    if (mintime) {
-      return mintime.isBefore(now, 'day') ? now : mintime
-    }
-
-    if (maxtime) {
-      return maxtime.isAfter(now, 'day') ? now : maxtime
-    }
-
+    if (min) return min.isBefore(now, 'day') ? now : min
+    if (max) return max.isAfter(now, 'day') ? now : max
     return now
   }
 
@@ -217,6 +186,8 @@ const Calendar: FC<iCalendar> = (props) => {
 
   function createMonthDate(instance: dayjs.Dayjs) {
     const keys = Array(instance.endOf('M').date()).keys()
+    const min = createDayjs(props.min)
+    const max = createDayjs(props.max)
     const dates = [...keys].map((num) => {
       const djs = instance
         .date(num + 1)
@@ -230,8 +201,8 @@ const Calendar: FC<iCalendar> = (props) => {
         date: num + 1,
         disabled:
           djs.month() !== controller.instance.month() ||
-          (maxtime && djs.isAfter(maxtime, 'D')) ||
-          (mintime && djs.isBefore(mintime, 'D')),
+          (!!max && djs.isAfter(max, 'D')) ||
+          (!!min && djs.isBefore(min, 'D')),
       }
     })
 
@@ -253,6 +224,9 @@ const Calendar: FC<iCalendar> = (props) => {
   }
 
   function isDisabledAction(state: 'next' | 'prev') {
+    const min = createDayjs(props.min)
+    const max = createDayjs(props.max)
+
     let hasMinMax = false
     let stopMinMax = false
 
@@ -260,15 +234,13 @@ const Calendar: FC<iCalendar> = (props) => {
       case 'prev':
         stopMinMax = controller.instance.add(-1, 'M').year() < YEAR_START_AT
         hasMinMax = !!(
-          mintime && controller.instance.add(-1, 'M').isBefore(mintime, 'M')
+          min && controller.instance.add(-1, 'M').isBefore(min, 'M')
         )
 
         break
       case 'next':
         stopMinMax = controller.instance.add(1, 'M').year() > YEAR_STOP_AT
-        hasMinMax = !!(
-          maxtime && controller.instance.add(1, 'M').isAfter(maxtime, 'M')
-        )
+        hasMinMax = !!(max && controller.instance.add(1, 'M').isAfter(max, 'M'))
 
         break
     }
@@ -277,20 +249,15 @@ const Calendar: FC<iCalendar> = (props) => {
   }
 
   function onCheckValidation() {
-    const unit = type === 'date' ? 'day' : void 0
+    const val = createDayjs(props.value)
+    const min = createDayjs(props.min)
+    const max = createDayjs(props.max)
+
     let message = null
 
-    if (
-      (initial && !initial.isValid()) ||
-      (mintime && !mintime.isValid()) ||
-      (maxtime && !maxtime.isValid())
-    ) {
-      message = 'Invalid date.'
-    }
-
-    if (initial) {
-      const unsupLessYear = initial.year() < YEAR_START_AT
-      const unsupMoreYear = initial.year() > YEAR_STOP_AT
+    if (val) {
+      const unsupLessYear = val.year() < YEAR_START_AT
+      const unsupMoreYear = val.year() > YEAR_STOP_AT
 
       if (unsupLessYear || unsupMoreYear) {
         message = `Only support year within ${YEAR_START_AT} - ${YEAR_STOP_AT}.`
@@ -298,19 +265,10 @@ const Calendar: FC<iCalendar> = (props) => {
     }
 
     if (
-      (mintime && mintime.year() < YEAR_START_AT) ||
-      (maxtime && maxtime.year() > YEAR_STOP_AT)
+      (min && min.year() < YEAR_START_AT) ||
+      (max && max.year() > YEAR_STOP_AT)
     ) {
       message = `Only support year within ${YEAR_START_AT} - ${YEAR_STOP_AT}.`
-    }
-
-    if (mintime && maxtime) {
-      const minimum = mintime.isAfter(maxtime, unit)
-      const maximum = maxtime.isBefore(mintime, unit)
-
-      if (minimum || maximum) {
-        message = 'Min and max mismatch.'
-      }
     }
 
     return {
@@ -333,6 +291,7 @@ const Calendar: FC<iCalendar> = (props) => {
 
     return () => {
       if (
+        props.value !== '' &&
         controller.selected.date() === date &&
         controller.selected.month() === month &&
         controller.selected.year() === year
@@ -390,26 +349,31 @@ const Calendar: FC<iCalendar> = (props) => {
   }
 
   function onChangedSelected() {
-    const fmonth = state.calendar.months[0]
-    const lmonth = state.calendar.months[state.calendar.months.length - 1]
-
     if (state.calendar.months.indexOf(controller.month) > -1) {
       return controller.month
     }
 
-    if (mintime && maxtime) {
-      return controller.instance.isAfter(maxtime, 'M') ? lmonth : fmonth
+    const min = createDayjs(props.min)
+    const max = createDayjs(props.max)
+    const fmonth = state.calendar.months[0]
+    const lmonth = state.calendar.months[state.calendar.months.length - 1]
+
+    if (min && max) {
+      return controller.instance.isAfter(max, 'M') ? lmonth : fmonth
     }
 
-    return mintime ? fmonth : lmonth
+    return min ? fmonth : lmonth
   }
 
   function onChangedYearEffect() {
+    const min = createDayjs(props.min)
+    const max = createDayjs(props.max)
+
     // eslint-disable-next-line prefer-const
     let array: string[] = []
-    let i = mintime ? mintime.year() : YEAR_START_AT
+    let i = min?.year() ?? YEAR_START_AT
 
-    for (; i <= (maxtime ? maxtime.year() : YEAR_STOP_AT); i++) {
+    for (; i <= (max?.year() ?? YEAR_STOP_AT); i++) {
       array.push(i + '')
     }
 
@@ -420,19 +384,22 @@ const Calendar: FC<iCalendar> = (props) => {
     const year = +controller.year
     const monthNames = dayjs.months()
 
+    const min = createDayjs(props.min)
+    const max = createDayjs(props.max)
+
     // Default show all months
     let list = dayjs.months() as string[]
 
-    if (maxtime && year === maxtime.year()) {
-      list = monthNames.slice(0, maxtime.month() + 1)
+    if (max && year === max.year()) {
+      list = monthNames.slice(0, max.month() + 1)
     }
 
-    if (mintime && year === mintime.year()) {
-      list = monthNames.slice(mintime.month())
+    if (min && year === min.year()) {
+      list = monthNames.slice(min.month())
     }
 
-    if (maxtime && mintime && mintime.year() === maxtime.year()) {
-      list = monthNames.slice(mintime.month(), maxtime.month() + 1)
+    if (max && min && min.year() === max.year()) {
+      list = monthNames.slice(min.month(), max.month() + 1)
     }
 
     setState('calendar', 'months', (prev) => {
@@ -451,7 +418,7 @@ const Calendar: FC<iCalendar> = (props) => {
       <div class={styles.inner}>
         <div class={styles.header}>
           <div class={styles.header_picker}>
-            <Picker
+            <Roller
               open={state.showYearMonthPicker}
               onchange={onChangedMonth}
               onOpenChange={(isOpen) => setState('showYearMonthPicker', isOpen)}
@@ -497,7 +464,7 @@ const Calendar: FC<iCalendar> = (props) => {
                 />
               </span>
               <span class={styles.header_month}>{controller.month}</span>
-            </Picker>
+            </Roller>
           </div>
           <div class={styles.header_action}>
             <ButtonBase
@@ -552,9 +519,9 @@ const Calendar: FC<iCalendar> = (props) => {
           </div>
         </div>
         <div class={styles.footer}>
-          {type === 'datetime-local' && (
+          {props.type === 'datetime-local' && (
             <div class={styles.datetime}>
-              <Picker
+              <Roller
                 open={state.showTimeLocalPicker}
                 onOpenChange={(open) => setState('showTimeLocalPicker', open)}
                 trigger={{
@@ -599,14 +566,15 @@ const Calendar: FC<iCalendar> = (props) => {
                     })}
                   />
                 </span>
-              </Picker>
+              </Roller>
             </div>
           )}
           <button
             onclick={onClickResetButton}
-            // disabled={value() === ''}
+            disabled={!props.value || props.value === ''}
             class={clsx(styles.action_clear, {
-              [styles.action_clear_disabled]: !controller.selected,
+              [styles.action_clear_disabled]:
+                !props.value || props.value === '',
             })}
           >
             Clear

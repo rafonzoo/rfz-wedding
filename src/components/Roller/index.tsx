@@ -224,13 +224,13 @@ const PickerList: FC<PickerList> = (props) => {
   )
 }
 
-export const Picker: FC<PickerProps> = (props) => {
+export const Roller: FC<PickerProps> = (props) => {
   const [picker, popup] = splitProps(props, ['onchange', 'classes', 'items'])
 
   return (
     <Popup
       {...popup}
-      trigger={{ children: props.children }}
+      trigger={{ ...popup.trigger, children: props.children }}
       children={<PickerList {...picker} />}
     />
   )
@@ -262,4 +262,4 @@ const styles = {
   ),
 }
 
-export default PickerList
+export default Roller
