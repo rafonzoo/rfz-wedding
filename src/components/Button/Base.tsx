@@ -1,10 +1,9 @@
-import type { Component } from 'solid-js'
-import type { ButtonRootProps } from '@kobalte/core/dist/types/button'
-import { Button as KButton } from '@kobalte/core'
+import type { JSX } from 'solid-js'
+import type { FC } from '@app/types'
 import clsx from 'clsx'
 
-const ButtonBase: Component<ButtonRootProps> = (props) => {
-  return <KButton.Root {...props} class={clsx(styles.index, props.class)} />
+const ButtonBase: FC<JSX.IntrinsicElements['button']> = (props) => {
+  return <button {...props} class={clsx(styles.index, props.class)} />
 }
 
 const styles = {

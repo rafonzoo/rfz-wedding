@@ -15,8 +15,6 @@
     "lint:eslint": "eslint -c ./.eslintrc.json **/*.{ts,tsx} --fix"
   },
   "dependencies": {
-    "@kobalte/core": "^0.9.6",
-    "@kobalte/tailwindcss": "^0.6.5",
     "@solidjs/router": "^0.8.2",
     "clsx": "^1.2.1",
     "dayjs": "^1.11.8",

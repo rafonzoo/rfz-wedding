@@ -1,6 +1,6 @@
 import type { Component } from 'solid-js'
 import { lazy, onMount } from 'solid-js'
-import { polyfill } from 'smoothscroll-polyfill'
+// import { polyfill } from 'smoothscroll-polyfill'
 import { Route, Routes } from '@solidjs/router'
 import { setStore } from '@app/state/store'
 import { lazied } from '@app/helpers'
@@ -23,7 +23,7 @@ const App: Component = () => {
     })
 
     // Polyfill
-    polyfill()
+    // polyfill()
   })
 
   return (

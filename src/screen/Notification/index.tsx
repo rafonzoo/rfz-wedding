@@ -1,46 +1,102 @@
-import type { Component } from 'solid-js'
-import { createSignal, onMount } from 'solid-js'
-import { delay } from '@app/helpers/util'
-import dayjs from 'dayjs'
-import Input from '@app/components/Input'
+import type { FC } from '@app/types'
+import { type Component, onMount } from 'solid-js'
+import clsx from 'clsx'
 
-const Notification: Component = () => {
-  const [choosenDate, setDate] = createSignal('')
+// Items should be 19
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
+
+const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu']
+
+const Wheels: FC<{ items: string[] }> = ({ items }) => {
+  let ulElement: HTMLUListElement
+
+  function requiredItem() {
+    const newArr = []
+    const temp = []
+
+    let n = items.length - 1
+
+    for (let i = 0; i < 19; i++) {
+      if (!items[i]) {
+        if (n < 1) {
+          n = items.length - 1
+          // temp.push(items[n])
+        } else {
+          temp.unshift(items[n])
+          n--
+        }
+      } else {
+        newArr.push(items[i])
+      }
+    }
+
+    console.log(newArr.concat(temp))
+
+    return newArr.concat(temp)
+  }
+
+  // requiredItem()
 
   onMount(() => {
-    delay(1000).then(() => {
-      setDate('2023-09-20T21:12')
+    const length = requiredItem().length
+    const diameter = ulElement.clientHeight
+    const radius = diameter / 2
+    const angle = 360 / length
+    const circumference = Math.PI * diameter
+    const height = circumference / length
+
+    Array.from(ulElement.querySelectorAll('li')).forEach((li, i) => {
+      const transform = `rotateX(${-angle * i}deg) translateZ(${radius}px)`
+
+      li.style.transform = transform
+      li.style.height = height + 'px'
+      li.style.marginTop = -(height / 2 - 1) + 'px'
     })
   })
 
   return (
-    <div class='min-h-[200vh]'>
-      <p class='py-5'>
-        {choosenDate() === ''
-          ? 'no value'
-          : dayjs(choosenDate()).format('dddd, DD MMMM YYYY, HH.mm')}
-      </p>
-      <Input
-        type='datetime-local'
-        // value='2017-04-07'
-        // min='2017-04-07'
-        // max='2017-04-30'
-        min='2023-03-25T12:00'
-        value={choosenDate()}
-        // max='2020-04-25T03:00'
-      />
-      <input
-        type='datetime-local'
-        // min='2024-03-25T03:00'
-        // value='2025-04-07T03:00'
-        // min='2026-03-25T12:00'
-        value={choosenDate()}
-        // max='2020-04-25T03:00'
-        oninput={(e) => {
-          setDate(e.target.value)
-          // console.log(e.target.value)
-        }}
-      />
+    <div class='m-5 overflow-hidden p-5'>
+      <div class='perspective-1000'>
+        <ul
+          ref={(el) => (ulElement = el)}
+          class='relative h-[8em] bg-gray-200 preserve-3d'
+          style={{ 'font-size': '28px' }}
+        >
+          {requiredItem().map((month) => (
+            <li
+              // style={{ 'transform-origin': '50% 0' }}
+              class={clsx({
+                'absolute top-1/2 flex w-full items-center': true,
+                'h-7 bg-gray-200 px-2 text-lead -tracking-lead': true,
+              })}
+            >
+              {month}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
+const Notification: Component = () => {
+  return (
+    <div>
+      {/* <Wheels items={months} /> */}
+      <Wheels items={days} />
     </div>
   )
 }

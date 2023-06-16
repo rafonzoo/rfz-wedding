@@ -1,14 +1,14 @@
-import type { Component } from 'solid-js'
-import type { ButtonRootProps } from '@kobalte/core/dist/types/button'
+import type { JSX } from 'solid-js'
+import type { FC } from '@app/types'
 import { splitProps } from 'solid-js'
 import clsx from 'clsx'
 import ButtonBase from '@app/components/Button/Base'
 
-interface ButtonProps extends ButtonRootProps {
+interface ButtonProps {
   model?: 'default' | 'action'
 }
 
-const Button: Component<ButtonProps> = (props) => {
+const Button: FC<ButtonProps & JSX.IntrinsicElements['button']> = (props) => {
   const [{ model = 'default' }, rest] = splitProps(props, ['model'])
   return (
     <ButtonBase

@@ -20,14 +20,6 @@ module.exports = {
   theme: {
     extend: {
       animation: {
-        'popover-in': `popover-in 150ms ${easing['opacity']}`,
-        'popover-out': `popover-out 150ms ${easing['opacity']}`,
-        'dialog-in': `dialog-in ${duration['panel']}ms ${easing['panel']}`,
-        'dialog-out': `dialog-out ${duration['panel']}ms ${easing['panel']}`,
-        'overlay-in': `overlay-in ${duration['overlay']}ms ${easing['opacity']}`,
-        'overlay-out': `overlay-out ${duration['overlay']}ms ${easing['opacity']}`,
-        'slide-up': `slide-up ${duration['panel']}ms ${easing['panel']}`,
-        'slide-down': `slide-down ${duration['panel']}ms ${easing['panel']}`,
         spinner: `spinner 1s ${duration['overlay']}ms infinite`,
       },
       boxShadow: {
@@ -62,8 +54,7 @@ module.exports = {
         small: ['11px', '15px'],
         caption: ['12px', '16px'],
         base: ['16px', '24px'],
-        lead: ['20px', '24px'],
-        picker: ['21px', '24px'],
+        lead: ['21px', '24px'],
         heading: ['24px', '28px'],
         hero: ['30px', '34px'],
       },
@@ -71,52 +62,6 @@ module.exports = {
         7: 'repeat(7, minmax(0, 1fr))',
       },
       keyframes: {
-        'popover-in': {
-          from: {
-            opacity: '0',
-            transform: 'scale(0.75)',
-            'will-change': 'opacity, transform',
-          },
-          to: {
-            opacity: '1',
-            transform: 'scale(1)',
-          },
-        },
-        'popover-out': {
-          from: {
-            opacity: '1',
-            transform: 'scale(1)',
-            'will-change': 'opacity, transform',
-          },
-          to: {
-            opacity: '0',
-            transform: 'scale(0.75)',
-          },
-        },
-        'dialog-in': {
-          from: { opacity: '0', transform: translate['3d-bottom-dialog'] },
-          to: { opacity: '1', transform: translate['3d-center'] },
-        },
-        'dialog-out': {
-          from: { opacity: '1', transform: translate['3d-center'] },
-          to: { opacity: '0', transform: translate['3d-bottom-dialog'] },
-        },
-        'overlay-in': {
-          from: { opacity: '0' },
-          to: { opacity: '0.50' },
-        },
-        'overlay-out': {
-          from: { opacity: '0.50' },
-          to: { opacity: '0' },
-        },
-        'slide-up': {
-          from: { transform: translate['3d-bottom-full'] },
-          to: { transform: translate['3d-0'] },
-        },
-        'slide-down': {
-          from: { transform: translate['3d-0'] },
-          to: { transform: translate['3d-bottom-full'] },
-        },
         spinner: {
           '0%': {
             opacity: '1',
@@ -160,39 +105,14 @@ module.exports = {
     },
   },
   plugins: [
-    require('@kobalte/tailwindcss'),
     ({ addUtilities }) => {
       addUtilities({
+        '.perspective-1000': { perspective: '1000px' },
+        '.preserve-3d': { 'transform-style': 'preserve-3d' },
         '.backface-hidden': { 'backface-visibility': 'hidden' },
-        '.snap-y-mandatory': { 'scroll-snap-type': 'y mandatory' },
-        '.overflow-y-touch': {
-          'overflow-x': 'hidden',
-          'overflow-y': 'auto',
-          '-webkit-overflow-scrolling': 'touch',
-        },
-        '.bg-translucent-light': {
-          background: `linear-gradient(${[
-            '154.34deg',
-            'rgba(245, 245, 255, 0.9) 0%',
-            'rgba(225, 225, 230, 0.9) 32.02%',
-            'rgba(210, 210, 218, 0.9) 65.63%',
-            'rgba(210, 210, 218, 0.9) 65.63%',
-            'rgba(195, 195, 205, 0.9) 100%',
-          ].join(', ')})`,
-        },
-
-        // Transform
         '.translate-z-0': { transform: translate['z-0'] },
         '.translate-3d-0': { transform: translate['3d-0'] },
         '.translate-3d-center': { transform: translate['3d-center'] },
-
-        // Safearea
-        '.env-pb-0': { 'padding-bottom': 'max(env(safe-area-inset-bottom))' },
-        '.env-pb-4': {
-          'padding-bottom': 'max(env(safe-area-inset-bottom), 16px)',
-        },
-        '.env-ml-0': { 'margin-left': 'max(env(safe-area-inset-left))' },
-        '.env-mr-0': { 'margin-right': 'max(env(safe-area-inset-right))' },
       })
     },
   ],
