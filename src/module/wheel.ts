@@ -45,6 +45,8 @@ export default class IosSelector {
       touchend: null
     };
 
+    console.log(this.elems.el.offsetHeight)
+
     this.itemHeight = this.elems.el.offsetHeight * 3 / this.options.count; // 每项高度
     this.itemAngle = 360 / this.options.count; // 每项之间旋转度数
     this.radius = this.itemHeight / Math.tan(this.itemAngle * Math.PI / 180); // 圆环半径
@@ -261,14 +263,14 @@ export default class IosSelector {
    * @param {init} scroll
    * @return 取模之后的 normalizedScroll
    */
-  _normalizeScroll(scroll) {
+  _normalizeScroll(scroll, round = false) {
     let normalizedScroll = scroll;
 
     while(normalizedScroll < 0) {
       normalizedScroll += this.source.length;
     }
     normalizedScroll = normalizedScroll % this.source.length;
-    return normalizedScroll;
+    return round ? Math.round(normalizedScroll) : normalizedScroll;
   }
 
   /**
@@ -389,7 +391,7 @@ export default class IosSelector {
   }
 
   _selectByScroll(scroll) {
-    scroll = this._normalizeScroll(scroll) | 0;
+    scroll = this._normalizeScroll(scroll, true) | 0;
     if (scroll > this.source.length - 1) {
       scroll = this.source.length - 1;
       this._moveTo(scroll);
