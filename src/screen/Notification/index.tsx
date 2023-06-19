@@ -39,7 +39,7 @@ const Wheels: FC = () => {
 
   return (
     <div class='flex-grow px-4'>
-      <div class='h-[196px]' id='minutes'></div>
+      <div class='h-[212px]' id='minutes'></div>
       <div class='p-4'>Selected: {month()}</div>
     </div>
   )

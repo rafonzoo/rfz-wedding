@@ -107,7 +107,7 @@ module.exports = {
   plugins: [
     ({ addUtilities }) => {
       addUtilities({
-        '.perspective-1000': { perspective: '2000px' },
+        '.perspective-1000': { perspective: '1000px' },
         '.preserve-3d': { 'transform-style': 'preserve-3d' },
         '.backface-hidden': { 'backface-visibility': 'hidden' },
         '.translate-z-0': { transform: translate['z-0'] },

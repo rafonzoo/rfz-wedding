@@ -5,32 +5,9 @@
   overflow: hidden;
   font-size: 19px;
   color: #ddd;
+  @apply bg-gray-200;
 }
-.select-wrap:before,
-.select-wrap:after {
-  position: absolute;
-  z-index: 1;
-  display: block;
-  content: '';
-  width: 100%;
-  height: 50%;
-}
-.select-wrap:before {
-  top: 0;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(1, 1, 1, 0.5),
-    rgba(1, 1, 1, 0)
-  );
-}
-.select-wrap:after {
-  bottom: 0;
-  background-image: linear-gradient(
-    to top,
-    rgba(1, 1, 1, 0.5),
-    rgba(1, 1, 1, 0)
-  );
-}
+
 .select-wrap .select-options {
   will-change: transform;
   position: absolute;
@@ -47,6 +24,7 @@
 }
 .select-wrap .select-options .select-option {
   position: absolute;
+  @apply bg-gray-200 px-4 text-left;
   top: 0;
   left: 0;
   width: 100%;
@@ -57,7 +35,7 @@
 .highlight {
   position: absolute;
   top: 50%;
-  transform: translate(0, -50%);
+  transform: translate(0, -50%) translateZ(1px);
   width: 100%;
   background-color: #000;
   font-size: 23px;
@@ -73,8 +51,9 @@
 .highlight-item {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: left;
+  padding: 0 0.75rem;
 }
 .select-wrap {
-  perspective: 2000px;
+  perspective: 1000px;
 }
