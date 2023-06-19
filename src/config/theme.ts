@@ -15,6 +15,7 @@ export const THEME = {
     easing: {
       panel: 'cubic-bezier(0.52, 0.16, 0.24, 1)',
       opacity: 'cubic-bezier(0.4,0,0.6,1)',
+      quart: 'cubic-bezier(0.165, 0.84, 0.44, 1)',
     },
     duration: {
       panel: 560,

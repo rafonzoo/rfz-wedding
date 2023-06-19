@@ -19,7 +19,9 @@
     "clsx": "^1.2.1",
     "dayjs": "^1.11.8",
     "smoothscroll-polyfill": "^0.4.4",
-    "solid-js": "^1.7.6"
+    "solid-gesture": "^0.0.3",
+    "solid-js": "^1.7.6",
+    "solid-spring": "^0.0.7"
   },
   "devDependencies": {
     "@solidjs/testing-library": "^0.7.1",

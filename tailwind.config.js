@@ -53,8 +53,8 @@ module.exports = {
       fontSize: {
         small: ['11px', '15px'],
         caption: ['12px', '16px'],
-        base: ['16px', '24px'],
-        lead: ['21px', '24px'],
+        base: ['17px', '24px'],
+        lead: ['19px', '24px'],
         heading: ['24px', '28px'],
         hero: ['30px', '34px'],
       },
@@ -107,7 +107,7 @@ module.exports = {
   plugins: [
     ({ addUtilities }) => {
       addUtilities({
-        '.perspective-1000': { perspective: '1000px' },
+        '.perspective-1000': { perspective: '700px' },
         '.preserve-3d': { 'transform-style': 'preserve-3d' },
         '.backface-hidden': { 'backface-visibility': 'hidden' },
         '.translate-z-0': { transform: translate['z-0'] },
