@@ -54,7 +54,7 @@ module.exports = {
         small: ['11px', '15px'],
         caption: ['12px', '16px'],
         base: ['17px', '24px'],
-        lead: ['19px', '24px'],
+        lead: ['20px', '24px'],
         picker: ['22px', '26px'],
         heading: ['24px', '28px'],
         hero: ['30px', '34px'],
