@@ -45,8 +45,6 @@ export default class IosSelector {
       touchend: null
     };
 
-    console.log(this.elems.el.offsetHeight)
-
     this.itemHeight = this.elems.el.offsetHeight * 3 / this.options.count; // 每项高度
     this.itemAngle = 360 / this.options.count; // 每项之间旋转度数
     this.radius = this.itemHeight / Math.tan(this.itemAngle * Math.PI / 180); // 圆环半径

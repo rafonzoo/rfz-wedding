@@ -4,7 +4,7 @@
   text-align: center;
   overflow: hidden;
   perspective: 1000px;
-  font-size: 19px;
+  font-size: 20px;
   @apply bg-white text-gray-500;
 }
 
@@ -38,7 +38,7 @@
   transform: translate3d(0, -50%, 2px);
   width: 100%;
   @apply rounded-md bg-gray-200 text-black;
-  font-size: 21px;
+  font-size: 23px;
   overflow: hidden;
 }
 
@@ -52,5 +52,5 @@
   display: flex;
   align-items: center;
   justify-content: left;
-  padding: 0 0.9rem;
+  padding: 0 0.8rem;
 }
