@@ -34,12 +34,11 @@
 
 .highlight {
   position: absolute;
-  z-index: 1;
   top: 50%;
-  transform: translate(0, -50%);
+  transform: translate3d(0, -50%, 2px);
   width: 100%;
   @apply rounded-md bg-gray-200 text-black;
-  font-size: 23px;
+  font-size: 21px;
   overflow: hidden;
 }
 
@@ -53,5 +52,5 @@
   display: flex;
   align-items: center;
   justify-content: left;
-  padding: 0 0.75rem;
+  padding: 0 0.9rem;
 }
