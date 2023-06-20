@@ -38,3 +38,36 @@
     }
   }
 }
+
+.select-wrap {
+  @apply relative overflow-hidden perspective-1000;
+  @apply h-full bg-white text-gray-500;
+  @apply text-center text-lead -tracking-lead;
+}
+
+.select-options {
+  -webkit-font-smoothing: subpixel-antialiased;
+  @apply absolute left-0 top-1/2 block h-0 w-full preserve-3d;
+  @apply mx-auto text-gray-700 will-change-transform;
+}
+.select-option {
+  @apply absolute left-0 top-0 w-full;
+  @apply h-12 bg-white px-4 text-left;
+  -webkit-font-smoothing: inherit;
+}
+
+.highlight {
+  transform: translate3d(0, -50%, 2px);
+  @apply absolute top-1/2 w-full overflow-hidden;
+  @apply rounded-md text-picker -tracking-lead;
+  @apply bg-gray-200 text-black;
+}
+
+.highlight-list {
+  @apply absolute left-auto top-auto;
+  @apply w-full will-change-transform;
+}
+
+.highlight-item {
+  @apply flex items-center justify-start px-[13px];
+}

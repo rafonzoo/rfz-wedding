@@ -28,5 +28,3 @@ src/**/types
 
 # public
 public/**/*. js
-
-src/module/**/*.ts

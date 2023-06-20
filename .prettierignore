@@ -26,5 +26,3 @@ public/**/*. js
 
 # translation
 src/locale/**/*.json
-
-src/module/**/*.ts
