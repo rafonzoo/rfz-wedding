@@ -9,6 +9,7 @@ const withBundleAnalyzer = BundleAnalyzer({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+  swcMinify: false,
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,
