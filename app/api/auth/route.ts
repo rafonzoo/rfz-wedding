@@ -1,7 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { supabaseRouteServer } from '@/tools/server'
 import { abspath, qstring } from '@/tools/helper'
 import { Route } from '@/tools/config'
 
@@ -10,7 +9,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    const supabase = createRouteHandlerClient({ cookies })
+    const supabase = supabaseRouteServer()
     await supabase.auth.exchangeCodeForSession(code)
 
     return NextResponse.redirect(abspath(Route.wedding))

@@ -14,7 +14,13 @@ export { default as tw } from 'clsx'
 export { dayjs as djs }
 export { z }
 
-export const supabaseClient = () => createClientComponentClient<Database>()
+export const supabaseClient = () => {
+  return createClientComponentClient<Database>({
+    supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  })
+}
+
 export const zodClient = () => {
   if (typeof window === 'undefined') {
     return z

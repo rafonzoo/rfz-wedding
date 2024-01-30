@@ -5,7 +5,10 @@ import { type NextRequest } from 'next/server'
 import { cookies, headers } from 'next/headers'
 import { parseCookie } from 'next/dist/compiled/@edge-runtime/cookies'
 import { getTranslations } from 'next-intl/server'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
+import {
+  createRouteHandlerClient,
+  createServerComponentClient,
+} from '@supabase/auth-helpers-nextjs'
 import { z } from 'zod'
 import { default as ZodID } from 'zod-i18n-map/locales/id/zod.json'
 import { zodI18nMap } from 'zod-i18n-map'
@@ -14,6 +17,11 @@ import i18next from 'i18next'
 export const supabaseServer = cache(() => {
   const cookieStore = cookies()
   return createServerComponentClient<Database>({ cookies: () => cookieStore })
+})
+
+export const supabaseRouteServer = cache(() => {
+  const cookieStore = cookies()
+  return createRouteHandlerClient<Database>({ cookies: () => cookieStore })
 })
 
 export const supabaseService = cache(() => {

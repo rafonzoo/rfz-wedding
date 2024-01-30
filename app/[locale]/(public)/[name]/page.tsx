@@ -4,14 +4,6 @@ import { getCookie, supabaseService } from '@/tools/server'
 import { Route, RouteCookie } from '@/tools/config'
 import { localeRedirect } from '@/locale/config'
 import WeddingPageClient from './client'
-// import { csrfToken } from 'next-auth/client'
-
-async function getCsrfToken() {
-  const response = await fetch(process.env.NEXT_PUBLIC_SITE_URL + '/api/csrf')
-  const json = await response.json()
-
-  return (json as { token: string }).token
-}
 
 const WeddingPage = async ({
   params,
