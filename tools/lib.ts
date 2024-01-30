@@ -4,10 +4,15 @@ import { z } from 'zod'
 import { default as ZodID } from 'zod-i18n-map/locales/id/zod.json'
 import { zodI18nMap } from 'zod-i18n-map'
 import i18next from 'i18next'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import dayjs from 'dayjs'
 
 import 'dayjs/locale/id'
 
+dayjs.extend(utc)
+dayjs.extend(timezone)
+dayjs.tz.guess()
 dayjs.locale('id')
 
 export { default as tw } from 'clsx'

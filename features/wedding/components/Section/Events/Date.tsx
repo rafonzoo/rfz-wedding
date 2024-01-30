@@ -77,7 +77,7 @@ const EventDate: RF<EventDateProps> = ({
   const detail = exact(query.getQueryData<Wedding>(Queries.weddingDetail))
   const dateOrNow = djs(getAddress.date || djs())
   const dateValue = djs(getAddress.date).isValid()
-    ? djs(getAddress.date).format(AppConfig.Wedding.DateFormat)
+    ? djs(getAddress.date).tz().format(AppConfig.Wedding.DateFormat)
     : ''
 
   const isOptionalEvent = !!detail.events.findIndex((event) => event.id === id)
@@ -315,13 +315,15 @@ const EventDate: RF<EventDateProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detail.events, previousLength, address, id])
 
+  useEffect(() => console.log(dateOrNow.tz().format('DD')), [dateOrNow])
+
   return (
     <div className='relative mx-6 mt-[min(108px,max(79px,24.615384615384615vw))] flex'>
       <div className='flex w-[34.558823529411765%] flex-col text-right text-[min(97px,max(71px,22.051282051282051vw))] font-black'>
         {[
-          dateOrNow.format('DD'),
-          dateOrNow.format('MM'),
-          dateOrNow.format('YY'),
+          dateOrNow.tz().format('DD'),
+          dateOrNow.tz().format('MM'),
+          dateOrNow.tz().format('YY'),
         ].map((itm, key) => (
           <Text
             key={key}
@@ -427,9 +429,13 @@ const EventDate: RF<EventDateProps> = ({
               value={dateValue}
               onChange={(e) => setterValue('date')(e.target.value)}
               errorMessage={errorMessage('date')}
-              min={djs().add(1, 'day').format(AppConfig.Wedding.DateFormat)}
+              min={djs()
+                .add(1, 'day')
+                .tz()
+                .format(AppConfig.Wedding.DateFormat)}
               max={djs()
                 .add(AppConfig.Wedding.MaxMonthRange, 'month')
+                .tz()
                 .format(AppConfig.Wedding.DateFormat)}
             />
             <FieldText

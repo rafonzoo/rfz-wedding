@@ -117,7 +117,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
   ]
 
   function formatDate(date: string, eventName: string) {
-    return `${djs(date).format('dddd, DD MMMM YYYY')} \\(${eventName}\\)`
+    return `${djs(date).tz().format('dddd, DD MMMM YYYY')} \\(${eventName}\\)`
   }
 
   function rawText(symbol = '', encode = false) {

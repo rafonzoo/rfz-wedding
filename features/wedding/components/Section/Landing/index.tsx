@@ -80,7 +80,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
   })
 
   const [date] = detail.events.map((event) =>
-    djs(event.date).format('DD:MM:YY')
+    djs(event.date).tz().format('DD:MM:YY')
   )
 
   const { mutate: updateName, isLoading: updateLoading } = useMutation<

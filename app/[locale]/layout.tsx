@@ -10,6 +10,9 @@ import { locales } from '@/locale/config'
 import { QueryProvider } from '@/components/Provider'
 import './style.css'
 
+// Uncomment to track missmatch due to invariant time.
+// process.env.TZ = 'America/Denver'
+
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
