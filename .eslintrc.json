@@ -1,0 +1,153 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "plugins": ["@typescript-eslint", "import", "unused-imports"],
+  "parser": "@typescript-eslint/parser",
+  "rules": {
+    "semi": ["warn", "never"],
+    "@next/next/no-img-element": [0],
+    "jsx-a11y/alt-text": [0],
+    "unused-imports/no-unused-imports": ["warn", { "vars": "local" }],
+    "sort-imports": [
+      "warn",
+      {
+        "ignoreDeclarationSort": true
+      }
+    ],
+    "@typescript-eslint/no-unused-vars": ["off", { "vars": "local" }],
+    "@typescript-eslint/no-empty-interface": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/ban-types": "off",
+    "@typescript-eslint/consistent-type-imports": [
+      "warn",
+      {
+        "prefer": "type-imports"
+      }
+    ],
+    "import/no-duplicates": ["warn"],
+    "import/order": [
+      "warn",
+      {
+        "groups": ["type", "internal", "builtin", "external", "sibling"],
+        "newlines-between": "never",
+        "pathGroups": [
+          {
+            "pattern": "@/type",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "react",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "react-dom",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "react-query",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "next",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "next/navigation",
+            "group": "internal",
+            "position": "before"
+          },
+          {
+            "pattern": "next/dynamic",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "next/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "next-intl",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "next-intl/**",
+            "group": "internal",
+            "position": "after"
+          },
+          {
+            "pattern": "@supabase/**",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "zod",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "react-icons/**",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "@wedding/components/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@wedding/**",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "@account/components/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@account/**",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "@/components/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@/components/Provider",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "@/**",
+            "group": "external",
+            "position": "before"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": [
+          "react",
+          "react-dom",
+          "react-query",
+          "react-icons",
+          "next",
+          "zod",
+          "type",
+          "@/type"
+        ],
+        "warnOnUnassignedImports": false,
+        "alphabetize": { "order": "desc" }
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "error": {
+    "field": {
+      "invalidEmbed": "Invalid source",
+      "invalidDate": "Date should be tomorrow until the next {maxMonth} month.",
+      "invalidGuestField": "Invalid name or group name",
+      "invalidGuestGroup": "Invalid group name",
+      "invalidGuestName": "Invalid name",
+      "invalidGuestExist": "Guest already exist",
+      "invalidLength": "Name and group name must contain at least 3 character(s)"
+    },
+    "photo": {
+      "failedToFetch": "Failed to fetch a photos",
+      "failedToUpload": "Failed to upload",
+      "failedToSave": "Failed to save",
+      "failedToRemove": "Failed to remove"
+    },
+    "guest": {
+      "failedToFetch": "Failed to load guest",
+      "failedToSave": "Failed to save guest"
+    }
+  }
+}

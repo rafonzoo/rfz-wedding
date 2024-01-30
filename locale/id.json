@@ -1,0 +1,23 @@
+{
+  "error": {
+    "field": {
+      "invalidEmbed": "Format sumber tidak valid",
+      "invalidDate": "Waktu harus besok atau {maxMonth} bulan mendatang",
+      "invalidGuestField": "Format nama tamu atau nama dari grup tamu tidak valid",
+      "invalidGuestExist": "Tamu sudah ada",
+      "invalidGuestName": "Format nama tamu tidak valid",
+      "invalidGuestGroup": "Format nama grup tamu tidak valid",
+      "invalidLength": "Nama tamu atau nama dari grup tamu harus mengandung minimal 3 karakter"
+    },
+    "photo": {
+      "failedToFetch": "Gagal memuat foto",
+      "failedToUpload": "Gagal mengunggah foto",
+      "failedToSave": "Gagal menyimpan foto",
+      "failedToRemove": "Gagal menghapus foto"
+    },
+    "guest": {
+      "failedToFetch": "Gagal memuat tamu",
+      "failedToSave": "Gagal menyimpan tamu"
+    }
+  }
+}

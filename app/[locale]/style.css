@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+input[type='search']::-webkit-search-cancel-button {
+  color: red;
+  height: 10px;
+  width: 10px;
+  margin-right: 4px;
+  display: inline-block;
+  background: linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0) 43%,
+      #888 45%,
+      #888 55%,
+      rgba(0, 0, 0, 0) 57%,
+      rgba(0, 0, 0, 0) 100%
+    ),
+    linear-gradient(
+      135deg,
+      transparent 0%,
+      transparent 43%,
+      #888 45%,
+      #888 55%,
+      transparent 57%,
+      transparent 100%
+    );
+}
+
+.markdown > *:first-child {
+  @apply !mt-0;
+}
+
+.markdown p,
+.markdown blockquote,
+.markdown ul,
+.markdown ol,
+.markdown dl,
+.markdown table,
+.markdown pre,
+.markdown details {
+  @apply mb-4 mt-0;
+}
+
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  @apply mb-4 mt-6 border-b border-zinc-300 pb-2 font-semibold dark:border-zinc-700;
+}
+
+.markdown h4 {
+  @apply text-2xl;
+}
+
+.markdown h5 {
+  @apply text-xl;
+}
+
+.markdown h6 {
+  @apply text-base;
+}
+
+.markdown ul,
+.markdown ol {
+  @apply mb-0 mt-0 pl-4;
+}
+
+.markdown ul {
+  @apply list-disc;
+}
+
+.markdown ol {
+  @apply list-decimal;
+}
+
+.markdown li + li {
+  @apply mt-1;
+}
+
+.markdown a {
+  @apply text-blue-600 hover:underline dark:text-blue-400;
+}
+
+.markdown code,
+.markdown tt {
+  @apply m-0 whitespace-break-spaces rounded-md bg-zinc-200 p-[0.2em_0.4em] text-[85%] dark:bg-zinc-700;
+}
+
+.markdown hr {
+  @apply my-6 border-zinc-300 dark:border-zinc-700;
+}
+
+.markdown b,
+.markdown strong {
+  @apply font-semibold;
+}

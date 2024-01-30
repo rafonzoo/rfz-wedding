@@ -1,0 +1,19 @@
+{
+  "css.lint.unknownAtRules": "ignore",
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "prettier.configPath": "./.prettierrc.json",
+  "tailwindCSS.experimental.classRegex": [
+    ["tw\\(([^)]*)\\)", "(?:'|\"|`)([^\"'`]*)(?:'|\"|`)"]
+  ],
+  "tailwindCSS.classAttributes": [
+    "class",
+    "className",
+    "classNames",
+    ".*Classes",
+    "ngClass",
+    "fontConfig"
+  ],
+  "explorer.sortOrder": "type",
+  "i18n-ally.localesPaths": ["locale"],
+  "i18n-ally.keystyle": "nested"
+}

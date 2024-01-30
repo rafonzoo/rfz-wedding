@@ -1,0 +1,28 @@
+# bundle
+node_modules
+.pnp
+.pnp.js
+
+# next
+.vercel
+.next
+out
+
+# output
+build
+coverage
+# src/types
+# src/**/types
+
+# declaration
+**/*.d.ts
+
+# specific File
+**/*. js
+src/components/Base/Text.tsx
+
+# public
+public
+
+# translation
+src/locale/**/*.json
