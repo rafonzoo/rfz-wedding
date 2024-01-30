@@ -317,7 +317,10 @@ const EventDate: RF<EventDateProps> = ({
 
   return (
     <div className='relative mx-6 mt-[min(108px,max(79px,24.615384615384615vw))] flex'>
-      <div className='flex w-[34.558823529411765%] flex-col text-right text-[min(97px,max(71px,22.051282051282051vw))] font-black'>
+      <div
+        className='flex w-[34.558823529411765%] flex-col text-right text-[min(97px,max(71px,22.051282051282051vw))] font-black'
+        suppressHydrationWarning
+      >
         {[
           dateOrNow.format('DD'),
           dateOrNow.format('MM'),
