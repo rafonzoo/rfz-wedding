@@ -12,7 +12,7 @@ import 'dayjs/locale/id'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
-dayjs.tz.guess()
+dayjs.tz.setDefault('Asia/Jakarta')
 dayjs.locale('id')
 
 export { default as tw } from 'clsx'

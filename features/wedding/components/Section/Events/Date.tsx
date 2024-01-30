@@ -315,8 +315,6 @@ const EventDate: RF<EventDateProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detail.events, previousLength, address, id])
 
-  useEffect(() => console.log(dateOrNow.tz().format('DD')), [dateOrNow])
-
   return (
     <div className='relative mx-6 mt-[min(108px,max(79px,24.615384615384615vw))] flex'>
       <div className='flex w-[34.558823529411765%] flex-col text-right text-[min(97px,max(71px,22.051282051282051vw))] font-black'>
