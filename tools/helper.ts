@@ -107,7 +107,7 @@ export function assets(path: string) {
 }
 
 export function uploads(path: string) {
-  const envKey = process.env.NEXT_PUBLIC_NODE_ENV as keyof typeof env
+  const envKey = process.env.NEXT_PUBLIC_SITE_ENV as keyof typeof env
   const env = {
     development: '/d',
     staging: '/s',

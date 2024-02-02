@@ -37,7 +37,7 @@ const Event: RFZ<EventProps> = ({
   timeErrorRef,
 }) => {
   const isPublic = !!useParams().name
-  const isLocalDev = process.env.NEXT_PUBLIC_NODE_ENV !== 'development'
+  const isLocalDev = process.env.NEXT_PUBLIC_SITE_ENV !== 'development'
   const { pointerEvent } = useFeatureDetection()
   const time = {
     id,

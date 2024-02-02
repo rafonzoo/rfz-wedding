@@ -24,7 +24,7 @@ import { AppConfig, ErrorMap, RouteApi, RouteHeader } from '@/tools/config'
 import { DUMMY_INVITATION } from '@/dummy'
 
 // prettier-ignore
-export const WEDDING_ROW = AppConfig.Column[process.env.NODE_ENV as 'development']
+export const WEDDING_ROW = AppConfig.Column[process.env.NEXT_PUBLIC_SITE_ENV as 'development']
 
 // prettier-ignore
 export const WEDDING_COLUMN = 'wid,userId,status,name,displayName,createdAt,updatedAt,stories,music,couple,loadout,galleries,events,surprise' as const
