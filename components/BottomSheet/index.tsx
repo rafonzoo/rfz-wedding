@@ -170,6 +170,8 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   }
 
   function onOpenAutoFocus(e: Event) {
+    e.preventDefault()
+
     if (isAnimating) return
 
     setIsAnimating(true)
@@ -183,7 +185,6 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
       'data-[state=open]:translate-3d-0'
     )
 
-    e.preventDefault()
     content?.onOpenAutoFocus?.(e)
   }
 
