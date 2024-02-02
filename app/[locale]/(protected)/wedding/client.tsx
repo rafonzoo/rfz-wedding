@@ -266,8 +266,12 @@ const MyWeddingItems: RF<{
             className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'
             onClick={() => {
               setTimeout(() => {
+                console.log(window)
+
                 if (
-                  confirm('This action cannot be undone. Continue to delete?')
+                  window.confirm(
+                    'This action cannot be undone. Continue to delete?'
+                  )
                 ) {
                   onDeletion?.({ wid: wedding.wid, name: wedding.name })
                 }
