@@ -169,7 +169,7 @@ const MyWeddingItems: RF<{
   isLoading: boolean
   selectedWid: string
   onClick: () => void
-  onLongPress: (wedding: Wedding) => void
+  onLongPress: () => void
 }> = ({
   index,
   length,
@@ -190,7 +190,7 @@ const MyWeddingItems: RF<{
     : void 0
 
   const longpressAction = useLongPress({
-    onLongPress: () => onLongPress(wedding),
+    onLongPress,
     onClick,
   })
 
@@ -366,8 +366,8 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
             length={array.length}
             selectedWid={selectedWid}
             onClick={() => gotoDetailPage(wedding)}
-            onLongPress={({ wid }) => {
-              setSelectedWid(wid)
+            onLongPress={() => {
+              setSelectedWid(wedding.wid)
               onOpenChange(true)
             }}
           />

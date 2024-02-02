@@ -4,7 +4,7 @@ import type { AnimationEvent, MutableRefObject, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { tw } from '@/tools/lib'
-import { useMountedEffect } from '@/tools/hook'
+import { useFeatureDetection, useMountedEffect } from '@/tools/hook'
 import * as Dialog from '@radix-ui/react-dialog'
 
 if (typeof window !== 'undefined' && !('ResizeObserver' in window)) {
@@ -85,8 +85,28 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   const footerBorderRef = useRef<HTMLHRElement | null>(null)
   const lastPosRef = useRef(0)
   const observerRef = useRef<ResizeObserver | null>(null)
+  const { pointerEvent } = useFeatureDetection()
+  const isModalNonOverlay =
+    !option?.useOverlay &&
+    !pointerEvent &&
+    (typeof root?.modal === 'undefined' || root?.modal === true)
 
   useMountedEffect(() => onLoad?.())
+
+  useEffect(() => {
+    const fn = (e: Event) => {
+      if (e.target === document.documentElement) {
+        root?.onOpenChange?.(false)
+        onCloseClicked?.()
+      }
+    }
+
+    if (isOpen && isModalNonOverlay) {
+      document.addEventListener('click', fn)
+    }
+
+    return () => document.removeEventListener('click', fn)
+  }, [isOpen, isModalNonOverlay, root, onCloseClicked])
 
   useEffect(() => {
     return () => {
