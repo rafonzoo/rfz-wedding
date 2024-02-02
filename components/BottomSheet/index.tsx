@@ -168,24 +168,19 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   }
 
   function onOpenAutoFocus(e: Event) {
-    e.preventDefault()
-
     if (isAnimating) return
-
-    focusRef.current = document.activeElement as HTMLElement
-    sheetRef.current?.classList.add('data-[state=open]:animate-dialog-show')
 
     setIsAnimating(true)
     multiSheetIndexCounter()
     inputFocus('addEventListener')
     onScrollHeightChange('observe', onScrollingBorder)
+    focusRef.current = document.activeElement as HTMLElement
 
+    e.preventDefault()
     content?.onOpenAutoFocus?.(e)
   }
 
   function onAnimationEnd(e: AnimationEvent<HTMLDivElement>) {
-    sheetRef.current?.classList.remove('data-[state=open]:animate-dialog-show')
-
     !option?.disableFocus &&
       (option?.triggerRef ?? closeButtonRef).current?.focus()
 
@@ -282,7 +277,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     <Dialog.Root {...root} onOpenChange={onOpenChange}>
       {trigger && <Dialog.Trigger {...trigger} />}
       <Dialog.Portal {...portal}>
-        {(option?.useOverlay || isModalNonOverlay) && (
+        {option?.useOverlay && (
           <Dialog.Overlay
             {...overlay}
             asChild={overlay?.asChild ?? true}
@@ -308,8 +303,8 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
             animationFillMode: 'forwards',
           }}
           className={tw(
-            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none',
-            'data-[state=closed]:animate-dialog-hide',
+            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none translate-3d-y-full',
+            'data-[state=closed]:animate-dialog-hide data-[state=open]:animate-dialog-show',
             content?.className
           )}
           onOpenAutoFocus={onOpenAutoFocus}
