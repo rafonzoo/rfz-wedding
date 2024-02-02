@@ -86,7 +86,10 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   const lastPosRef = useRef(0)
   const observerRef = useRef<ResizeObserver | null>(null)
   const { pointerEvent } = useFeatureDetection()
-  const isModalNonOverlay = !option?.useOverlay && !pointerEvent
+  const isModalNonOverlay =
+    !option?.useOverlay &&
+    !pointerEvent &&
+    (typeof root?.modal === 'undefined' || root?.modal === true)
 
   useMountedEffect(() => onLoad?.())
 
@@ -174,15 +177,22 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     inputFocus('addEventListener')
     onScrollHeightChange('observe', onScrollingBorder)
 
-    sheetRef.current?.classList.add('data-[state=open]:animate-dialog-show')
     focusRef.current = document.activeElement as HTMLElement
+    sheetRef.current?.classList.add(
+      'data-[state=open]:animate-dialog-show',
+      'data-[state=open]:translate-3d-0'
+    )
 
     e.preventDefault()
     content?.onOpenAutoFocus?.(e)
   }
 
   function onAnimationEnd(e: AnimationEvent<HTMLDivElement>) {
-    sheetRef.current?.classList.remove('data-[state=open]:animate-dialog-show')
+    sheetRef.current?.classList.remove(
+      'data-[state=open]:animate-dialog-show',
+      'translate-3d-y-full'
+    )
+
     !option?.disableFocus &&
       (option?.triggerRef ?? closeButtonRef).current?.focus()
 
@@ -299,9 +309,13 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           {...content}
           ref={sheetRef}
           data-is-animating={`${isAnimating}`}
-          style={{ zIndex: `${999 + sheetIndex}` }}
+          style={{
+            zIndex: `${999 + sheetIndex}`,
+            backfaceVisibility: 'hidden',
+            animationFillMode: 'forwards',
+          }}
           className={tw(
-            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none',
+            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none translate-3d-y-full',
             'data-[state=closed]:animate-dialog-hide',
             content?.className
           )}

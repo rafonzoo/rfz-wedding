@@ -141,7 +141,7 @@ const FigureImage: RFZ<{
         <SheetGallery
           defaultSelectedId={photo?.fileId}
           onItemPicked={onItemSelected}
-          root={{ open: isOpen, onOpenChange: setIsOpen, modal: false }}
+          root={{ open: isOpen, onOpenChange: setIsOpen }}
           trigger={{
             'aria-label': 'Choose photo',
             className: tw(
