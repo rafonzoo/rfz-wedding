@@ -30,7 +30,10 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
 })
 
-const MyWeddingAddNewSheet: RF<{ uid: string }> = ({ uid }) => {
+const MyWeddingAddNewSheet: RF<{
+  uid: string
+  onAddedNew: (wedding: Wedding) => void | Promise<void>
+}> = ({ uid, onAddedNew }) => {
   const [open, onOpenChange] = useState(false)
   const [coupleName, setCoupleName] = useState('')
   const [errorName, setErrorName] = useState('')
@@ -39,6 +42,7 @@ const MyWeddingAddNewSheet: RF<{ uid: string }> = ({ uid }) => {
   const t = useTranslations()
   const toast = new Toast()
   const queryClient = useQueryClient()
+  const router = useLocaleRouter()
   const { mutate: addNewWedding, isLoading } = useMutation<
     Wedding,
     unknown,
@@ -71,14 +75,11 @@ const MyWeddingAddNewSheet: RF<{ uid: string }> = ({ uid }) => {
       }
     },
     onSuccess: (data) => {
-      queryClient.setQueryData<Wedding[] | undefined>(
-        Queries.weddingGetAll,
-        (prev) => (!prev ? prev : [...prev, data])
-      )
+      toast.success(t('success.invitation.create'))
+      onAddedNew(data)
 
       setCoupleName('')
       onOpenChange(false)
-      toast.success(t('success.invitation.create'))
     },
   })
 
@@ -115,10 +116,7 @@ const MyWeddingAddNewSheet: RF<{ uid: string }> = ({ uid }) => {
       root={{ open, onOpenChange }}
       footer={{ useClose: true }}
       option={{ useOverlay: true, disableFocus: true }}
-      onCloseClicked={() => {
-        abort()
-        inputRef.current?.blur()
-      }}
+      onCloseClicked={() => inputRef.current?.blur()}
       header={{
         title: 'Buat undangan',
         append: isLoading ? (
@@ -310,13 +308,13 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
 
   const {
     mutate: deleteWedding,
-    variables: deletedOption,
+    variables,
     isLoading,
   } = useMutation<string, unknown, { wid: string; path: string }>({
     mutationFn: ({ wid, path }) => {
       return deleteWeddingQuery({ path, wid, signal: getSignal() })
     },
-    onSuccess: (d, { wid, path }) => {
+    onSuccess: (d, { wid }) => {
       toast.success(t('success.invitation.delete'))
 
       queryClient.setQueryData<Wedding[] | undefined>(
@@ -353,7 +351,9 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
   return (
     <div className='mx-auto max-w-[440px]'>
       <NavWindow avatarUrl={avatar_url}>
-        <MyWeddingAddNewSheet uid={user.id} />
+        {!isLoading && (
+          <MyWeddingAddNewSheet uid={user.id} onAddedNew={gotoDetailPage} />
+        )}
       </NavWindow>
       {weddings && weddings.length >= 5 && (
         <div className='border-b border-zinc-200 px-4 py-1'>
@@ -366,7 +366,7 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
             key={index}
             wedding={wedding}
             index={index}
-            isLoading={isLoading && deletedOption?.wid === wedding.wid}
+            isLoading={isLoading && variables?.wid === wedding.wid}
             length={array.length}
             onClick={() => gotoDetailPage(wedding)}
             onDeletion={({ wid, name: path }) => deleteWedding({ wid, path })}

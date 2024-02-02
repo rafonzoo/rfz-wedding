@@ -94,8 +94,8 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   useMountedEffect(() => onLoad?.())
 
   useEffect(() => {
-    const fn = (e: Event) => {
-      if (e.target === document.documentElement) {
+    const fn = () => {
+      if (!isAnimating) {
         root?.onOpenChange?.(false)
         onCloseClicked?.()
       }
@@ -106,7 +106,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     }
 
     return () => document.removeEventListener('click', fn)
-  }, [isOpen, isModalNonOverlay, root, onCloseClicked])
+  }, [isOpen, isModalNonOverlay, isAnimating, root, onCloseClicked])
 
   useEffect(() => {
     return () => {
@@ -175,9 +175,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     inputFocus('addEventListener')
     onScrollHeightChange('observe', onScrollingBorder)
 
-    sheetRef.current?.classList.remove('invisible')
     sheetRef.current?.classList.add('data-[state=open]:animate-dialog-show')
-
     focusRef.current = document.activeElement as HTMLElement
 
     e.preventDefault()
@@ -205,7 +203,6 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     inputFocus('removeEventListener')
     onScrollHeightChange('unobserve')
 
-    sheetRef.current?.classList.add('invisible')
     content?.onCloseAutoFocus?.(e)
 
     if (!e.defaultPrevented) {
@@ -305,7 +302,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           data-is-animating={`${isAnimating}`}
           style={{ zIndex: `${999 + sheetIndex}` }}
           className={tw(
-            'invisible fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none',
+            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none',
             'data-[state=closed]:animate-dialog-hide',
             content?.className
           )}

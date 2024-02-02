@@ -31,6 +31,17 @@ const WeddingEditorPageClient: RFZ<{ wedding: Wedding; session: Session }> = ({
   })
 
   useEffect(() => {
+    const prevWeddingList = queryClient.getQueryData<Wedding[]>(
+      Queries.weddingGetAll
+    )
+
+    if (!prevWeddingList?.some(({ wid }) => wid === detailData.wid)) {
+      return void queryClient.setQueryData<Wedding[] | undefined>(
+        Queries.weddingGetAll,
+        (prev) => (!prev ? prev : [...prev, detailData])
+      )
+    }
+
     queryClient.setQueryData<Wedding[] | undefined>(
       Queries.weddingGetAll,
       (prev) => {
