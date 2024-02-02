@@ -126,7 +126,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
     }
 
     const text = templateRef.current.textContent
-    const raw = text.replace(
+    let raw = text.replace(
       new RegExp(
         `(${name}|${couple1}|${couple2}|${events.map((ev) => formatDate(ev.date, ev.eventName)).join('|')})`,
         'gm'
@@ -134,6 +134,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
       `${[symbol, symbol].join('$1')}`
     )
 
+    raw = raw.replace(new RegExp(`=\\*${name}\\*`, 'g'), `=${name}`)
     return encode ? encodeURIComponent(raw) : raw
   }
 
