@@ -86,16 +86,15 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   const lastPosRef = useRef(0)
   const observerRef = useRef<ResizeObserver | null>(null)
   const { pointerEvent } = useFeatureDetection()
-  const isModalNonOverlay =
-    !option?.useOverlay &&
-    !pointerEvent &&
-    (typeof root?.modal === 'undefined' || root?.modal === true)
+  const isModalNonOverlay = !option?.useOverlay && !pointerEvent
 
   useMountedEffect(() => onLoad?.())
 
   useEffect(() => {
-    const fn = () => {
-      if (!isAnimating) {
+    const fn = (e: Event) => {
+      const parentDialog = (e.target as HTMLElement)?.closest('[role=dialog]')
+
+      if (!isAnimating && !parentDialog) {
         root?.onOpenChange?.(false)
         onCloseClicked?.()
       }
