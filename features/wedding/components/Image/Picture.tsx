@@ -9,6 +9,7 @@ import { BsPlusLg } from 'react-icons/bs'
 import { updateWeddingGalleryQuery } from '@wedding/query'
 import { tw } from '@/tools/lib'
 import {
+  useFeatureDetection,
   useIntersection,
   useIsEditorOrDev,
   useOutlinedClasses,
@@ -45,6 +46,7 @@ const FigureImage: RFZ<{
   const [photo, setPhoto] = useState(defaultCommentPhoto)
   const { abort, getSignal, debounce } = useUtilities()
   const outlinedClasses = useOutlinedClasses()
+  const { pointerEvent } = useFeatureDetection()
   const imageRef = useRef(null)
   const photoUrl = !photo?.fileName
     ? void 0
@@ -142,6 +144,7 @@ const FigureImage: RFZ<{
           defaultSelectedId={photo?.fileId}
           onItemPicked={onItemSelected}
           root={{ open: isOpen, onOpenChange: setIsOpen }}
+          option={{ useOverlay: !pointerEvent }}
           trigger={{
             'aria-label': 'Choose photo',
             className: tw(
