@@ -87,9 +87,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   const observerRef = useRef<ResizeObserver | null>(null)
   const { pointerEvent } = useFeatureDetection()
   const isModalNonOverlay =
-    !option?.useOverlay &&
-    !pointerEvent &&
-    (typeof root?.modal === 'undefined' || root?.modal === true)
+    !option?.useOverlay && !pointerEvent && !(root?.modal === false)
 
   useMountedEffect(() => onLoad?.())
 
@@ -284,7 +282,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     <Dialog.Root {...root} onOpenChange={onOpenChange}>
       {trigger && <Dialog.Trigger {...trigger} />}
       <Dialog.Portal {...portal}>
-        {option?.useOverlay && (
+        {(option?.useOverlay || isModalNonOverlay) && (
           <Dialog.Overlay
             {...overlay}
             asChild={overlay?.asChild ?? true}
