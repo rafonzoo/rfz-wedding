@@ -4,9 +4,67 @@ import type { MutableRefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { tw } from '@/tools/lib'
-import { isObjectEqual } from '@/tools/helper'
+import { isObjectEqual, preventDefault } from '@/tools/helper'
 import { AppConfig } from '@/tools/config'
 import { useLocalePathname } from '@/locale/config'
+
+interface PressHandlers<T> {
+  onLongPress: (e: React.MouseEvent<T> | React.TouchEvent<T>) => void
+  onClick?: (e: React.MouseEvent<T> | React.TouchEvent<T>) => void
+}
+
+interface Options {
+  delay?: number
+  shouldPreventDefault?: boolean
+}
+
+export const useLongPress = <T>(
+  { onLongPress, onClick }: PressHandlers<T>,
+  { delay = 500, shouldPreventDefault = true }: Options = {}
+) => {
+  const [longPressTriggered, setLongPressTriggered] = useState(false)
+  const timeout = useRef<NodeJS.Timeout>()
+  const target = useRef<EventTarget>()
+
+  const start = (e: React.MouseEvent<T> | React.TouchEvent<T>) => {
+    e.persist()
+    const clonedEvent = { ...e }
+
+    if (shouldPreventDefault && e.target) {
+      e.target.addEventListener('touchend', preventDefault, {
+        passive: false,
+      })
+      target.current = e.target
+    }
+
+    timeout.current = setTimeout(() => {
+      onLongPress(clonedEvent)
+      setLongPressTriggered(true)
+    }, delay)
+  }
+
+  const clear = (
+    e: React.MouseEvent<T> | React.TouchEvent<T>,
+    shouldTriggerClick = true
+  ) => {
+    timeout.current && clearTimeout(timeout.current)
+    shouldTriggerClick && !longPressTriggered && onClick?.(e)
+
+    setLongPressTriggered(false)
+
+    if (shouldPreventDefault && target.current) {
+      target.current.removeEventListener('touchend', preventDefault)
+    }
+  }
+
+  return {
+    onMouseDown: (e: React.MouseEvent<T>) => start(e),
+    onTouchStart: (e: React.TouchEvent<T>) => start(e),
+    onMouseUp: (e: React.MouseEvent<T>) => clear(e),
+    onMouseLeave: (e: React.MouseEvent<T>) => clear(e, false),
+    onTouchEnd: (e: React.TouchEvent<T>) => clear(e),
+  }
+}
 
 export const useIsEditorOrDev = () => {
   const haveId = !!useParams().wid

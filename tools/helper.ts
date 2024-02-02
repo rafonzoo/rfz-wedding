@@ -92,6 +92,22 @@ export function isArrayEqual<A1 extends unknown[], A2 extends unknown[]>(
   return true
 }
 
+export function isTouchEvent(event: Event) {
+  return 'touches' in event
+}
+
+export function preventDefault(event: Event) {
+  if (!isTouchEvent(event)) return
+
+  if (
+    event instanceof TouchEvent &&
+    event.touches.length < 2 &&
+    event.preventDefault
+  ) {
+    event.preventDefault()
+  }
+}
+
 export function isLocal() {
   return ['localhost', '127.0.0.1'].some(
     (url) => new URL(abspath()).hostname === url

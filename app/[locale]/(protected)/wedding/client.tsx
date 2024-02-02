@@ -14,7 +14,7 @@ import {
   getAllWeddingQuery,
 } from '@wedding/query'
 import { djs, supabaseClient, tw } from '@/tools/lib'
-import { useIntersection, useUtilities } from '@/tools/hook'
+import { useIntersection, useLongPress, useUtilities } from '@/tools/hook'
 import { abspath, retina, sanitizeValue, trimBy } from '@/tools/helper'
 import { AppConfig, ErrorMap, Queries, Route } from '@/tools/config'
 import { useLocaleRouter } from '@/locale/config'
@@ -78,7 +78,7 @@ const MyWeddingAddNewSheet: RF<{ uid: string }> = ({ uid }) => {
 
       setCoupleName('')
       onOpenChange(false)
-      toast.success(t('success.invitation.create', { name: data.name }))
+      toast.success(t('success.invitation.create'))
     },
   })
 
@@ -89,7 +89,7 @@ const MyWeddingAddNewSheet: RF<{ uid: string }> = ({ uid }) => {
     abort()
     cancelDebounce()
     setErrorName('')
-    setCoupleName(sanitized)
+    setCoupleName(sanitized.toLowerCase())
   }
 
   function onSubmit() {
@@ -114,8 +114,11 @@ const MyWeddingAddNewSheet: RF<{ uid: string }> = ({ uid }) => {
     <BottomSheet
       root={{ open, onOpenChange }}
       footer={{ useClose: true }}
-      onCloseClicked={() => inputRef.current?.blur()}
       option={{ useOverlay: true, disableFocus: true }}
+      onCloseClicked={() => {
+        abort()
+        inputRef.current?.blur()
+      }}
       header={{
         title: 'Buat undangan',
         append: isLoading ? (
@@ -164,9 +167,18 @@ const MyWeddingItems: RF<{
   length: number
   wedding: Wedding
   isLoading: boolean
+  selectedWid: string
   onClick: () => void
-  onDelete: () => void
-}> = ({ index, length, wedding, isLoading, onClick, onDelete }) => {
+  onLongPress: (wedding: Wedding) => void
+}> = ({
+  index,
+  length,
+  wedding,
+  isLoading,
+  selectedWid,
+  onClick,
+  onLongPress,
+}) => {
   const refLi = useRef<HTMLLIElement | null>(null)
   const isIntersecting = useIntersection(refLi)
   const heroImage = wedding.galleries.find(
@@ -177,19 +189,26 @@ const MyWeddingItems: RF<{
     ? retina(heroImage.fileName, 'w', 'ar-1-1')
     : void 0
 
+  const longpressAction = useLongPress({
+    onLongPress: () => onLongPress(wedding),
+    onClick,
+  })
+
   return (
     <li
       ref={refLi}
       className={tw(
-        'group relative overflow-hidden',
-        isLoading && 'animate-[pulse_500ms_ease-in-out_infinite]' // prettier-ignore
+        'relative overflow-hidden',
+        isLoading && 'animate-[pulse_500ms_ease-in-out_infinite]', // prettier-ignore
+        selectedWid === wedding.wid && 'z-[999] bg-zinc-100 dark:bg-zinc-900'
       )}
     >
       <button
-        onClick={onClick}
+        {...longpressAction}
         className={tw(
-          'flex w-full touch-none select-none space-x-4 pl-4 hover:bg-zinc-100 dark:hover:bg-zinc-900',
-          index === 0 ? 'pt-4' : 'pt-2'
+          'flex w-full touch-none select-none space-x-4 pl-4',
+          index === 0 ? 'pt-4' : 'pt-2',
+          selectedWid === '' && 'hover:bg-zinc-100 dark:hover:bg-zinc-900'
         )}
       >
         <span className='relative block min-h-14 min-w-14 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800'>
@@ -203,7 +222,7 @@ const MyWeddingItems: RF<{
         </span>
         <span className='flex w-full max-w-[calc(100%_-_56px_-_16px)] flex-col space-y-1 text-left'>
           <span className='flex flex-col'>
-            <span className='flex space-x-2 truncate text-sm tracking-normal group-hover:mr-14'>
+            <span className='flex space-x-2 truncate text-sm tracking-normal'>
               <span className='block truncate font-semibold uppercase'>
                 {wedding.displayName}
               </span>
@@ -241,21 +260,6 @@ const MyWeddingItems: RF<{
           </span>
         </span>
       </button>
-      <button
-        tabIndex={-1}
-        className='absolute right-2 top-0 flex h-12 w-12 translate-x-2 items-center justify-center text-sm tracking-normal text-red-500 opacity-0 transition-[transform,opacity] focus:underline group-hover:translate-x-0 group-hover:opacity-100 group-hover:delay-100 group-hover:hover:underline'
-        onClick={(e) => {
-          e.stopPropagation()
-
-          if (Boolean(+window.getComputedStyle(e.currentTarget).opacity)) {
-            onDelete?.()
-          }
-        }}
-      >
-        <span className={tw('block', index === 0 ? 'mt-0' : '-mt-[14px]')}>
-          Hapus?
-        </span>
-      </button>
     </li>
   )
 }
@@ -275,12 +279,9 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
   const prevDetail = queryClient.getQueryData<Wedding>(Queries.weddingDetail)
   const usermeta = user.user_metadata
   const avatar_url: string | undefined = usermeta.avatar_url ?? usermeta.picture
-  const { abort, getSignal } = useUtilities()
-  const [removedWid, setRemovedWid] = useState<{
-    name: string
-    wid: string
-  } | null>(null)
-
+  const { getSignal } = useUtilities()
+  const [selectedWid, setSelectedWid] = useState('')
+  const [open, onOpenChange] = useState(false)
   const [withFilter] = useState<keyof typeof items>('createdAt')
   const toast = new Toast()
   const t = useTranslations()
@@ -303,7 +304,7 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
       return deleteWeddingQuery({ path, wid, signal: getSignal() })
     },
     onSuccess: (d, { wid, path }) => {
-      toast.success(t('success.invitation.delete', { name: path }))
+      toast.success(t('success.invitation.delete'))
 
       queryClient.setQueryData<Wedding[] | undefined>(
         Queries.weddingGetAll,
@@ -311,6 +312,14 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
           return !prev ? prev : prev.filter((item) => item.wid !== wid)
         }
       )
+    },
+    onError: (e) => {
+      const err = e as Error
+      if (err.message.includes('AbortError')) {
+        return
+      }
+
+      toast.error(err.message)
     },
   })
 
@@ -328,11 +337,12 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
     })
   }
 
-  function onDeletion({ wid, name: path }: Wedding) {
+  function onDeletion({ wid, name: path }: Pick<Wedding, 'wid' | 'name'>) {
     if (!confirm('This action cannot be undone. Continue to delete?')) {
-      return setRemovedWid(null)
+      return
     }
 
+    onOpenChange(false)
     deleteWedding({ wid, path })
   }
 
@@ -354,11 +364,39 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
             index={index}
             isLoading={isLoading && deletedOption?.wid === wedding.wid}
             length={array.length}
+            selectedWid={selectedWid}
             onClick={() => gotoDetailPage(wedding)}
-            onDelete={() => onDeletion(wedding)}
+            onLongPress={({ wid }) => {
+              setSelectedWid(wid)
+              onOpenChange(true)
+            }}
           />
         ))}
       </ul>
+      <BottomSheet
+        option={{ isTransparent: true, useOverlay: true }}
+        footer={{ useClose: true }}
+        root={{ open, onOpenChange }}
+        content={{ onCloseAutoFocus: () => setSelectedWid('') }}
+      >
+        <div className='px-6'>
+          <button
+            className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'
+            onClick={() => {
+              const selectedWedding = allWedding.find(
+                (wedding) => wedding.wid === selectedWid
+              )
+
+              if (selectedWedding) {
+                const { wid, name } = selectedWedding
+                onDeletion({ wid, name })
+              }
+            }}
+          >
+            Hapus
+          </button>
+        </div>
+      </BottomSheet>
     </div>
   )
 }
