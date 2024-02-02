@@ -167,19 +167,12 @@ const MyWeddingItems: RF<{
   length: number
   wedding: Wedding
   isLoading: boolean
-  selectedWid: string
   onClick: () => void
-  onLongPress: () => void
-}> = ({
-  index,
-  length,
-  wedding,
-  isLoading,
-  selectedWid,
-  onClick,
-  onLongPress,
-}) => {
+  onDeletion: () => void
+}> = ({ index, length, wedding, isLoading, onClick, onDeletion }) => {
   const refLi = useRef<HTMLLIElement | null>(null)
+  const [open, onOpenChange] = useState(false)
+  const [highlight, setHighlight] = useState(false)
   const isIntersecting = useIntersection(refLi)
   const heroImage = wedding.galleries.find(
     (photo) => photo.index === AppConfig.Wedding.ImageryStartIndex
@@ -190,8 +183,11 @@ const MyWeddingItems: RF<{
     : void 0
 
   const longpressAction = useLongPress({
-    onLongPress,
     onClick,
+    onLongPress: () => {
+      onOpenChange(true)
+      setHighlight(true)
+    },
   })
 
   return (
@@ -200,15 +196,14 @@ const MyWeddingItems: RF<{
       className={tw(
         'relative overflow-hidden',
         isLoading && 'animate-[pulse_500ms_ease-in-out_infinite]', // prettier-ignore
-        selectedWid === wedding.wid && 'z-[999] bg-zinc-100 dark:bg-zinc-900'
+        highlight && 'z-[999] bg-zinc-100 dark:bg-zinc-900'
       )}
     >
       <button
         {...longpressAction}
         className={tw(
-          'flex w-full touch-none select-none space-x-4 pl-4',
-          index === 0 ? 'pt-4' : 'pt-2',
-          selectedWid === '' && 'hover:bg-zinc-100 dark:hover:bg-zinc-900'
+          'flex w-full touch-none select-none space-x-4 pl-4 hover:bg-zinc-100 dark:hover:bg-zinc-900',
+          index === 0 ? 'pt-4' : 'pt-2'
         )}
       >
         <span className='relative block min-h-14 min-w-14 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800'>
@@ -260,6 +255,24 @@ const MyWeddingItems: RF<{
           </span>
         </span>
       </button>
+      <BottomSheet
+        option={{ isTransparent: true, useOverlay: true }}
+        footer={{ useClose: true }}
+        root={{ open, onOpenChange }}
+        content={{ onCloseAutoFocus: () => setHighlight(false) }}
+      >
+        <div className='px-6'>
+          <button
+            className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'
+            onClick={() => {
+              onDeletion?.()
+              onOpenChange(false)
+            }}
+          >
+            Hapus
+          </button>
+        </div>
+      </BottomSheet>
     </li>
   )
 }
@@ -280,8 +293,6 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
   const usermeta = user.user_metadata
   const avatar_url: string | undefined = usermeta.avatar_url ?? usermeta.picture
   const { getSignal } = useUtilities()
-  const [selectedWid, setSelectedWid] = useState('')
-  const [open, onOpenChange] = useState(false)
   const [withFilter] = useState<keyof typeof items>('createdAt')
   const toast = new Toast()
   const t = useTranslations()
@@ -342,7 +353,6 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
       return
     }
 
-    onOpenChange(false)
     deleteWedding({ wid, path })
   }
 
@@ -364,39 +374,13 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
             index={index}
             isLoading={isLoading && deletedOption?.wid === wedding.wid}
             length={array.length}
-            selectedWid={selectedWid}
             onClick={() => gotoDetailPage(wedding)}
-            onLongPress={() => {
-              setSelectedWid(wedding.wid)
-              onOpenChange(true)
-            }}
+            onDeletion={() =>
+              onDeletion({ wid: wedding.wid, name: wedding.name })
+            }
           />
         ))}
       </ul>
-      <BottomSheet
-        option={{ isTransparent: true, useOverlay: true }}
-        footer={{ useClose: true }}
-        root={{ open, onOpenChange }}
-        content={{ onCloseAutoFocus: () => setSelectedWid('') }}
-      >
-        <div className='px-6'>
-          <button
-            className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'
-            onClick={() => {
-              const selectedWedding = allWedding.find(
-                (wedding) => wedding.wid === selectedWid
-              )
-
-              if (selectedWedding) {
-                const { wid, name } = selectedWedding
-                onDeletion({ wid, name })
-              }
-            }}
-          >
-            Hapus
-          </button>
-        </div>
-      </BottomSheet>
     </div>
   )
 }
