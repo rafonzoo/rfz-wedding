@@ -168,7 +168,7 @@ const MyWeddingItems: RF<{
   wedding: Wedding
   isLoading: boolean
   onClick: () => void
-  onDeletion: () => void
+  onDeletion: (payload: { wid: string; name: string }) => void
 }> = ({ index, length, wedding, isLoading, onClick, onDeletion }) => {
   const refLi = useRef<HTMLLIElement | null>(null)
   const [open, onOpenChange] = useState(false)
@@ -265,8 +265,12 @@ const MyWeddingItems: RF<{
           <button
             className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'
             onClick={() => {
-              onDeletion?.()
-              onOpenChange(false)
+              if (
+                confirm('This action cannot be undone. Continue to delete?')
+              ) {
+                onDeletion?.({ wid: wedding.wid, name: wedding.name })
+                onOpenChange(false)
+              }
             }}
           >
             Hapus
@@ -348,14 +352,6 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
     })
   }
 
-  function onDeletion({ wid, name: path }: Pick<Wedding, 'wid' | 'name'>) {
-    if (!confirm('This action cannot be undone. Continue to delete?')) {
-      return
-    }
-
-    deleteWedding({ wid, path })
-  }
-
   return (
     <div className='mx-auto max-w-[440px]'>
       <NavWindow avatarUrl={avatar_url}>
@@ -375,9 +371,7 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
             isLoading={isLoading && deletedOption?.wid === wedding.wid}
             length={array.length}
             onClick={() => gotoDetailPage(wedding)}
-            onDeletion={() =>
-              onDeletion({ wid: wedding.wid, name: wedding.name })
-            }
+            onDeletion={({ wid, name: path }) => deleteWedding({ wid, path })}
           />
         ))}
       </ul>

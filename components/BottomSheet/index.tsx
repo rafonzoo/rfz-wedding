@@ -280,19 +280,17 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
         {option?.useOverlay && (
           <Dialog.Overlay
             {...overlay}
+            asChild={overlay?.asChild ?? true}
             style={{ zIndex: `${998 + sheetIndex}`, ...overlay?.style }}
             tabIndex={overlay?.tabIndex ?? isAnimating ? -1 : 0}
-            asChild={overlay?.asChild ?? true}
+            className={tw(
+              'fixed left-0 top-0 z-[777] h-full w-full cursor-auto select-none bg-black/70 will-change-[opacity]',
+              'data-[state=open]:animate-fade-in',
+              'data-[state=closed]:animate-fade-out',
+              overlay?.className
+            )}
           >
-            <Dialog.Close
-              onClick={onCloseStart}
-              className={tw(
-                'fixed left-0 top-0 z-[777] h-full w-full select-none bg-black/70 will-change-[opacity]',
-                'data-[state=open]:animate-fade-in',
-                'data-[state=closed]:animate-fade-out',
-                overlay?.className
-              )}
-            />
+            <Dialog.Close onClick={onCloseStart} />
           </Dialog.Overlay>
         )}
         <Dialog.Content
