@@ -7,7 +7,9 @@
       "invalidGuestGroup": "Invalid group name",
       "invalidGuestName": "Invalid name",
       "invalidGuestExist": "Guest already exist",
-      "invalidLength": "Name and group name must contain at least 3 character(s)"
+      "invalidLength": "Name and group name must contain at least 3 character(s)",
+      "invalidNameExist": "Name already exist",
+      "invalidLimit": "Limit exceeded. Max draft: {maxDraft}"
     },
     "photo": {
       "failedToFetch": "Failed to fetch a photos",
@@ -18,6 +20,12 @@
     "guest": {
       "failedToFetch": "Failed to load guest",
       "failedToSave": "Failed to save guest"
+    }
+  },
+  "success": {
+    "invitation": {
+      "create": "Success creating invitation",
+      "delete": "Success deleting invitation"
     }
   }
 }

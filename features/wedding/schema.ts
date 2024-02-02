@@ -71,7 +71,6 @@ export const weddingCoupleType = z.object({
   fullName: z.string().min(3).max(99),
   nameOfFather: z.string().min(3).max(99),
   nameOfMother: z.string().min(3).max(99),
-  biography: z.string().optional(),
   order: z.number().min(1).max(99),
   socialUrl: z.object({
     facebook: z.string().url().or(z.string().length(0)).optional(),
@@ -159,7 +158,7 @@ export const weddingType = z.object({
   comments: commentType.array().optional(),
   displayName: z.string(),
   status: z.enum(invitationStatusType),
-  name: z.string(),
+  name: z.string().min(7).max(21),
   createdAt: z.string(),
   updatedAt: z.string(),
   stories: z.string(),

@@ -34,13 +34,13 @@ type SheetPropsFooter = {
   prepend?: ReactNode
   useBorder?: boolean
   useClose?: boolean
-  onCloseClicked?: () => void
   wrapper?: Tag<'div'>
 }
 
 type SheetPropsOption = {
   useOverlay?: boolean
   isTransparent?: boolean
+  disableFocus?: boolean
   triggerRef?: MutableRefObject<HTMLElement | null>
 }
 
@@ -55,6 +55,7 @@ type BottomSheetProps = {
   footer?: SheetPropsFooter
   wrapper?: Tag<'div'>
   onLoad?: () => void
+  onCloseClicked?: () => void
 }
 
 const BottomSheet: RFZ<BottomSheetProps> = ({
@@ -69,6 +70,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   option,
   wrapper,
   onLoad,
+  onCloseClicked,
 }) => {
   const isOpen = root?.open ?? root?.defaultOpen ?? false
 
@@ -162,7 +164,8 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
 
   function onAnimationEnd(e: AnimationEvent<HTMLDivElement>) {
     sheetRef.current?.classList.remove('data-[state=open]:animate-dialog-show')
-    ;(option?.triggerRef ?? closeButtonRef).current?.focus()
+    !option?.disableFocus &&
+      (option?.triggerRef ?? closeButtonRef).current?.focus()
 
     setIsAnimating(false)
     content?.onAnimationEnd?.(e)
@@ -172,7 +175,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     if (isAnimating) return
 
     setIsAnimating(true)
-    footer?.onCloseClicked?.()
+    onCloseClicked?.()
   }
 
   function onCloseAutoFocus(e: Event) {

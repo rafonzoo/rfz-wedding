@@ -1,4 +1,3 @@
-// import type { Page } from '@/tools/type'
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
@@ -10,8 +9,8 @@ import { locales } from '@/locale/config'
 import { QueryProvider } from '@/components/Provider'
 import './style.css'
 
-// Uncomment to track missmatch due to invariant time.
-// process.env.TZ = 'America/Denver'
+// Track missmatch due to invariant time.
+process.env.TZ = 'America/Denver'
 
 const inter = Inter({
   subsets: ['latin'],

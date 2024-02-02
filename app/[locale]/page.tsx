@@ -1,7 +1,7 @@
 import { qstring } from '@/tools/helper'
 import { Route } from '@/tools/config'
 import { LocaleLink } from '@/locale/config'
-import { DUMMY_WEDDING_NAME } from '@/dummy'
+import { DUMMY_NAME } from '@/dummy'
 import HomepageClient from './client'
 
 const Homepage = async () => {
@@ -22,7 +22,7 @@ const Homepage = async () => {
           prefetch={false}
           href={{
             pathname: Route.weddingPublic,
-            params: { name: DUMMY_WEDDING_NAME },
+            params: { name: DUMMY_NAME },
             search: qstring({
               to: '(SMK-57-Jkt.)-Dra.-Astuti-M.-Hum',
               cid: '942388',
@@ -37,7 +37,7 @@ const Homepage = async () => {
           prefetch={false}
           href={{
             pathname: Route.weddingPublic,
-            params: { name: DUMMY_WEDDING_NAME },
+            params: { name: DUMMY_NAME },
             search: qstring({ to: '(asd)-masbro', cid: '222629' }),
           }}
         >
@@ -49,7 +49,7 @@ const Homepage = async () => {
           prefetch={false}
           href={{
             pathname: Route.weddingPublic,
-            params: { name: DUMMY_WEDDING_NAME },
+            params: { name: DUMMY_NAME },
             search: qstring({ to: 'jamsoy', cid: '123123' }),
           }}
         >
@@ -61,7 +61,7 @@ const Homepage = async () => {
           prefetch={false}
           href={{
             pathname: Route.weddingPublic,
-            params: { name: DUMMY_WEDDING_NAME },
+            params: { name: DUMMY_NAME },
             search: qstring({ to: 'bonge', cid: '456456' }),
           }}
         >
@@ -73,7 +73,7 @@ const Homepage = async () => {
           prefetch={false}
           href={{
             pathname: Route.weddingPublic,
-            params: { name: DUMMY_WEDDING_NAME },
+            params: { name: DUMMY_NAME },
             search: qstring({ to: 'mamen', cid: '999999' }),
           }}
         >

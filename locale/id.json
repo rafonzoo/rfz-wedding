@@ -7,7 +7,9 @@
       "invalidGuestExist": "Tamu sudah ada",
       "invalidGuestName": "Format nama tamu tidak valid",
       "invalidGuestGroup": "Format nama grup tamu tidak valid",
-      "invalidLength": "Nama tamu atau nama dari grup tamu harus mengandung minimal 3 karakter"
+      "invalidLength": "Nama tamu atau nama dari grup tamu harus mengandung minimal 3 karakter",
+      "invalidNameExist": "Nama sudah terpakai",
+      "invalidLimit": "Limit tercapai. Maksimal draft: {maxDraft}"
     },
     "photo": {
       "failedToFetch": "Gagal memuat foto",
@@ -18,6 +20,12 @@
     "guest": {
       "failedToFetch": "Gagal memuat tamu",
       "failedToSave": "Gagal menyimpan tamu"
+    }
+  },
+  "success": {
+    "invitation": {
+      "create": "Undangan berhasil ditambahkan",
+      "delete": "Undangan berhasil dihapus"
     }
   }
 }

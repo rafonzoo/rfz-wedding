@@ -15,7 +15,7 @@ type InputProps = Omit<Tag<'input'>, 'type'> & {
   isAllowEmoji?: boolean
   isSpecialChars?: boolean
   whitelist?: string
-  blacklist?: string
+  blacklist?: string | RegExp
   labelProps?: Tag<'span'>
   children?: ReactNode
 }
@@ -41,11 +41,16 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
     } = args
     const message = errorMessage || infoMessage
 
+    // Character that require escape can't be string
+    // use regexp instead
+    const excluded =
+      typeof blacklist === 'string'
+        ? new RegExp(`${blacklist}`, 'g')
+        : blacklist
+
     // Exclude default whitelist
     // prettier-ignore
-    const whiteListed = (
-      whitelist + '.,- '.replace(new RegExp(`${blacklist}`, 'g'), '')
-    )
+    const whiteListed = whitelist + '.,- '.replace(excluded, '')
 
     function onChange(e: ChangeEvent<HTMLInputElement>) {
       if (props.disabled) return
@@ -136,7 +141,7 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
         />
         {message && typeof message !== 'boolean' && (
           <span
-            className={tw('block min-h-5 px-3 pt-2 text-xs tracking-wide', {
+            className={tw('block min-h-10 px-3 pt-2 text-xs tracking-wide', {
               'text-zinc-500 dark:text-zinc-400':
                 !!infoMessage && !errorMessage,
               'text-red-500': !!errorMessage,

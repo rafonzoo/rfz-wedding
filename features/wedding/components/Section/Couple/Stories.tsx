@@ -15,9 +15,17 @@ import { Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import Notify from '@/components/Notification/Notify'
 import markdownConfig from '@/components/Markdown/config'
-import Markdown from '@/components/Markdown'
 import Spinner from '@/components/Loading/Spinner'
 import FieldTextArea from '@/components/Field/TextArea'
+
+const Markdown = dynamic(() => import('@/components/Markdown'), {
+  ssr: false,
+  loading: () => (
+    <div className='flex h-full w-full items-center justify-center'>
+      <Spinner />
+    </div>
+  ),
+})
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -34,7 +42,6 @@ const SectionCoupleStories: RFZ = () => {
   const wid = useParams().wid as string
   const isEditor = useIsEditorOrDev()
   const isPublic = !isEditor
-
   const { isLoading, mutate: updateStories } = useMutation<
     string,
     unknown,
@@ -92,9 +99,11 @@ const SectionCoupleStories: RFZ = () => {
           }}
           footer={{
             useClose: true,
-            useBorder: viewParsed
-              ? void 0
-              : !!detail.stories && isError && !isLoading,
+            useBorder: !viewParsed
+              ? !!detail.stories && isError && !isLoading
+                ? void 0
+                : false
+              : void 0,
           }}
           option={{ useOverlay: true }}
           content={{ className: tw('h-full') }}

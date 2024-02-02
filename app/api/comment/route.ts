@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { commentType } from '@wedding/schema'
+import { WEDDING_ROW } from '@wedding/query'
 import { supabaseServer, supabaseService, zodLocale } from '@/tools/server'
 import { AppError } from '@/tools/error'
 import { ErrorMap, RouteCookie, RouteHeader } from '@/tools/config'
@@ -17,7 +18,7 @@ export const PATCH = async (request: NextRequest) => {
 
     const supabase = supabaseServer()
     const { data: prevData, error: prevDataError } = await supabase
-      .from('wedding')
+      .from(WEDDING_ROW)
       .select('comments')
       .eq('wid', wid)
       .single()
@@ -28,7 +29,7 @@ export const PATCH = async (request: NextRequest) => {
 
     const previousComment = commentType.array().parse(prevData.comments)
     const { error } = await supabase
-      .from('wedding')
+      .from(WEDDING_ROW)
       .update({
         comments: [
           ...previousComment.filter((item) => decodeURI(item.alias) !== alias),
@@ -70,7 +71,7 @@ export const POST = async (request: NextRequest) => {
 
     const supabase = supabaseService()
     const { data: prevData, error: prevDataError } = await supabase
-      .from('wedding')
+      .from(WEDDING_ROW)
       .select('comments')
       .eq('name', name)
       .single()
@@ -81,7 +82,7 @@ export const POST = async (request: NextRequest) => {
 
     const previousComment = commentType.array().parse(prevData.comments)
     const { data, error } = await supabase
-      .from('wedding')
+      .from(WEDDING_ROW)
       .update({ comments: [...previousComment, comment] })
       .eq('name', name)
       .contains(
@@ -128,7 +129,7 @@ export const GET = async (request: NextRequest) => {
     }
 
     const { data, error: prevDataError } = await supabase
-      .from('wedding')
+      .from(WEDDING_ROW)
       .select('comments')
       .eq('name', name)
       .single()

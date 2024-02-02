@@ -248,8 +248,8 @@ export function retina(url?: string, r: 'w' | 'h' = 'w', ...raw: string[]) {
 
   // prettier-ignore
   return {
-    thumbnail: [path + `/tr:${['w-300,h-300,fo-auto,q-75', ...raw].join(',')}` + url].join(' '),
-    blur: [path + `/tr:${[r + '-0.25', 'q-10,bl-10', ...raw].join(',')}` + url].join(' '),
+    thumbnail: [path + `/tr:${[r + '-0.25', 'ar-1-1,fo-auto,q-75', ...raw].join(',')}` + url].join(' '),
+    blur: [path + `/tr:${[r + '-0.25', 'q-10,bl-10,fo-auto', ...raw].join(',')}` + url].join(' '),
     src: [path + `/tr:${[r + '-0.25', 'q-75', ...raw].join(',')}` + url].join(' '),
     srcSet: [
       [path + `/tr:${[r + '-0.25', 'q-75', ...raw].join(',')}` + url].join(' '),
@@ -377,4 +377,34 @@ export function sheetFocus(
 
     document.body.style.top = `${Math.ceil(ceil)}px`
   })
+}
+
+export function sanitizeValue(
+  val: string,
+  option?: { trim?: boolean; contentEditable?: boolean }
+) {
+  const { trim, contentEditable } = {
+    trim: true,
+    contentEditable: false,
+    ...option,
+  }
+
+  val = trim ? val.trim() : val
+  val = contentEditable ? val : val.replace(/\s+/g, ' ')
+
+  return val
+}
+
+export function trimBy(symbol: string, text: string) {
+  let result = ''
+
+  for (let i = 0; i < text.length; i++) {
+    if ((!i || i === text.length - 1) && text[i] === symbol) {
+      continue
+    }
+
+    result += text[i]
+  }
+
+  return result
 }

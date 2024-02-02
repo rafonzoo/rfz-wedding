@@ -15,6 +15,7 @@ export const QueryProvider: RFZ = ({ children }) => {
         },
       })
   )
+
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )

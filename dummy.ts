@@ -1,10 +1,11 @@
 import type { WeddingAdd } from '@wedding/schema'
+import { djs } from '@/tools/lib'
 
-export const DUMMY_WEDDING_NAME = 'claire-leon' as const
+export const DUMMY_NAME = 'laura-john' as const
 
 export const DUMMY_EVENT = {
-  id: 0,
-  date: '2024-04-07T17:14:17.301Z',
+  id: 1,
+  date: djs().tz().add(3, 'M').toISOString(),
   eventName: 'Akad',
   timeStart: '11:00',
   timeEnd: '13:00',
@@ -14,69 +15,56 @@ export const DUMMY_EVENT = {
   country: 'Indonesia',
   opensTo: '',
   localTime: 'WIB',
-  detail: 'asdasdasdasd',
   mapUrl: '',
+  detail:
+    'Jl. H. R. Rasuna Said No.10b, RT.2/RW.5, Kuningan, Karet Kuningan, Kecamatan Kuningan, Kabupaten Kuningan, Daerah Khusus Ibukota Jakarta 12950',
+}
+
+export const DUMMY_GUEST = {
+  id: 1,
+  name: 'GGRFZ Team',
+  slug: 'GGRFZ-Team',
+  token: '123456',
+}
+
+export const DUMMY_COMMENT = {
+  text: 'Thank you for letting us share in this joyful day! May the joy of your new home be filled with laughter, smiles, kisses, hugs, respect understanding and faithfulness. Happy wedding!',
+  alias: 'GGRFZ Team',
 }
 
 export const DUMMY_INVITATION: WeddingAdd = {
-  name: DUMMY_WEDDING_NAME,
+  name: DUMMY_NAME,
   wid: /* OPTIONAL */ void 0,
   userId: /* OPTIONAL */ void 0,
   status: 'draft',
-  guests: [
-    {
-      id: 1,
-      name: 'GGRFZ Team',
-      slug: 'GGRFZ-Team',
-      token: '123456',
-    },
-    // {
-    //   name: 'Jim',
-    //   reaction: /* OPTIONAL */ ['smile'],
-    //   comment: /* OPTIONAL */ 'Congrats',
-    //   avatar: /* OPTIONAL */ 'default',
-    //   rsvp: /* OPTIONAL */ {
-    //     attendance: true,
-    //     length: 2,
-    //     message: /* OPTIONAL */ 'Siap laksanakan!',
-    //     validGuest: /* OPTIONAL */ false,
-    //   },
-    // },
-  ],
-  comments: [
-    {
-      text: 'Thank you for letting us share in this joyful day! May the joy of your new home be filled with laughter, smiles, kisses, hugs, respect understanding and faithfulness. Happy wedding!',
-      alias: 'GGRFZ Team',
-    },
-  ],
+  guests: [DUMMY_GUEST],
+  comments: [DUMMY_COMMENT],
   createdAt: /* OPTIONAL */ void 0,
   updatedAt: /* OPTIONAL */ void 0,
-  stories: /* OPTIONAL */ '',
   music: /* NULLABLE */ null,
   galleries: [],
   events: [DUMMY_EVENT],
+  displayName: DUMMY_NAME.replace(/-/g, ' & '),
   couple: [
     {
       id: 0,
-      fullName: 'Claire Redfield',
-      nameOfFather: 'Joe Redfield',
-      nameOfMother: 'Marsinah',
+      fullName: 'Laura Caldwell',
+      nameOfFather: 'Jack Caldwell',
+      nameOfMother: 'Kye Morton',
+      order: 2,
       socialUrl: {
         facebook: /* OPTIONAL */ 'http://localhost:3000',
       },
-      biography: /* OPTIONAL */ 'Claire is the one that blah...',
-      order: 2,
     },
     {
       id: 1,
-      fullName: 'Leon S. Kennedy',
-      nameOfFather: 'Scott Kennedy',
-      nameOfMother: 'Sutiyem',
+      fullName: 'John L. Doe',
+      nameOfFather: 'Steve Ramsey',
+      nameOfMother: 'Alivia Atkins',
+      order: 1,
       socialUrl: {
         instagram: /* OPTIONAL */ 'http://localhost:3000',
       },
-      biography: /* OPTIONAL */ 'Claire is the one that blah...',
-      order: 1,
     },
   ],
   loadout: {
@@ -84,23 +72,8 @@ export const DUMMY_INVITATION: WeddingAdd = {
     foreground: 'fall',
     background: 'white',
   },
-  surprise: `
-    Jika memberi merupakan tanda kasih, kami dengan senang hati menerima dan tentunya akan menambah kebahagiaan kami.
-
-    ## Alamat
-    - Kediaman **John Doe**: \
-    Jl. H. R. Rasuna Said No.10b, RT.2/RW.5, Kuningan, Karet Kuningan, Kecamatan Kuningan, Kabupaten Kuningan, Daerah Khusus Ibukota Jakarta 12950
-
-    ## Transfer
-    - Bank BNI - **John Doe** \
-    *copy: 9213 1323 2312 0292*
-
-    - Bank Mandiri - **Lauren S.** \
-    *copy: 9213 1323 2312 1234*
-
-    ## Ewallet
-    - Gopay: *copy:0899 9999 9999*
-    - OVO: *copy:0899 9999 9999*
-    - Emoney: *copy:0899 9999 9999*
-  `,
+  stories:
+    /* OPTIONAL */ '## First met (2022)\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n## Tunangan (2023)\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n## Pernikahan (2024)\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. ❤️❤️✨🫥🫥',
+  surprise:
+    /* OPTIONAL */ 'Jika memberi merupakan tanda kasih, kami dengan senang hati menerima dan tentunya akan menambah kebahagiaan kami.\n\n## Alamat\n- Kediaman **John Doe**: Jl. H. R. Rasuna Said No.10b, RT.2/RW.5, Kuningan, Karet Kuningan, Kecamatan Kuningan, Kabupaten Kuningan, Daerah Khusus Ibukota Jakarta 12950\n\n## Transfer\n- Bank BNI - **John Doe** *copy: 9213 1323 2312 0292*\n\n- Bank Mandiri - **Lauren S.** *copy: 9213 1323 2312 1234*\n\n## Ewallet\n- Gopay: *copy: 0899 9999 9999*\n- OVO: *copy: 0899 9999 9999*\n- Emoney: *copy: 0899 9999 9999*',
 }

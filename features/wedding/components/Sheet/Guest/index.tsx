@@ -10,7 +10,7 @@ import {
   getAllWeddingGuestQuery,
 } from '@wedding/query'
 import { tw } from '@/tools/lib'
-import { useUtilities } from '@/tools/hook'
+import { useMountedEffect, useUtilities } from '@/tools/hook'
 import { exact, isArrayEqual } from '@/tools/helper'
 import { Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
@@ -53,7 +53,7 @@ const SheetGuest: RFZ = () => {
         wid,
       })
     },
-    onError: (e) => {
+    onError: () => {
       toast.error(t('error.guest.failedToFetch'))
     },
   })
@@ -82,12 +82,16 @@ const SheetGuest: RFZ = () => {
 
   // prettier-ignore
   const isEqual = (
-    !guests ||
+    !guests || !previousGuests ||
     isArrayEqual(
       (guests ?? []).map((guest) => guest.slug),
       (previousGuests ?? []).map((guest) => guest.slug)
     )
   )
+
+  useMountedEffect(() => {
+    return () => revert()
+  })
 
   useEffect(() => {
     if (!guests?.length && isModeEdit) {
@@ -100,6 +104,13 @@ const SheetGuest: RFZ = () => {
       setPreviousGuests(guests)
     }
   }, [guests, isFetched, isError, previousGuests])
+
+  function revert() {
+    queryClient.setQueryData<Guest[] | undefined>(
+      Queries.weddingGuests,
+      previousGuests
+    )
+  }
 
   function onSave() {
     if (!guests || !previousGuests) return
@@ -208,12 +219,7 @@ const SheetGuest: RFZ = () => {
         prepend: !(isSaving || isEqual || isError) && (
           <button
             className='absolute right-4 top-4 flex h-11 w-11 -rotate-45 -scale-x-100 items-center justify-center rounded-full text-2xl text-red-500'
-            onClick={() => {
-              queryClient.setQueryData<Guest[] | undefined>(
-                Queries.weddingGuests,
-                previousGuests
-              )
-            }}
+            onClick={() => revert()}
           >
             <VscRefresh />
           </button>

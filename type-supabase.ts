@@ -77,6 +77,74 @@ export interface Database {
           }
         ]
       }
+      wedding_stg: {
+        Row: {
+          comments: Json
+          couple: Json
+          createdAt: string
+          displayName: string
+          events: Json
+          galleries: Json
+          guests: Json
+          id: number
+          loadout: Json
+          music: Json | null
+          name: string
+          status: Database["public"]["Enums"]["status"]
+          stories: string
+          surprise: string
+          updatedAt: string
+          userId: string
+          wid: string
+        }
+        Insert: {
+          comments?: Json
+          couple?: Json
+          createdAt?: string
+          displayName?: string
+          events?: Json
+          galleries?: Json
+          guests?: Json
+          id?: number
+          loadout?: Json
+          music?: Json | null
+          name?: string
+          status?: Database["public"]["Enums"]["status"]
+          stories?: string
+          surprise?: string
+          updatedAt?: string
+          userId?: string
+          wid?: string
+        }
+        Update: {
+          comments?: Json
+          couple?: Json
+          createdAt?: string
+          displayName?: string
+          events?: Json
+          galleries?: Json
+          guests?: Json
+          id?: number
+          loadout?: Json
+          music?: Json | null
+          name?: string
+          status?: Database["public"]["Enums"]["status"]
+          stories?: string
+          surprise?: string
+          updatedAt?: string
+          userId?: string
+          wid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_stg_userId_fkey"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       [_ in never]: never

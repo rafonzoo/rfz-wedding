@@ -5,13 +5,13 @@ import { localeRedirect } from '@/locale/config'
 import withAuthServer from '@/components/HoC/withAuthServer'
 import MyWeddingPageClient from './client'
 
-const MyWeddingPage = withAuthServer(async () => {
-  const myWedding = await getAllWeddingQuery(supabaseServer())
+const MyWeddingPage = withAuthServer(async ({ session }) => {
+  const myWedding = await getAllWeddingQuery(supabaseServer(), session.user.id)
 
   return !myWedding ? (
     localeRedirect(Route.notFound)
   ) : (
-    <MyWeddingPageClient myWedding={myWedding} />
+    <MyWeddingPageClient myWedding={myWedding} user={session.user} />
   )
 })
 

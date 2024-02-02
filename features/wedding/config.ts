@@ -7,8 +7,6 @@ export enum RouteWedding {
 export enum QueryWedding {
   weddingGetAll = '@@wedding/getAll',
   weddingDetail = '@@wedding/detail',
-  weddingAddNew = '@@wedding/addNew',
-  weddingUpdate = '@@wedding/update',
   weddingGuests = '@@wedding/guests',
   weddingComments = '@@wedding/comments',
   weddingGalleries = '@@wedding/galleries',

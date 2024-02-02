@@ -17,6 +17,7 @@ const config: Config = {
         root: ['16px', '24px'],
         base: ['17px', '24px'],
         lead: ['19px', '27px'],
+        '2.5xl': ['28px', '32px'],
         '6.5xl': ['64px', '68px'],
         '7.5xl': ['80px', '84px'],
       },

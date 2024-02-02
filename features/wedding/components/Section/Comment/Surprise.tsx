@@ -8,15 +8,23 @@ import { useParams } from 'next/navigation'
 import { BsGift } from 'react-icons/bs'
 import { updateWeddingSurpriseQuery } from '@wedding/query'
 import { tw } from '@/tools/lib'
-import { useUtilities } from '@/tools/hook'
+import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
 import { exact } from '@/tools/helper'
 import { Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import Notify from '@/components/Notification/Notify'
 import markdownConfig from '@/components/Markdown/config'
-import Markdown from '@/components/Markdown'
 import Spinner from '@/components/Loading/Spinner'
 import FieldTextArea from '@/components/Field/TextArea'
+
+const Markdown = dynamic(() => import('@/components/Markdown'), {
+  ssr: false,
+  loading: () => (
+    <div className='flex h-full w-full items-center justify-center'>
+      <Spinner />
+    </div>
+  ),
+})
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -31,8 +39,8 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
 })
 
 const CommentSurprise: RF = () => {
-  const isPublic = !!useParams().name
-  const isEditor = !isPublic
+  const isEditor = useIsEditorOrDev()
+  const isPublic = !isEditor
   const queryClient = useQueryClient()
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
   const [viewParsed, setViewParsed] = useState(!!detail.surprise)
@@ -91,7 +99,11 @@ const CommentSurprise: RF = () => {
         option={{ useOverlay: true }}
         footer={{
           useClose: true,
-          useBorder: !!detail.surprise && isError && !isLoading,
+          useBorder: !viewParsed
+            ? !!detail.surprise && isError && !isLoading
+              ? void 0
+              : false
+            : void 0,
         }}
         content={{ className: tw('h-full') }}
         wrapper={{ className: tw('h-full') }}
@@ -142,12 +154,12 @@ const CommentSurprise: RF = () => {
           </div>
         )}
         {isPublic ? (
-          <div className='markdown h-full p-6'>
+          <div className='markdown h-[inherit] p-6'>
             <Markdown {...markdownConfig}>{surprise}</Markdown>
           </div>
         ) : viewParsed ? (
-          <div className='h-full px-6 pb-1 pt-6'>
-            <div className='markdown h-full'>
+          <div className='h-[inherit] px-6 pb-1 pt-6'>
+            <div className='markdown h-[inherit]'>
               <Markdown {...markdownConfig}>{surprise}</Markdown>
             </div>
           </div>
@@ -157,8 +169,8 @@ const CommentSurprise: RF = () => {
               label='Markdown'
               name='surprise'
               value={surprise}
-              className='h-full font-mono text-sm'
-              wrapper={{ className: tw('h-full') }}
+              className='h-[inherit] font-mono text-sm'
+              wrapper={{ className: tw('h-[inherit]') }}
               onChange={onChange}
             />
           </div>

@@ -42,7 +42,7 @@ export const useOutlinedClasses = () => {
     }
 
     return tw(
-      'outline transition-[outline-offset,outline-color] focus-visible:outline-amber-500',
+      'outline transition-[outline-offset,outline-color] focus-visible:outline-[color:-webkit-focus-ring-color]',
       !isFocused && 'outline-2 outline-offset-0 outline-transparent',
       isFocused && '!outline-blue-400 ' + (additionalClasses ?? 'outline-4 outline-offset-[5px]') // prettier-ignore
     )

@@ -13,7 +13,7 @@ const Spinner = forwardRef<HTMLImageElement, SpinnerProps>(function SpinnerRef(
     <img
       {...props}
       ref={ref}
-      src={assets(`/global/tr:q-75/spinner.gif`)}
+      src={assets(`/global/tr:ar-1-1,w-0.1,q-75/spinner.gif`)}
       alt={props.alt ?? 'Loading...'}
       width={size}
       height={size}

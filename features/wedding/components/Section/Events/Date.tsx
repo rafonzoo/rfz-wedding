@@ -60,7 +60,8 @@ const EventDate: RF<EventDateProps> = ({
   const buttonRef = useRef<HTMLButtonElement | null>(null)
   const isIndonesian = getAddress.country.toLowerCase().includes('indonesia')
   const isEditor = useIsEditorOrDev()
-  const isPublic = !!useParams().name
+  // const isPublic = !!useParams().name
+  const isPublic = !isEditor
   const isEnabledDetail = isPublic && isActive
   const countryBasedKey = isIndonesian
     ? ({ province: getAddress.province } as const)

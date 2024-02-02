@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { weddingGalleryType, weddingGalleryUploadType } from '@wedding/schema'
+import { WEDDING_ROW } from '@wedding/query'
 import { authorizationQuery } from '@account/query'
 import { supabaseServer, zodLocale } from '@/tools/server'
 import { djs } from '@/tools/lib'
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
 
       const supabase = supabaseServer()
       const { data, error } = await supabase
-        .from('wedding')
+        .from(WEDDING_ROW)
         .update({ music, updatedAt: djs().toISOString() })
         .eq('wid', payload.wid)
         .select('music')
@@ -133,17 +134,35 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const { z } = await zodLocale(request)
+    const requestUrl = new URL(request.url)
+    const wid = z.string().parse(requestUrl.searchParams.get('wid'))
+    const supabase = supabaseServer()
+    const path = z
+      .string()
+      .optional()
+      .parse(requestUrl.searchParams.get('path'))
+
+    if (path) {
+      const { data } = await supabase.auth.getSession()
+
+      try {
+        if (data.session) {
+          await imagekit().deleteFolder(uploads(`/${path}`))
+        }
+      } catch (e) {
+        //
+      }
+
+      return NextResponse.json({ data: '' })
+    }
+
     await delay(AppConfig.Timeout.TimeBeforeCancel)
     request.signal.throwIfAborted()
 
-    const { z } = await zodLocale(request)
-    const requestUrl = new URL(request.url)
     const fileId = z.string().parse(requestUrl.searchParams.get('id'))
-    const wid = z.string().parse(requestUrl.searchParams.get('wid'))
-
-    const supabase = supabaseServer()
     const { data: previous } = await supabase
-      .from('wedding')
+      .from(WEDDING_ROW)
       .select('*')
       .eq('wid', wid)
       .contains('galleries', JSON.stringify([{ fileId }]))
@@ -151,7 +170,7 @@ export async function DELETE(request: NextRequest) {
 
     if (previous) {
       await supabaseServer()
-        .from('wedding')
+        .from(WEDDING_ROW)
         .update({
           ...previous,
           galleries: weddingGalleryType
@@ -185,7 +204,7 @@ export async function PATCH(request: NextRequest) {
 
     const supabase = supabaseServer()
     const { data, error } = await supabase
-      .from('wedding')
+      .from(WEDDING_ROW)
       .update({ music: null, updatedAt: djs().toISOString() })
       .eq('wid', wid)
       .select('music')

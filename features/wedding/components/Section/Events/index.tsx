@@ -155,7 +155,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
     },
   ]
 
-  const isMax = events.length === AppConfig.Wedding.MaxEvents
+  const isMax = events.length === AppConfig.Wedding.MaxEvent
   const actions =
     events.length === 1 || !activeIndex
       ? buttons.filter((item) => item.id !== 'delete')
@@ -215,7 +215,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
                   isActive={activeIndex === index}
                   onClick={() => onOpenChange(true)}
                   isFirstIndex={
-                    !index && events.length === AppConfig.Wedding.MaxEvents
+                    !index && events.length === AppConfig.Wedding.MaxEvent
                   }
                 />
               </Event>
@@ -246,11 +246,9 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
       </div>
       <BottomSheet
         root={{ open, onOpenChange }}
+        onCloseClicked={abort}
         option={{ isTransparent: true, useOverlay: true }}
-        footer={{
-          useClose: true,
-          onCloseClicked: abort,
-        }}
+        footer={{ useClose: true }}
       >
         <div className='px-6 pb-0.5'>
           <ul className='space-y-2'>

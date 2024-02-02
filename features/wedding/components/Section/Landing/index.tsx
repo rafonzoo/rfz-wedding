@@ -53,11 +53,11 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
   const minTextSizeLength = (57 / (displayName.length * 4.384615384615385)) * 57
   const maxTextSizeLength = (79 / (displayName.length * 6.076923076923077)) * 79
   const wid = useParams().wid as string
-  const {
-    isLoading: isRemoving,
-    mutate: removeSong,
-    error: removeError,
-  } = useMutation<null, unknown>({
+
+  const { isLoading: isRemoving, mutate: removeSong } = useMutation<
+    null,
+    unknown
+  >({
     mutationFn: () => {
       if (!detail.music?.fileId) {
         throw new Error('Illegal invocation.')
@@ -156,7 +156,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
                 style={{
                   fontSize:
                     displayName.length > 12
-                      ? `min(${maxTextSizeLength > 79 ? 79 : maxTextSizeLength}px,max(${minTextSizeLength}px, ${textSizeViewport}vw))`
+                      ? `min(${Math.ceil(maxTextSizeLength) > 79 ? 79 : Math.ceil(maxTextSizeLength)}px,max(${Math.ceil(minTextSizeLength)}px, ${Math.ceil(textSizeViewport)}vw))`
                       : `min(79px,max(57px, 18vw))`,
                 }}
               >
@@ -275,15 +275,10 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
             </div>
           </div>
           <div className='mt-6 overflow-hidden text-center text-zinc-300'>
-            {/* <p>Invites you to our wedding,</p> */}
             <p>Undangan kepada yth,</p>
-            {guest ? (
-              <p className='truncate'>{guest}</p>
-            ) : (
-              <p className='min-h-6'>
-                <SheetGuest />
-              </p>
-            )}
+            <p className='min-h-6 truncate'>
+              {isEditor ? <SheetGuest /> : guest}
+            </p>
           </div>
           <div className='mt-8 flex items-center justify-center space-x-4 text-center'>
             {date.split(':').map((time, index) => (

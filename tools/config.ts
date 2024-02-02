@@ -50,6 +50,7 @@ export enum ErrorMap {
   forbiddenError = 'ForbiddenError',
   abortError = 'AbortError',
   authError = 'AuthError',
+  duplicateError = 'DuplicateError',
 }
 
 export enum Severity {
@@ -73,11 +74,17 @@ export const ASSETS_PATH = '/assets'
 export const UPLOADS_PATH = '/uploads'
 
 export const AppConfig = {
+  Column: {
+    development: 'wedding',
+    staging: 'wedding_stg',
+    production: 'wedding_prod',
+  },
   Wedding: {
     NewlineSymbol: '--',
     DateFormat: 'YYYY-MM-DD',
     MaxMonthRange: 4,
-    MaxEvents: 4,
+    MaxEvent: 4,
+    MaxDraft: 3,
     ImageryStartIndex: 100,
   },
   Timeout: {

@@ -20,24 +20,110 @@ import {
 import { djs, supabaseClient } from '@/tools/lib'
 import { cleaner, exact, qstring } from '@/tools/helper'
 import { AppError } from '@/tools/error'
-import { ErrorMap, RouteApi, RouteHeader } from '@/tools/config'
-import { DUMMY_INVITATION, DUMMY_WEDDING_NAME } from '@/dummy'
+import { AppConfig, ErrorMap, RouteApi, RouteHeader } from '@/tools/config'
+import { DUMMY_INVITATION } from '@/dummy'
+
+// prettier-ignore
+export const WEDDING_ROW = AppConfig.Column[process.env.NODE_ENV as 'development']
 
 // prettier-ignore
 export const WEDDING_COLUMN = 'wid,userId,status,name,displayName,createdAt,updatedAt,stories,music,couple,loadout,galleries,events,surprise' as const
 
-export const getAllWeddingQuery = async (
-  supabase: ReturnType<typeof supabaseClient>
-) => {
-  const { data: auth, error: authError } = await supabase.auth.getUser()
-  if (authError || !auth) {
-    return null
+export const deleteWeddingQuery = async ({
+  path,
+  wid,
+  signal,
+}: {
+  path: string
+  wid: string
+  signal: AbortSignal
+}) => {
+  const deleteStorage = await fetch(qstring({ wid, path }, RouteApi.uploads), {
+    method: 'DELETE',
+  })
+
+  if (!deleteStorage.ok) {
+    throw new AppError(ErrorMap.internalError)
   }
 
-  const { data: current, error } = await supabase
-    .from('wedding')
+  const supabase = supabaseClient()
+  const { error: deleteError } = await supabase
+    .from(WEDDING_ROW)
+    .delete()
+    .abortSignal(signal)
+    .eq('wid', wid)
+
+  if (deleteError) {
+    throw new AppError(ErrorMap.internalError, deleteError?.message)
+  }
+
+  return wid
+}
+
+export const addNewWeddingQuery = async ({
+  uid,
+  name,
+  signal,
+}: {
+  uid: string
+  name: string
+  signal: AbortSignal
+}) => {
+  const supabase = supabaseClient()
+  const { data: current, error: queryError } = await supabase
+    .from(WEDDING_ROW)
+    .select('name,status')
+    .abortSignal(signal)
+    .eq('userId', uid)
+
+  if (queryError || !current) {
+    const abortError = queryError.code === '20'
+
+    throw new AppError(
+      abortError ? ErrorMap.abortError : ErrorMap.internalError,
+      abortError ? void 0 : queryError.message
+    )
+  }
+
+  if (current.map((c) => c.name).some((n) => n === name)) {
+    throw new AppError(ErrorMap.duplicateError)
+  }
+
+  if (
+    current.filter((c) => c.status === 'draft').length ===
+    AppConfig.Wedding.MaxDraft
+  ) {
+    throw new AppError(ErrorMap.limitError)
+  }
+
+  const invitation = { ...DUMMY_INVITATION, name }
+  const { data: newWedding, error: insertError } = await supabase
+    .from(WEDDING_ROW)
+    .insert(invitation)
     .select(WEDDING_COLUMN)
-    .eq('userId', auth.user.id)
+    .abortSignal(signal)
+    .single()
+
+  if (insertError || !newWedding) {
+    const abortError = insertError.code === '20'
+
+    throw new AppError(
+      abortError ? ErrorMap.abortError : ErrorMap.internalError,
+      abortError ? void 0 : insertError.message
+    )
+  }
+
+  return weddingType.parse({ ...newWedding, guests: [], comments: [] })
+}
+
+export const getAllWeddingQuery = async (
+  supabase: ReturnType<typeof supabaseClient>,
+  uid: string
+) => {
+  const { data: current, error } = await supabase
+    .from(WEDDING_ROW)
+    .select(WEDDING_COLUMN)
+    .eq('userId', uid)
 
   if (error || !current) {
     return null
@@ -57,7 +143,7 @@ export const detailWeddingQuery = async (
   wid: string
 ) => {
   const { data: detail, error: queryError } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .select(WEDDING_COLUMN)
     .eq('wid', wid)
     .single()
@@ -67,43 +153,6 @@ export const detailWeddingQuery = async (
   }
 
   return weddingType.parse({ ...detail, guests: [], comments: [] })
-}
-
-export const addNewWeddingQuery = async () => {
-  const MAX_DRAFT = 3
-
-  const supabase = supabaseClient()
-  const { data: current, error: queryError } = await supabase
-    .from('wedding')
-    .select('name')
-
-  if (queryError || !current) {
-    throw new AppError(ErrorMap.internalError, queryError.message)
-  }
-
-  if (current.length === MAX_DRAFT) {
-    throw new AppError(ErrorMap.limitError)
-  }
-
-  // Generate current name with suffix `-{number}`
-  // Incoming would be example: claire-leon-1
-  const integer = +(current[current.length - 1]?.name?.split('-')[2] ?? '1')
-  const name = [DUMMY_WEDDING_NAME, integer + 1]
-    .filter((itm) => (!current.length ? typeof itm === 'string' : true))
-    .join('-')
-
-  const invitation = { ...DUMMY_INVITATION, name }
-  const { data: newWedding, error: insertError } = await supabase
-    .from('wedding')
-    .insert(invitation)
-    .select(WEDDING_COLUMN)
-    .single()
-
-  if (insertError || !newWedding) {
-    throw new AppError(ErrorMap.internalError, insertError?.message)
-  }
-
-  return weddingType.parse({ ...newWedding, guests: [], comments: [] })
 }
 
 export const updateWeddingLoadoutQuery = async ({
@@ -117,7 +166,7 @@ export const updateWeddingLoadoutQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ loadout, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -144,7 +193,7 @@ export const updateWeddingGalleryQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ galleries, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -169,7 +218,7 @@ export const updateWeddingCouplesQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ couple, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -263,7 +312,7 @@ export const updateWeddingEventDateQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ events: payload, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -295,7 +344,7 @@ export const updateWeddingEventTimeQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ events: payload, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -323,7 +372,7 @@ export const updateWeddingEventQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ events: payload, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -346,7 +395,7 @@ export const getAllWeddingGuestQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .select('guests')
     .abortSignal(signal)
     .eq('wid', wid)
@@ -370,7 +419,7 @@ export const addNewWeddingGuestQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ guests: payload, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -432,7 +481,7 @@ export const updateWeddingDisplayNameQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ displayName, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -457,7 +506,7 @@ export const updateWeddingStoriesQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ stories, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)
@@ -482,7 +531,7 @@ export const updateWeddingSurpriseQuery = async ({
 }) => {
   const supabase = supabaseClient()
   const { data, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .update({ surprise, updatedAt: djs().toISOString() })
     .abortSignal(signal)
     .eq('wid', wid)

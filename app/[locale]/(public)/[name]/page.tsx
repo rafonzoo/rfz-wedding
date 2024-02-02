@@ -1,5 +1,5 @@
 import { weddingType } from '@wedding/schema'
-import { WEDDING_COLUMN } from '@wedding/query'
+import { WEDDING_COLUMN, WEDDING_ROW } from '@wedding/query'
 import { getCookie, supabaseService } from '@/tools/server'
 import { Route, RouteCookie } from '@/tools/config'
 import { localeRedirect } from '@/locale/config'
@@ -14,7 +14,7 @@ const WeddingPage = async ({
   const csrfToken = getCookie(RouteCookie.csrf)?.value
   const { data } = await supabase.auth.getSession()
   const { data: wedding, error } = await supabase
-    .from('wedding')
+    .from(WEDDING_ROW)
     .select(WEDDING_COLUMN)
     .eq('name', params.name)
     .contains('guests', JSON.stringify([{ slug }]))
