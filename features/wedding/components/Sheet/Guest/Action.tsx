@@ -16,6 +16,7 @@ import {
   guestAlias,
   guestName,
   numbers,
+  periodFocus,
 } from '@/tools/helper'
 import { Queries } from '@/tools/config'
 import FieldText from '@/components/Field/Text'
@@ -97,10 +98,8 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
 
   useEffect(() => {
     if (isShow) {
-      const timeout = setTimeout(
-        () => document.getElementById('input-add-new')?.focus(),
-        160
-      )
+      const timeout = periodFocus(inputRef.current)
+
       return () => {
         clearTimeout(timeout)
       }
