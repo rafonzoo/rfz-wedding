@@ -95,11 +95,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
     editableFocusHandler(isShow ? 'addEventListener' : 'removeEventListener')
   }, [isShow, scrollRef])
 
-  useEffect(() => {
-    if (isShow) {
-      inputRef.current?.focus()
-    }
-  }, [isShow])
+  useEffect(() => inputRef.current?.[isShow ? 'focus' : 'blur'](), [isShow])
 
   function onValidate(text: string) {
     // Trim then clean multispace
