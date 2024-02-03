@@ -424,16 +424,3 @@ export function trimBy(symbol: string, text: string) {
 
   return result
 }
-
-export function periodFocus(target?: HTMLElement | null, timer = 180) {
-  const input = document.createElement('input')
-
-  input.classList.add(...'w-0 h-0 m-0 p-0 border-none opacity-0'.split(' '))
-  document.body.appendChild(input)
-  input.focus()
-
-  return setTimeout(() => {
-    target?.focus()
-    document.body.removeChild(input)
-  }, timer)
-}

@@ -16,7 +16,6 @@ import {
   guestAlias,
   guestName,
   numbers,
-  periodFocus,
 } from '@/tools/helper'
 import { Queries } from '@/tools/config'
 import FieldText from '@/components/Field/Text'
@@ -98,11 +97,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
 
   useEffect(() => {
     if (isShow) {
-      const timeout = periodFocus(inputRef.current)
-
-      return () => {
-        clearTimeout(timeout)
-      }
+      inputRef.current?.focus()
     }
   }, [isShow])
 
@@ -298,15 +293,11 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
       className={tw('overflow-hidden translate-z-0', !isShow && 'h-0')}
     >
       <form
+        className='relative mx-4 mt-4'
         onSubmit={(e) => {
           e.preventDefault()
           onSubmit()
         }}
-        className={tw(
-          'relative mx-4 mt-4 transition-transform duration-panel ease-panel',
-          !isShow && 'translate-3d-y-full',
-          isShow && 'translate-3d-0'
-        )}
       >
         {recentlyAdded && isShow && !isSynced && (
           <p className='mb-3 rounded-md border border-green-300 bg-green-50 p-2 text-xs tracking-normal text-green-900'>
