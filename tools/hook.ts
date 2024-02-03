@@ -4,7 +4,7 @@ import type { MutableRefObject } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { tw } from '@/tools/lib'
-import { isObjectEqual, preventDefault } from '@/tools/helper'
+import { isLocal, isObjectEqual, preventDefault } from '@/tools/helper'
 import { AppConfig } from '@/tools/config'
 import { useLocalePathname } from '@/locale/config'
 
@@ -69,7 +69,7 @@ export const useLongPress = <T>(
 export const useIsEditorOrDev = () => {
   const haveId = !!useParams().wid
 
-  // return isLocal()
+  return isLocal()
   return haveId
 }
 

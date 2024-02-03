@@ -210,7 +210,7 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
                             return
                           }
 
-                          confirm('Are you sure?') && removeComment({ alias })
+                          removeComment({ alias })
                         }}
                         className={tw(
                           'absolute -right-4 -top-4 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-red-600',

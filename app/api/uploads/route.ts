@@ -138,15 +138,16 @@ export async function DELETE(request: NextRequest) {
     const requestUrl = new URL(request.url)
     const wid = z.string().parse(requestUrl.searchParams.get('wid'))
     const supabase = supabaseServer()
-    const path = z
-      .string()
-      .optional()
-      .parse(requestUrl.searchParams.get('path'))
+    const paramsPath = requestUrl.searchParams.get('path')
 
-    if (path) {
-      const { data } = await supabase.auth.getSession()
-
+    if (paramsPath) {
       try {
+        const { data } = await supabase.auth.getSession()
+        const path = z
+          .string()
+          .optional()
+          .parse(requestUrl.searchParams.get('path'))
+
         if (data.session) {
           await imagekit().deleteFolder(uploads(`/${path}`))
         }

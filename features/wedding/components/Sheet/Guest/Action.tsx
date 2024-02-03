@@ -95,6 +95,8 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
     editableFocusHandler(isShow ? 'addEventListener' : 'removeEventListener')
   }, [isShow, scrollRef])
 
+  // useEffect(() => void (isShow && inputRef.current?.focus()), [isShow])
+
   function onValidate(text: string) {
     // Trim then clean multispace
     const textParser = text.trim().replace(/\s+/g, ' ')
@@ -296,6 +298,9 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
           !isShow && 'translate-3d-y-full',
           isShow && 'translate-3d-0'
         )}
+        onTransitionEnd={() =>
+          isShow && document.getElementById('input-add-new')?.focus()
+        }
       >
         {recentlyAdded && isShow && !isSynced && (
           <p className='mb-3 rounded-md border border-green-300 bg-green-50 p-2 text-xs tracking-normal text-green-900'>
@@ -304,10 +309,12 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         )}
         <FieldText
           ref={inputRef}
+          id='input-add-new'
           label={!guestEdit ? 'Tamu baru' : 'Edit tamu'}
           name='guestName'
           onChange={onChange}
           value={value}
+          autoFocus
           isAlphaNumeric
           whitelist={`()'`}
           blacklist='-'

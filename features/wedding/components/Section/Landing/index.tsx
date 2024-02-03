@@ -202,11 +202,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
                     prepend: detail.music && !isRemoving && (
                       <button
                         className='mr-auto w-auto text-blue-600 dark:text-blue-400'
-                        onClick={() => {
-                          if (confirm('Are you sure to remove this song?')) {
-                            removeSong()
-                          }
-                        }}
+                        onClick={() => removeSong()}
                       >
                         Hapus
                       </button>

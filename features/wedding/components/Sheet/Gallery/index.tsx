@@ -367,16 +367,13 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
     isModeSelect && selectionId.length > 0 ? (
       <button
         aria-label='Delete'
-        onClick={() => {
-          if (confirm('Are you sure to remove?')) {
-            onDelete(selectionId)
-          }
-        }}
+        onClick={() => onDelete(selectionId)}
       >
         Hapus
       </button>
-    ) : (
+    ) : !!galleries.data && (
       <button
+        aria-label='Upload'
         disabled={isUploadDisabled}
         onClick={() => !isUploadDisabled && fileRef.current?.click()}
         className={tw('text-2xl', {
