@@ -134,7 +134,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
       `${[symbol, symbol].join('$1')}`
     )
 
-    raw = raw.replace(new RegExp(`=\\*${name}\\*`, 'g'), `=${name}`)
+    raw = raw.replace(new RegExp(`\\*${name}\\*&`, 'g'), `${name}&`)
     return encode ? encodeURIComponent(raw) : raw
   }
 

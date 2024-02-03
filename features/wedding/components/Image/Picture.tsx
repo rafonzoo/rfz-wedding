@@ -67,7 +67,7 @@ const FigureImage: RFZ<{
         wid,
         signal,
         galleries,
-        errorText: t('error.photo.failedToSave'),
+        errorText: t('error.general.failedToSave'),
       })
     },
     onMutate: () => {

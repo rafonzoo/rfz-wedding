@@ -14,12 +14,14 @@
     "photo": {
       "failedToFetch": "Failed to fetch a photos",
       "failedToUpload": "Failed to upload",
-      "failedToSave": "Failed to save",
       "failedToRemove": "Failed to remove"
     },
     "guest": {
       "failedToFetch": "Failed to load guest",
       "failedToSave": "Failed to save guest"
+    },
+    "general": {
+      "failedToSave": "Failed to save a changes"
     }
   },
   "success": {

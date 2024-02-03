@@ -30,9 +30,7 @@ const WeddingTemplate: RFZ<Wedding & { csrfToken?: string }> = ({
           <SectionEvents {...wedding} />
           <SectionGalleries {...wedding} />
           <SectionComment {...wedding} csrfToken={csrfToken} />
-          <div>
-            <SheetLoadout {...wedding.loadout}>Appearance</SheetLoadout>
-          </div>
+          <SheetLoadout />
         </div>
       </main>
     </div>

@@ -14,17 +14,19 @@
     "photo": {
       "failedToFetch": "Gagal memuat foto",
       "failedToUpload": "Gagal mengunggah foto",
-      "failedToSave": "Gagal menyimpan foto",
       "failedToRemove": "Gagal menghapus foto"
     },
     "guest": {
       "failedToFetch": "Gagal memuat tamu",
       "failedToSave": "Gagal menyimpan tamu"
+    },
+    "general": {
+      "failedToSave": "Gagal menyimpan perubahan"
     }
   },
   "success": {
     "invitation": {
-      "create": "Undangan berhasil ditambahkan",
+      "create": "Undangan berhasil dibuat",
       "delete": "Undangan berhasil dihapus"
     }
   }

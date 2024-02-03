@@ -56,7 +56,7 @@ const SectionLandingBackground: RFZ = ({ children }) => {
         wid,
         signal,
         galleries,
-        errorText: t('error.photo.failedToSave'),
+        errorText: t('error.general.failedToSave'),
       })
     },
     onMutate: () => {
