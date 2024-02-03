@@ -6,6 +6,7 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from 'react-query'
 import { useTranslations } from 'next-intl'
 import { ZodError } from 'zod'
+import { IoArrowForwardCircle } from 'react-icons/io5'
 import { guestType } from '@wedding/schema'
 import { tw } from '@/tools/lib'
 import {
@@ -39,6 +40,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
 }) => {
   const [error, setError] = useState('')
   const [recentlyAddedId, setRecentlyAddedId] = useState(-1)
+  const [showSend, setShowSend] = useState(false)
   const lastPosRef = useRef(0)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const queryClient = useQueryClient()
@@ -95,7 +97,12 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
     editableFocusHandler(isShow ? 'addEventListener' : 'removeEventListener')
   }, [isShow, scrollRef])
 
-  useEffect(() => inputRef.current?.[isShow ? 'focus' : 'blur'](), [isShow])
+  useEffect(() => {
+    const isAddNew = !guestEdit
+    if (isAddNew) {
+      inputRef.current?.[isShow ? 'focus' : 'blur']()
+    }
+  }, [guestEdit, isShow])
 
   function onValidate(text: string) {
     // Trim then clean multispace
@@ -107,7 +114,6 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
 
     // Remove group symbol
     const group = groupName(text)
-    const isAddNew = !guestEdit
 
     let parser = guestType.shape.name
       .refine(
@@ -191,15 +197,13 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         }
       )
 
-    if (isAddNew) {
-      // @ts-expect-error Cannot optional chain on zod
-      parser = parser.refine(
-        (val) => !guests.some((guest) => guestAlias(guest.slug) === val),
-        {
-          message: t('error.field.invalidGuestExist'),
-        }
-      )
-    }
+    // @ts-expect-error Cannot optional chain on zod
+    parser = parser.refine(
+      (val) => !guests.some((guest) => guestAlias(guest.slug) === val),
+      {
+        message: t('error.field.invalidGuestExist'),
+      }
+    )
 
     const name = parser.parse(textParser)
     const slug = (
@@ -267,6 +271,8 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
             ? `(${group}) `
             : ''
         )
+
+        inputRef.current?.focus()
       }
     } catch (e) {
       if (e instanceof ZodError) {
@@ -275,12 +281,15 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         setError(issue.message)
       }
     }
+
+    setShowSend(false)
   }
 
   function onChange(e: ChangeEvent<HTMLInputElement>) {
     setError('')
     setRecentlyAddedId(-1)
     setValue(e.target.value)
+    setShowSend(e.target.value !== '')
   }
 
   return (
@@ -312,7 +321,11 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
           blacklist='-'
           tabIndex={isShow ? 0 : -1}
           errorMessage={error}
-          className='bg-zinc-100 dark:!border-zinc-600 dark:bg-zinc-700'
+          messageProps={{ className: tw('min-h-0') }}
+          className={tw(
+            'bg-zinc-100 dark:!border-zinc-600 dark:bg-zinc-700',
+            showSend && !error && '!pr-11'
+          )}
           labelProps={
             !error
               ? {
@@ -336,7 +349,18 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
               </a>
             </span>
           }
-        />
+        >
+          {showSend && !error && (
+            <button
+              type='submit'
+              tabIndex={-1}
+              className='absolute right-2 top-[30px] rounded-full text-3xl text-blue-600 dark:text-blue-400'
+              aria-label='Tambah/edit tamu'
+            >
+              <IoArrowForwardCircle />
+            </button>
+          )}
+        </FieldText>
       </form>
     </div>
   )

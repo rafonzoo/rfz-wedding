@@ -106,6 +106,7 @@ const SheetGuest: RFZ = () => {
   }, [guests, isFetched, isError, previousGuests])
 
   function revert() {
+    onCloseAutoFocus()
     queryClient.setQueryData<Guest[] | undefined>(
       Queries.weddingGuests,
       previousGuests

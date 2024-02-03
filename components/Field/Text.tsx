@@ -17,6 +17,7 @@ type InputProps = Omit<Tag<'input'>, 'type'> & {
   whitelist?: string
   blacklist?: string | RegExp
   labelProps?: Tag<'span'>
+  messageProps?: Tag<'span'>
   children?: ReactNode
 }
 
@@ -30,6 +31,7 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
       label,
       errorMessage,
       infoMessage,
+      messageProps,
       whitelist = '',
       blacklist = '',
       isAlphaNumeric,
@@ -141,11 +143,16 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
         />
         {message && typeof message !== 'boolean' && (
           <span
-            className={tw('block min-h-10 px-3 pt-2 text-xs tracking-wide', {
-              'text-zinc-500 dark:text-zinc-400':
-                !!infoMessage && !errorMessage,
-              'text-red-500': !!errorMessage,
-            })}
+            {...messageProps}
+            className={tw(
+              'block min-h-10 px-3 pt-2 text-xs tracking-wide',
+              {
+                'text-zinc-500 dark:text-zinc-400':
+                  !!infoMessage && !errorMessage,
+                'text-red-500': !!errorMessage,
+              },
+              messageProps?.className
+            )}
           >
             {message}
           </span>

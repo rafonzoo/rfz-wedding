@@ -222,14 +222,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
             aria-label='Select guest'
             tabIndex={isModeEdit ? -1 : 0}
             className='flex-grow'
-            onClick={() => {
-              const isShow = !(!isModeEdit && editedGuestId === id)
-
-              onClick?.(id)
-              document
-                .getElementById('input-add-new')
-                ?.[isShow ? 'focus' : 'blur']()
-            }}
+            onClick={() => onClick?.(id)}
           />
 
           <BottomSheet
