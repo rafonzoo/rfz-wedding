@@ -145,7 +145,7 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
           <span
             {...messageProps}
             className={tw(
-              'block min-h-10 px-3 pt-2 text-xs tracking-wide',
+              'block px-3 pt-2 text-xs tracking-wide',
               {
                 'text-zinc-500 dark:text-zinc-400':
                   !!infoMessage && !errorMessage,

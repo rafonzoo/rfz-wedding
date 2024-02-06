@@ -320,7 +320,7 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
       queryClient.setQueryData<Wedding[] | undefined>(
         Queries.weddingGetAll,
         (prev) => {
-          return !prev ? prev : prev.filter((item) => item.wid !== wid)
+          return (prev ?? myWedding)?.filter((item) => item.wid !== wid)
         }
       )
     },

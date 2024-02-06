@@ -174,7 +174,9 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     multiSheetIndexCounter()
     inputFocus('addEventListener')
     onScrollHeightChange('observe', onScrollingBorder)
+
     focusRef.current = document.activeElement as HTMLElement
+    sheetRef.current?.classList.add('data-[state=open]:animate-dialog-show')
 
     e.preventDefault()
     content?.onOpenAutoFocus?.(e)
@@ -191,6 +193,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   function onCloseStart() {
     if (isAnimating) return
 
+    sheetRef.current?.classList.remove('data-[state=open]:animate-dialog-show')
     setIsAnimating(true)
     onCloseClicked?.()
   }
@@ -304,7 +307,8 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           }}
           className={tw(
             'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none translate-3d-y-full',
-            'data-[state=closed]:animate-dialog-hide data-[state=open]:animate-dialog-show',
+            'data-[state=closed]:animate-dialog-hide',
+            root?.modal === false && 'data-[state=open]:animate-dialog-show',
             content?.className
           )}
           onOpenAutoFocus={onOpenAutoFocus}

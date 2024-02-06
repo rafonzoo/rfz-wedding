@@ -49,6 +49,7 @@ const config: Config = {
         'dialog-hide': 'dialog-hide 640ms cubic-bezier(.32,.72,0,1)',
         'fade-in': 'fade-in 320ms cubic-bezier(0.4, 0, 0.2, 1)',
         'fade-out': 'fade-out 320ms cubic-bezier(0.4, 0, 0.2, 1) 320ms',
+        'song-play': 'song-play 20s linear infinite',
       },
       keyframes: {
         'dialog-show': {
@@ -68,6 +69,10 @@ const config: Config = {
         'fade-out': {
           '0%': { opacity: '1' },
           '100%': { opacity: '0' },
+        },
+        'song-play': {
+          '0%': { transform: 'rotate(0)' },
+          '100%': { transform: 'rotate(360deg)' },
         },
       },
     },

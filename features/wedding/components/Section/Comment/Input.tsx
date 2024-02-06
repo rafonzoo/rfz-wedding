@@ -1,10 +1,12 @@
+import type { Comment, Wedding } from '@wedding/schema'
 import type { Session } from '@supabase/auth-helpers-nextjs'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useLocale } from 'next-intl'
 import { IoArrowForwardCircle } from 'react-icons/io5'
-import { type Comment, type Wedding, commentType } from '@wedding/schema'
+import { BiChevronDown } from 'react-icons/bi'
+import { commentType } from '@wedding/schema'
 import { addNewWeddingCommentQuery } from '@wedding/query'
 import { tw } from '@/tools/lib'
 import { useIsEditorOrDev } from '@/tools/hook'
@@ -35,8 +37,12 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
     ? false
     : (commentId && !hasSession && !isAlreadyCommented) || false
   const locale = useLocale()
-  const mutation = useMutation<Comment, unknown, string>({
-    mutationFn: (text) => {
+  const mutation = useMutation<
+    Comment,
+    unknown,
+    { comment: string; isComing: Comment['isComing'] }
+  >({
+    mutationFn: ({ comment, isComing }) => {
       const token = commentId ?? ''
 
       return addNewWeddingCommentQuery(
@@ -45,7 +51,8 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
         {
           token,
           alias: encodeURI(alias),
-          text: encodeURI(text),
+          text: encodeURI(comment),
+          isComing,
         },
         csrfToken
       )
@@ -73,6 +80,8 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
 
   const isDisabled = mutation.isLoading || !canComment
   const [comment, setComment] = useState('')
+  const [isComing, setIsComing] = useState<Comment['isComing']>('tbd')
+  const [isFocus, setIsFocus] = useState(false)
 
   return (
     <div
@@ -93,34 +102,76 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
           </span>
         </p>
       </div>
-      <div className='relative flex w-full'>
-        <textarea
-          id='comment-text'
-          autoComplete='off'
-          disabled={isDisabled}
-          className='min-h-[183px] w-full appearance-none rounded-lg border border-zinc-300 bg-transparent px-4 pb-4 pt-3 opacity-100 placeholder:text-zinc-500 dark:border-zinc-600 dark:placeholder:text-zinc-400'
-          placeholder={
-            isEditor
-              ? 'Ucapan tamu'
-              : isAlreadyCommented
-                ? 'Anda sudah berkomentar'
-                : 'Tulis ucapan'
-          }
-          value={comment}
-          required
-          onChange={(e) => !isDisabled && setComment(e.target.value)}
-        />
-        {commentType.shape.text.safeParse(comment).success &&
-          !mutation.isLoading &&
-          !isAlreadyCommented && (
-            <button
-              className='absolute bottom-3 right-3 rounded-full text-3xl text-blue-600 dark:text-blue-400'
-              aria-label='Post a comment'
-              onClick={() => mutation.mutate(comment)}
-            >
-              <IoArrowForwardCircle />
-            </button>
-          )}
+      <div
+        className={tw(
+          'rounded-lg border border-zinc-300 transition-shadow dark:border-zinc-600',
+          isFocus && 'shadow-focus !border-blue-600' // prettier-ignore
+        )}
+      >
+        <div className='flex w-full flex-col'>
+          <textarea
+            autoComplete='off'
+            disabled={isDisabled}
+            name='comment'
+            className='min-h-[140px] w-full appearance-none bg-transparent px-4 pt-3 opacity-100 outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400'
+            placeholder={
+              isEditor
+                ? 'Ucapan tamu'
+                : isAlreadyCommented
+                  ? 'Anda sudah berkomentar'
+                  : 'Tulis ucapan'
+            }
+            value={comment}
+            required
+            onChange={(e) => !isDisabled && setComment(e.target.value)}
+            onFocus={() => setIsFocus(true)}
+            onBlur={() => setIsFocus(false)}
+          />
+          <div className='relative flex min-h-[49px] items-center justify-between py-2 pl-4 pr-2'>
+            {commentType.shape.text.safeParse(comment).success &&
+              !mutation.isLoading &&
+              !isAlreadyCommented && (
+                <>
+                  <div className='relative ml-auto -translate-x-1 text-xs tracking-base text-zinc-500'>
+                    <label
+                      htmlFor='comingIn'
+                      className='flex flex-col'
+                      onClick={(e) =>
+                        e.currentTarget.querySelector('select')?.focus()
+                      }
+                    >
+                      <span className='block'>Akan hadir?</span>
+                      <select
+                        id='comingIn'
+                        name='comingIn'
+                        className='-mt-0.5 ml-auto mr-2 block appearance-none bg-transparent text-right'
+                        onChange={(e) =>
+                          setIsComing(e.target.value as Comment['isComing'])
+                        }
+                      >
+                        <option value='tbd'>&nbsp;&nbsp;TBD</option>
+                        <option value='yes'>Tentu</option>
+                        <option value='no'>Tidak</option>
+                      </select>
+                      <span className='absolute -right-0.5 bottom-0.5'>
+                        <BiChevronDown />
+                      </span>
+                    </label>
+                  </div>
+                  <div className='relative mx-3'>
+                    <span className='absolute top-1/2 h-8 w-px -translate-y-1/2 bg-black opacity-25 dark:bg-white'></span>
+                  </div>
+                  <button
+                    className='rounded-full text-3xl text-blue-600 dark:text-blue-400'
+                    aria-label='Post a comment'
+                    onClick={() => mutation.mutate({ comment, isComing })}
+                  >
+                    <IoArrowForwardCircle />
+                  </button>
+                </>
+              )}
+          </div>
+        </div>
       </div>
     </div>
   )

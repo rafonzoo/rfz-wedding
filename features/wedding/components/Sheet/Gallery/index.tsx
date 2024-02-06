@@ -12,6 +12,7 @@ import { tw } from '@/tools/lib'
 import { useMountedEffect, useOutlinedClasses } from '@/tools/hook'
 import { blobToUri, exact, qstring, uploads } from '@/tools/helper'
 import { AppConfig, Queries, RouteApi } from '@/tools/config'
+import Compressor from 'compressorjs'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
@@ -20,9 +21,7 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
 })
 
-const MAX_FILE_SIZE = 1024 * 1000 // byte
-
-const MAX_FILE_ITEM = 13
+const MAX_FILE_SIZE = AppConfig.Wedding.MaxFileSize * 1000 // byte
 
 const SUPPORTED_FORMAT = ['image/png', 'image/jpg', 'image/jpeg']
 
@@ -107,7 +106,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
     const target = e.currentTarget
     const files = Array.from(target?.files ?? []).slice(
       0,
-      MAX_FILE_ITEM - (galleries.data?.length ?? 0)
+      AppConfig.Wedding.MaxFileItem - (galleries.data?.length ?? 0)
     )
 
     if (!files || !target || !target.files?.[0]) {
@@ -153,73 +152,84 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
         }
       )
 
-      const image = await blobToUri(file)
+      const compressedFile = new Compressor(file, {
+        quality: 0.2,
+        success: async (blob) => {
+          const image = await blobToUri(blob)
+
+          try {
+            const response = await fetch(
+              qstring({ locale }, RouteApi.uploads),
+              {
+                method: 'POST',
+                signal: ac.controller.signal,
+                headers: { 'Content-type': 'application/json' },
+                body: JSON.stringify({
+                  cancelable: true,
+                  fileName: file.name,
+                  file: image,
+                  path,
+                  wid,
+                }),
+              }
+            )
+
+            const json = (await response.json()) as {
+              data: unknown
+              message?: string
+            }
+
+            if (!response.ok) {
+              toast.error(json.message)
+
+              throw new Error(json.message)
+            }
+
+            const data = weddingGalleriesType.parse(json.data)
+
+            queryClient.setQueryData<WeddingGalleries[] | undefined>(
+              Queries.weddingGalleries,
+              (prev) => {
+                if (!prev) return prev
+
+                const copy = prev.filter((item) => item.name !== data.name)
+                const previousIndex = prev.findIndex(
+                  (item) => item.name === data.name
+                )
+
+                if (previousIndex < 0) {
+                  return prev
+                }
+
+                copy.splice(previousIndex, 0, data)
+                return copy
+              }
+            )
+          } catch (e) {
+            queryClient.setQueryData<WeddingGalleries[] | undefined>(
+              Queries.weddingGalleries,
+              (prev) => prev?.filter((item) => item.name !== file.name)
+            )
+          } finally {
+            controller.current = controller.current.filter(
+              (item) => item.id !== file.name
+            )
+
+            URL.revokeObjectURL(uri)
+            setUploadNames((prev) => prev.filter((name) => name !== file.name))
+
+            if (index === array.length - 1) {
+              setIsOnUploads(false)
+            }
+          }
+        },
+      })
+
+      // const image = await blobToUri(file)
 
       if (ac.controller.signal.aborted) {
         ac.controller.abort()
-      }
-
-      try {
-        const response = await fetch(qstring({ locale }, RouteApi.uploads), {
-          method: 'POST',
-          signal: ac.controller.signal,
-          headers: { 'Content-type': 'application/json' },
-          body: JSON.stringify({
-            cancelable: true,
-            fileName: file.name,
-            file: image,
-            path,
-            wid,
-          }),
-        })
-
-        const json = (await response.json()) as {
-          data: unknown
-          message?: string
-        }
-
-        if (!response.ok) {
-          toast.error(json.message)
-
-          throw new Error(json.message)
-        }
-
-        const data = weddingGalleriesType.parse(json.data)
-
-        queryClient.setQueryData<WeddingGalleries[] | undefined>(
-          Queries.weddingGalleries,
-          (prev) => {
-            if (!prev) return prev
-
-            const copy = prev.filter((item) => item.name !== data.name)
-            const previousIndex = prev.findIndex(
-              (item) => item.name === data.name
-            )
-
-            if (previousIndex < 0) {
-              return prev
-            }
-
-            copy.splice(previousIndex, 0, data)
-            return copy
-          }
-        )
-      } catch (e) {
-        queryClient.setQueryData<WeddingGalleries[] | undefined>(
-          Queries.weddingGalleries,
-          (prev) => prev?.filter((item) => item.name !== file.name)
-        )
-      } finally {
-        controller.current = controller.current.filter(
-          (item) => item.id !== file.name
-        )
-
-        URL.revokeObjectURL(uri)
-        setUploadNames((prev) => prev.filter((name) => name !== file.name))
-
-        if (index === array.length - 1) {
-          setIsOnUploads(false)
-        }
+        compressedFile.abort()
       }
     })
 

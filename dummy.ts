@@ -9,13 +9,11 @@ export const DUMMY_EVENT = {
   eventName: 'Akad',
   timeStart: '11:00',
   timeEnd: '13:00',
-  placeName: 'GOR Soemantry',
+  placeName: 'GOR -- Sumantri',
   district: 'Kuningan',
   province: 'Jakarta',
-  country: 'Indonesia',
   opensTo: '',
   localTime: 'WIB',
-  mapUrl: '',
   detail:
     'Jl. H. R. Rasuna Said No.10b, RT.2/RW.5, Kuningan, Karet Kuningan, Kecamatan Kuningan, Kabupaten Kuningan, Daerah Khusus Ibukota Jakarta 12950',
 }
@@ -30,6 +28,8 @@ export const DUMMY_GUEST = {
 export const DUMMY_COMMENT = {
   text: 'Thank you for letting us share in this joyful day! May the joy of your new home be filled with laughter, smiles, kisses, hugs, respect understanding and faithfulness. Happy wedding!',
   alias: 'GGRFZ Team',
+  token: '123456',
+  isComing: 'no' as const,
 }
 
 export const DUMMY_INVITATION: WeddingAdd = {

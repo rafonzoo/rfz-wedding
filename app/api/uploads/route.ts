@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
     const { z, t } = await zodLocale(request)
 
     if (!(await authorizationQuery(supabaseServer()))) {
-      throw new AppError(ErrorMap.authError, t('error.photo.failedToFetch'))
+      throw new AppError(
+        ErrorMap.authError,
+        t('error.general.failedToFetch', { name: t('def.photo') })
+      )
     }
 
     const requestUrl = new URL(request.url)
@@ -35,7 +38,10 @@ export async function GET(request: NextRequest) {
     })
 
     if (lists.$ResponseMetadata.statusCode !== 200) {
-      throw new AppError(ErrorMap.internalError, t('error.photo.failedToFetch'))
+      throw new AppError(
+        ErrorMap.internalError,
+        t('error.general.failedToFetch', { name: t('def.photo') })
+      )
     }
 
     const images = lists.map(({ filePath, name, fileId }) => ({
@@ -88,7 +94,9 @@ export async function POST(request: NextRequest) {
     if (file.$ResponseMetadata.statusCode !== 200) {
       throw new AppError(
         ErrorMap.internalError,
-        t('error.photo.failedToUpload')
+        t('error.general.failedToUpload', {
+          name: payload.isAudio ? t('def.song') : t('def.photo'),
+        })
       )
     }
 

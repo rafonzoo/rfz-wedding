@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { commentType } from '@wedding/schema'
 import { WEDDING_ROW } from '@wedding/query'
 import { supabaseServer, supabaseService, zodLocale } from '@/tools/server'
+import { djs } from '@/tools/lib'
 import { AppError } from '@/tools/error'
 import { ErrorMap, RouteCookie, RouteHeader } from '@/tools/config'
 
@@ -13,7 +14,7 @@ export const PATCH = async (request: NextRequest) => {
     const requestUrl = new URL(request.url)
     const wid = z.string().parse(requestUrl.searchParams.get('wid'))
     const { alias } = commentType
-      .omit({ text: true })
+      .omit({ text: true, isComing: true, token: true })
       .parse(await request.json())
 
     const supabase = supabaseServer()
@@ -34,6 +35,7 @@ export const PATCH = async (request: NextRequest) => {
         comments: [
           ...previousComment.filter((item) => decodeURI(item.alias) !== alias),
         ],
+        updatedAt: djs().toISOString(),
       })
       .eq('wid', wid)
 
@@ -138,11 +140,8 @@ export const GET = async (request: NextRequest) => {
       throw new AppError(ErrorMap.internalError, prevDataError?.message)
     }
 
-    const response = NextResponse.json({
-      data: commentType.array().parse(data.comments),
-    })
-
-    return response
+    const comments = commentType.array().parse(data.comments)
+    return NextResponse.json({ data: comments })
   } catch (e) {
     return NextResponse.json(
       {

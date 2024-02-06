@@ -233,7 +233,7 @@ const EventTime: RFZ<EventTimeProps> = ({
 
   return (
     <div className='mb-[min(179px,max(129px,40.512820512820513vw))] mr-0 mt-5 flex justify-center'>
-      <p className='relative flex flex-col items-end text-right text-sm tracking-normal text-zinc-500'>
+      <p className='relative flex flex-col items-end text-right text-sm tracking-normal text-zinc-500 dark:text-zinc-400'>
         <span>{caption}</span>
         <span>
           ({[isMainEvent ? 'Utama' : '', eventName].filter(Boolean).join(' / ')}

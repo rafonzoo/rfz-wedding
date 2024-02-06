@@ -6,11 +6,19 @@ import { useParams } from 'next/navigation'
 import { tw } from '@/tools/lib'
 import { useIntersection } from '@/tools/hook'
 import { assets } from '@/tools/helper'
+import dynamic from 'next/dynamic'
 
 type ImageThemeProps = Wedding['loadout'] & {
   className?: string
   size: keyof typeof sizeClasses
 }
+
+const SheetLoadout = dynamic(
+  () => import('@wedding/components/Sheet/Loadout'),
+  {
+    ssr: false,
+  }
+)
 
 const sizeClasses = {
   195: 'w-[min(220px,max(160px,50vw))]',
@@ -54,6 +62,7 @@ const ImageTheme: RFZ<ImageThemeProps> = ({ className, size, ...loadout }) => {
               ].join(',')
         }
       />
+      {size === 195 && <SheetLoadout />}
     </div>
   )
 }

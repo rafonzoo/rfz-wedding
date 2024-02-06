@@ -84,9 +84,7 @@ export const weddingEventAddressType = z.object({
   placeName: z.string().min(3).max(28),
   district: z.string().min(3).max(18),
   province: z.string().min(3).max(18),
-  country: z.string().min(3),
   detail: z.string().min(10),
-  mapUrl: z.string(),
   opensTo: z.string(),
 })
 
@@ -130,17 +128,14 @@ export const guestType = z.object({
   name: z.string().min(3).max(60),
   token: z.string().min(6),
   group: z.string().optional(),
-  // events: z.string().optional(),
-  // reaction: z.string().emoji().array().optional(),
-  // reaction: z.string().array().optional(),
-  // avatar: z.string().optional(),
-  // rsvp: rsvpType.optional(),
 })
 
 export type Comment = Infer<typeof commentType>
 export const commentType = z.object({
   alias: z.string().min(3),
   text: z.string().min(3),
+  token: guestType.shape.token,
+  isComing: z.enum(['tbd', 'yes', 'no']),
 })
 
 export type Music = Infer<typeof musicType>

@@ -58,19 +58,14 @@ const EventDate: RF<EventDateProps> = ({
   const [getErrors, setErrors] = useState<FieldError[]>([])
   const hasError = !!previousError.current.find((item) => item.id === id)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
-  const isIndonesian = getAddress.country.toLowerCase().includes('indonesia')
   const isEditor = useIsEditorOrDev()
-  // const isPublic = !!useParams().name
   const isPublic = !isEditor
   const isEnabledDetail = isPublic && isActive
-  const countryBasedKey = isIndonesian
-    ? ({ province: getAddress.province } as const)
-    : ({ country: getAddress.country } as const)
 
   const formatAddress = keys({
     placeName: getAddress.placeName,
     district: getAddress.district,
-    ...countryBasedKey,
+    province: getAddress.province,
   })
 
   const t = useTranslations()
@@ -116,7 +111,7 @@ const EventDate: RF<EventDateProps> = ({
         ) : isNewLine ? (
           groupedPlace.map((str, idx) => (
             <span key={idx} className={tw('block', idx > 0 && 'truncate')}>
-              {idx === 0 ? (str + '\n').trim() : str.trim()}
+              {idx === 0 ? (str + '\n').trim() : (str + ',').trim()}
             </span>
           ))
         ) : (
@@ -200,21 +195,6 @@ const EventDate: RF<EventDateProps> = ({
 
         const parser = weddingEventAddressType.merge(
           z.object({
-            mapUrl: z
-              .string()
-              .refine(
-                (data) =>
-                  data.length === 0 ||
-                  (z.string().url().safeParse(data).success &&
-                    !data.match(/ |\s+/g) &&
-                    !(
-                      data.includes('maps.app.goo.gl') ||
-                      !data.includes('google.com/maps/embed')
-                    )),
-                {
-                  message: t('error.field.invalidEmbed'),
-                }
-              ),
             date: z
               .string()
               .datetime()
@@ -288,9 +268,7 @@ const EventDate: RF<EventDateProps> = ({
         placeName: address.placeName,
         district: address.district,
         province: address.province,
-        country: address.country,
         detail: address.detail,
-        mapUrl: address.mapUrl,
         date: address.date,
         opensTo: address.opensTo,
       }
@@ -420,7 +398,7 @@ const EventDate: RF<EventDateProps> = ({
               />
             </div>
           )}
-          <FieldGroup title='Waktu/lokasi'>
+          <FieldGroup title='Waktu'>
             <FieldText
               label='Tanggal'
               name='date'
@@ -437,53 +415,20 @@ const EventDate: RF<EventDateProps> = ({
                 .tz()
                 .format(AppConfig.Wedding.DateFormat)}
             />
-            <FieldText
-              isSpecialChars
-              label='Gmaps'
-              name='mapUrl'
-              value={getAddress.mapUrl || ''}
-              onChange={(e) => setterValue('mapUrl')(e.target.value)}
-              errorMessage={errorMessage('mapUrl')}
-              onPaste={(e) => {
-                const iframeRaw = e.clipboardData.getData('text/plain')
-
-                if (e.clipboardData) {
-                  const iframeSrc = iframeRaw.match(/src=["']([^"']*)["']/g)
-
-                  if (iframeSrc) {
-                    setterValue('mapUrl')(iframeSrc[0].replace(/src=|"/g, ''))
-                    e.currentTarget.blur()
-                  }
-                }
-              }}
-              infoMessage={
-                <>
-                  Embed url untuk Google maps.{' '}
-                  <a
-                    href='#'
-                    className='text-blue-600 dark:text-blue-400'
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Mendapatkan embed url
-                  </a>
-                </>
-              }
-            />
           </FieldGroup>
-          <FieldGroup title='Alamat/detil' classNames={{ root: 'mt-6' }}>
+          <FieldGroup title='Alamat' classNames={{ root: 'mt-6' }}>
             <FieldText
               isAlphaNumeric
-              label='Tempat'
+              label='Nama/Tempat'
               name='placeName'
               value={getAddress.placeName}
               onChange={(e) => setterValue('placeName')(e.target.value)}
               errorMessage={errorMessage('placeName')}
-              // infoMessage='Placing double dash "--" will create a new line.'
               infoMessage='Menulis dua dash "--" akan membuat baris baru.'
             />
             <FieldText
               isAlphaNumeric
-              label='Kab/Kec'
+              label='Desa/Kecamatan'
               name='district'
               value={getAddress.district}
               onChange={(e) => setterValue('district')(e.target.value)}
@@ -491,19 +436,18 @@ const EventDate: RF<EventDateProps> = ({
             />
             <FieldText
               isAlphaNumeric
-              label='Provinsi'
+              label='Kabupaten/Provinsi'
               name='province'
               value={getAddress.province}
               onChange={(e) => setterValue('province')(e.target.value)}
               errorMessage={errorMessage('province')}
             />
             <FieldTextArea
-              label='Detail'
+              label='Alamat lengkap'
               name='detail'
               value={getAddress.detail}
               onChange={(e) => setterValue('detail')(e.target.value)}
               errorMessage={errorMessage('detail')}
-              // infoMessage="Additional information like street name, home number, etc, This field also used for your guest that can't open the maps."
               infoMessage='Informasi tambahan seperti nama jalan, nomor rumah, dll. Kolom ini juga digunakan tamu Anda yang tidak dapat membuka maps.'
             />
           </FieldGroup>
@@ -515,8 +459,6 @@ const EventDate: RF<EventDateProps> = ({
                 name='opensTo'
                 infoMessage={
                   <>
-                    {/* Only show to a group of guests that contains the group name.
-                    Separated by a commas.{' '} */}
                     Hanya tampil ke grup tamu yang mengandung nama grup diatas.
                     Dipisahkan oleh koma.{' '}
                     <a

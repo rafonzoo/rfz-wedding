@@ -1,18 +1,21 @@
 'use client'
 
-import type { Guest, Wedding } from '@wedding/schema'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
+import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { VscRefresh } from 'react-icons/vsc'
+import { type Guest, type Wedding, commentType } from '@wedding/schema'
 import {
-  addNewWeddingGuestQuery,
+  WEDDING_ROW,
   getAllWeddingGuestQuery,
+  updateWeddingGuestQuery,
 } from '@wedding/query'
-import { tw } from '@/tools/lib'
+import { djs, supabaseClient, tw } from '@/tools/lib'
 import { useMountedEffect, useUtilities } from '@/tools/hook'
-import { exact, isArrayEqual } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { exact, guestAlias, isArrayEqual } from '@/tools/helper'
+import { AppError } from '@/tools/error'
+import { ErrorMap, Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import SheetGuestList from '@wedding/components/Sheet/Guest/List'
 import SheetGuestAction from '@wedding/components/Sheet/Guest/Action'
@@ -34,7 +37,8 @@ const SheetGuest: RFZ = () => {
   const { getSignal: mutationSignal } = useUtilities()
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const searchRef = useRef<HTMLInputElement | null>(null)
-  const { wid } = exact(
+  const wid = useParams().wid as string
+  const { comments } = exact(
     queryClient.getQueryData<Wedding>(Queries.weddingDetail)
   )
   const toast = new Toast()
@@ -54,7 +58,7 @@ const SheetGuest: RFZ = () => {
       })
     },
     onError: () => {
-      toast.error(t('error.guest.failedToFetch'))
+      toast.error(t('error.general.failedToFetch', { name: t('def.guest') }))
     },
   })
 
@@ -64,15 +68,78 @@ const SheetGuest: RFZ = () => {
     Guest[]
   >({
     mutationFn: (payload) => {
-      return addNewWeddingGuestQuery({
+      return updateWeddingGuestQuery({
         signal: mutationSignal(),
         wid,
         payload,
       })
     },
-    onSuccess: (updatedGuests) => setPreviousGuests(updatedGuests),
+    onSuccess: async (updatedGuests) => {
+      if (comments) {
+        const validateComment = comments.filter(
+          (comment) =>
+            !updatedGuests.some(
+              (guest) => guestAlias(guest.slug) === comment.alias
+            )
+        )
+
+        if (validateComment.length) {
+          const checkComment = comments.map((comment) => {
+            // prettier-ignore
+            if (updatedGuests.findIndex(({ token }) => token === comment.token) === -1) {
+              return null
+            }
+
+            if (validateComment.find(({ token }) => token === comment.token)) {
+              const invalidGuest = updatedGuests.find(
+                (guest) => guest.token === comment.token
+              )
+
+              if (!invalidGuest) {
+                return comment
+              }
+
+              return { ...comment, alias: guestAlias(invalidGuest.slug) }
+            }
+
+            return comment
+          })
+
+          const latestComment = checkComment.filter(Boolean)
+
+          try {
+            const { data, error } = await supabaseClient()
+              .from(WEDDING_ROW)
+              .update({
+                comments: latestComment,
+                updatedAt: djs().toISOString(),
+              })
+              .eq('wid', wid)
+              .select('comments')
+              .single()
+
+            if (error || !data) {
+              throw new AppError(ErrorMap.internalError, error.message)
+            }
+
+            const updatedComments = commentType.array().parse(data.comments)
+            queryClient.setQueryData<Wedding | undefined>(
+              Queries.weddingDetail,
+              (prev) => (!prev ? prev : { ...prev, comments: updatedComments })
+            )
+          } catch (e) {
+            toast.error('Failed to update named guest in the comment.')
+          }
+
+          setPreviousGuests(updatedGuests)
+          return
+        }
+      }
+
+      setPreviousGuests(updatedGuests)
+    },
     onError: () => {
-      toast.error(t('error.guest.failedToSave'))
+      toast.error(t('error.general.failedToSave'))
     },
   })
 

@@ -136,7 +136,7 @@ const SectionCoupleStories: RFZ = () => {
           trigger={{
             asChild: true,
             children: (
-              <button className='relative flex h-14 items-center space-x-3 rounded-full bg-black pl-6 pr-4 font-semibold text-white dark:bg-white dark:text-black'>
+              <button className='relative flex h-14 items-center space-x-3 rounded-full bg-black/70 pl-6 pr-4 font-semibold text-white backdrop-blur-lg dark:bg-white/70 dark:text-black'>
                 <span>Edit Kisah</span>
                 <span className='flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xl text-white'>
                   <BsPlusLg />

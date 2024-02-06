@@ -1,7 +1,11 @@
 {
+  "def": {
+    "song": "song",
+    "photo": "photo",
+    "guest": "guest"
+  },
   "error": {
     "field": {
-      "invalidEmbed": "Invalid source",
       "invalidDate": "Date should be tomorrow until the next {maxMonth} month.",
       "invalidGuestField": "Invalid name or group name",
       "invalidGuestGroup": "Invalid group name",
@@ -9,19 +13,14 @@
       "invalidGuestExist": "Guest already exist",
       "invalidLength": "Name and group name must contain at least 3 character(s)",
       "invalidNameExist": "Name already exist",
-      "invalidLimit": "Limit exceeded. Max draft: {maxDraft}"
-    },
-    "photo": {
-      "failedToFetch": "Failed to fetch a photos",
-      "failedToUpload": "Failed to upload",
-      "failedToRemove": "Failed to remove"
-    },
-    "guest": {
-      "failedToFetch": "Failed to load guest",
-      "failedToSave": "Failed to save guest"
+      "invalidLimit": "Limit exceeded. Max draft: {maxDraft}",
+      "invalidFileSize": "File size should below {size}"
     },
     "general": {
-      "failedToSave": "Failed to save a changes"
+      "failedToSave": "Failed to save a changes",
+      "failedToUpload": "Failed to upload {name}",
+      "failedToFetch": "Failed to load {name}",
+      "failedToRemove": "Failed to remove {name}"
     }
   },
   "success": {

@@ -36,7 +36,8 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
   const isIntersection = useIntersection(divRef)
   const queryClient = useQueryClient()
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const guestFullName = guestAlias(useSearchParams().get('to') ?? '')
+  const guestSlug = useSearchParams().get('to') ?? ''
+  const guestFullName = guestAlias(guestSlug)
   const session = queryClient.getQueryData<Session>(Queries.accountVerify)
   const wid = useParams().wid as string
   const hasSession = !!(session?.user.id === detail.userId && wid)
@@ -51,7 +52,9 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
   const myComment = comments.find((item) => item.alias === guestFullName)
   const allComment = useQuery<{ comments: Comment[] }>({
     queryKey: Queries.weddingComments,
-    queryFn: () => getAllWeddingCommentQuery(locale, detail.name, csrfToken),
+    queryFn: () => {
+      return getAllWeddingCommentQuery(locale, detail.name, csrfToken)
+    },
     onSuccess: ({ comments }) => {
       queryClient.setQueryData<Wedding | undefined>(
         Queries.weddingDetail,
@@ -140,7 +143,7 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
               comments.length > 0 && 'pb-6'
             )}
           >
-            {theComments.map(({ alias, text }, idx, array) => (
+            {theComments.map(({ alias, text, isComing }, idx, array) => (
               <li className='relative z-[1]' key={idx}>
                 {comments.length > 3 &&
                   idx === array.length - 1 &&
@@ -176,10 +179,20 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
                     isLoading && removedComment?.alias === alias && 'animate-[pulse_500ms_ease-in-out_infinite]' // prettier-ignore
                   )}
                 >
-                  <div className='flex h-11 w-11 min-w-11 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800'>
+                  <div className='relative flex h-11 w-11 min-w-11 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800'>
                     <p className='text-sm tracking-normal text-zinc-500 dark:text-zinc-400'>
                       {createInitial(alias)}
                     </p>
+                    <span
+                      className={tw(
+                        'absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full',
+                        {
+                          'bg-amber-500': isComing === 'tbd',
+                          'bg-red-500': isComing === 'no',
+                          'bg-green-600': isComing === 'yes',
+                        }
+                      )}
+                    />
                   </div>
                   <div className='relative flex flex-grow flex-col space-y-1.5 overflow-hidden rounded-lg bg-zinc-100 p-4 dark:bg-zinc-800'>
                     <p className='flex space-x-1.5'>

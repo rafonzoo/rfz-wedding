@@ -293,7 +293,9 @@ export const removeWeddingCommentQuery = async (
   }
 
   if (response.ok) {
-    return commentType.omit({ text: true }).parse(json.data)
+    return commentType
+      .omit({ text: true, isComing: true, token: true })
+      .parse(json.data)
   }
 
   throw new Error(json.message)
@@ -408,7 +410,7 @@ export const getAllWeddingGuestQuery = async ({
   return guestType.array().parse(data.guests)
 }
 
-export const addNewWeddingGuestQuery = async ({
+export const updateWeddingGuestQuery = async ({
   signal,
   wid,
   payload,
@@ -434,13 +436,14 @@ export const addNewWeddingGuestQuery = async ({
 }
 
 export const uploadWeddingSongQuery = async (
+  wid: string,
   locale: string,
   payload: WeddingGalleryUpload
 ) => {
   const response = await fetch(qstring({ locale }, RouteApi.uploads), {
     method: 'POST',
     headers: { 'Content-type': 'application/json' },
-    body: JSON.stringify({ cancelable: false, isAudio: true, ...payload }),
+    body: JSON.stringify({ cancelable: false, isAudio: true, wid, ...payload }),
   })
 
   const json = (await response.json()) as { data: unknown }

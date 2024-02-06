@@ -92,6 +92,10 @@ const CommentSurprise: RF = () => {
     debounce(() => updateSurprise(surprise))
   }
 
+  if (!((isPublic && surprise) || isEditor)) {
+    return null
+  }
+
   return (
     <div className='mt-8'>
       <BottomSheet

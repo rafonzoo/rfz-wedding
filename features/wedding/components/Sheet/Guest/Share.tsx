@@ -188,7 +188,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
               aria-label='Remove guest'
               tabIndex={isModeEdit ? 0 : -1}
               className={tw(
-                'flex h-full w-11 items-center justify-center text-2xl text-red-500 transition-opacity translate-z-0',
+                'flex h-full min-w-11 items-center justify-center text-2xl text-red-500 transition-opacity translate-z-0',
                 !isModeEdit && 'pointer-events-none opacity-0'
               )}
               onClick={() => {

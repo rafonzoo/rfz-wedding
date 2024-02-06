@@ -80,12 +80,14 @@ export const AppConfig = {
     production: 'wedding_prod',
   },
   Wedding: {
-    NewlineSymbol: '--',
     DateFormat: 'YYYY-MM-DD',
+    NewlineSymbol: '--',
+    ImageryStartIndex: 100,
     MaxMonthRange: 4,
     MaxEvent: 4,
     MaxDraft: 3,
-    ImageryStartIndex: 100,
+    MaxFileItem: 13,
+    MaxFileSize: 5120,
   },
   Timeout: {
     TimeBeforeCancel: 3_000,

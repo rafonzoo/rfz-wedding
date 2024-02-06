@@ -279,6 +279,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         const [issue] = e.issues
 
         setError(issue.message)
+        inputRef.current?.focus()
       }
     }
 
@@ -321,7 +322,6 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
           blacklist='-'
           tabIndex={isShow ? 0 : -1}
           errorMessage={error}
-          messageProps={{ className: tw('min-h-0') }}
           className={tw(
             'bg-zinc-100 dark:!border-zinc-600 dark:bg-zinc-700',
             showSend && !error && '!pr-11'

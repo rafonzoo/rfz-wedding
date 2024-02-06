@@ -3,15 +3,14 @@
 import type { Music, Wedding, WeddingGalleryUpload } from '@wedding/schema'
 import { type ChangeEvent, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { uploadWeddingSongQuery } from '@wedding/query'
 import { blobToUri, cleaner, exact } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { AppConfig, Queries } from '@/tools/config'
+import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
 import FieldText from '@/components/Field/Text'
 import FieldGroup from '@/components/Field/Group'
-
-const MAX_AUDIO_SIZE = 2048
 
 type LandingMediaPlayerProps = {
   isRemoving?: boolean
@@ -20,18 +19,31 @@ type LandingMediaPlayerProps = {
 const LandingMediaPlayer: RF<LandingMediaPlayerProps> = ({ isRemoving }) => {
   const queryClient = useQueryClient()
   const locale = useLocale()
+  const toast = new Toast()
+  const t = useTranslations()
+  const maxSizeInMega = AppConfig.Wedding.MaxFileSize * 1000
+  const maxSizeText = `${AppConfig.Wedding.MaxFileSize}`.charAt(0) + ' MB'
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const {
-    isLoading,
-    error: uploadError,
-    mutate: uploadSong,
-  } = useMutation<Music, unknown, WeddingGalleryUpload & { fileId?: string }>({
-    mutationFn: (payload) => uploadWeddingSongQuery(locale, payload),
+  const { isLoading, mutate: uploadSong } = useMutation<
+    Music,
+    unknown,
+    WeddingGalleryUpload & { fileId?: string }
+  >({
+    mutationFn: (payload) => {
+      return uploadWeddingSongQuery(detail.wid, locale, payload)
+    },
     onSuccess: (music) => {
       queryClient.setQueryData<Wedding | undefined>(
         Queries.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, music })
       )
+    },
+    onError: (e) => {
+      if ((e as Error)?.message.includes('AbortError')) {
+        return
+      }
+
+      toast.error(t('error.general.failedToUpload', { name: t('def.song') }))
     },
   })
 
@@ -43,8 +55,8 @@ const LandingMediaPlayer: RF<LandingMediaPlayerProps> = ({ isRemoving }) => {
     const file = e.target.files[0]
     setError('')
 
-    if (file.size > MAX_AUDIO_SIZE * 1000) {
-      setError('File size should below 2MB.')
+    if (file.size > maxSizeInMega) {
+      setError(t('error.field.invalidFileSize', { size: maxSizeText }))
       return (e.target.value = '')
     }
 
