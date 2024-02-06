@@ -5,9 +5,9 @@ import { WEDDING_ROW } from '@wedding/query'
 import { authorizationQuery } from '@account/query'
 import { supabaseServer, zodLocale } from '@/tools/server'
 import { djs } from '@/tools/lib'
-import { delay, retina, uploads } from '@/tools/helper'
+import { retina, uploads } from '@/tools/helper'
 import { AppError } from '@/tools/error'
-import { AppConfig, ErrorMap } from '@/tools/config'
+import { ErrorMap } from '@/tools/config'
 import ImageKit from 'imagekit'
 
 function imagekit() {
@@ -70,19 +70,10 @@ export async function POST(request: NextRequest) {
       .merge(
         z.object({
           isAudio: z.boolean().optional(),
-          cancelable: z.boolean().optional(),
           wid: z.string(),
         })
       )
       .parse(json)
-
-    if (payload.cancelable) {
-      await delay(AppConfig.Timeout.TimeBeforeCancel)
-      /**
-       * Manually throw signal
-       */
-      request.signal.throwIfAborted()
-    }
 
     const file = await imagekit().upload({
       file: payload.file,
@@ -166,9 +157,6 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ data: '' })
     }
 
-    await delay(AppConfig.Timeout.TimeBeforeCancel)
-    request.signal.throwIfAborted()
-
     const fileId = z.string().parse(requestUrl.searchParams.get('id'))
     const { data: previous } = await supabase
       .from(WEDDING_ROW)
@@ -190,7 +178,10 @@ export async function DELETE(request: NextRequest) {
         .eq('wid', previous.wid)
     }
 
-    await imagekit().deleteFile(fileId)
+    try {
+      // Image might be deleted somewhere
+      await imagekit().deleteFile(fileId)
+    } catch (e) {}
 
     return NextResponse.json({ data: fileId })
   } catch (e) {

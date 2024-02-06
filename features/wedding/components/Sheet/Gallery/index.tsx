@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import { useLocale } from 'next-intl'
 import { IoCloudUploadOutline } from 'react-icons/io5'
-import { CgClose } from 'react-icons/cg'
 import { weddingGalleriesType } from '@wedding/schema'
 import { tw } from '@/tools/lib'
 import { useMountedEffect, useOutlinedClasses } from '@/tools/hook'
@@ -41,8 +40,6 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
   ...sheetProps
 }) => {
   const [isModeSelect, setIsModeSelect] = useState(false)
-  const [isCancelable, setIsCancelable] = useState(false)
-  const [isOnUploads, setIsOnUploads] = useState(false)
   const [isOnRemoval, setIsOnRemoval] = useState(false)
   const [selectionId, setSelectionId] = useState<string[]>([])
   const [uploadNames, setUploadNames] = useState<string[]>([])
@@ -90,10 +87,6 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
     )
   }
 
-  function abortByAction(nameOrId: string) {
-    controller.current.find((item) => item.id === nameOrId)?.controller.abort()
-  }
-
   function abortAll() {
     controller.current
       .filter((item) => !item.controller.signal.aborted)
@@ -134,7 +127,6 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
       const ac = { id: file.name, controller: new AbortController() }
       controller.current.push(ac)
 
-      setIsOnUploads(true)
       setUploadNames((prev) => [...prev, file.name])
       queryClient.setQueryData<WeddingGalleries[] | undefined>(
         Queries.weddingGalleries,
@@ -165,7 +157,6 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
                 signal: ac.controller.signal,
                 headers: { 'Content-type': 'application/json' },
                 body: JSON.stringify({
-                  cancelable: true,
                   fileName: file.name,
                   file: image,
                   path,
@@ -217,15 +208,9 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
 
             URL.revokeObjectURL(uri)
             setUploadNames((prev) => prev.filter((name) => name !== file.name))
-
-            if (index === array.length - 1) {
-              setIsOnUploads(false)
-            }
           }
         },
       })
-
-      // const image = await blobToUri(file)
 
       if (ac.controller.signal.aborted) {
         ac.controller.abort()
@@ -332,21 +317,6 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
       }
     }
   }, [isModeSelect, sheetProps.root?.open])
-
-  useEffect(() => {
-    if (
-      (isOnUploads && uploadNames.length > 0) ||
-      (isOnRemoval && selectionId.length > 0)
-    ) {
-      const timer = setTimeout(
-        () => setIsCancelable(false),
-        AppConfig.Timeout.TimeBeforeCancel
-      )
-
-      setIsCancelable(true)
-      return () => clearTimeout(timer)
-    }
-  }, [isOnRemoval, isOnUploads, selectionId.length, uploadNames.length])
 
   useEffect(() => {
     if (defaultSelectedId !== selectedId) {
@@ -475,7 +445,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
                     className={tw(
                       'absolute left-0 top-0 h-full w-full rounded-xl bg-zinc-100 bg-cover bg-center bg-no-repeat',
                       outlinedClasses(selectedId === fileId, 'outline-4 outline-offset-[4px]'), // prettier-ignore
-                      isProcessing(fileId, name) && !isCancelable && 'animate-[pulse_500ms_ease-in-out_infinite]' // prettier-ignore
+                      isProcessing(fileId, name) && 'animate-[pulse_500ms_ease-in-out_infinite]' // prettier-ignore
                     )}
                   >
                     <span
@@ -488,22 +458,6 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
                       )}
                     />
                   </button>
-
-                  {isCancelable && isProcessing(fileId, name) && (
-                    <>
-                      <span className='absolute bottom-0 left-0 right-0 top-0 rounded-xl bg-black opacity-50'></span>
-                      <button
-                        className='absolute bottom-4 left-4 right-4 top-4 flex items-center justify-center rounded-full text-white'
-                        onClick={() =>
-                          abortByAction(
-                            uploadNames.includes(name) ? name : fileId
-                          )
-                        }
-                      >
-                        <CgClose />
-                      </button>
-                    </>
-                  )}
                 </li>
               ))}
             </ul>
@@ -529,12 +483,9 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
                 <p>Max files in gallery is 13 item.</p>
               </li>
               <li className='list-disc'>
-                <p>Maximum file size is 1MB</p>
-              </li>
-              <li className='list-disc'>
                 <p>
-                  Only support{' '}
-                  {SUPPORTED_FORMAT.join(', ').replace(/image\//g, '.')} format.
+                  Maximum file size is{' '}
+                  {`${AppConfig.Wedding.MaxFileSize}`.charAt(0)} MB
                 </p>
               </li>
             </ul>

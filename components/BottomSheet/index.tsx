@@ -86,7 +86,6 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   const lastPosRef = useRef(0)
   const observerRef = useRef<ResizeObserver | null>(null)
   const { pointerEvent } = useFeatureDetection()
-  const isNonModal = root?.modal === false
   const isModalNonOverlay =
     !option?.useOverlay && !pointerEvent && !(root?.modal === false)
 
@@ -309,7 +308,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           className={tw(
             'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none translate-3d-y-full',
             'data-[state=closed]:animate-dialog-hide',
-            (isNonModal || (!isNonModal && !pointerEvent)) && 'data-[state=open]:animate-dialog-show', // prettier-ignore
+            !pointerEvent && 'data-[state=open]:animate-dialog-show', // prettier-ignore
             content?.className
           )}
           onOpenAutoFocus={onOpenAutoFocus}

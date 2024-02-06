@@ -443,7 +443,7 @@ export const uploadWeddingSongQuery = async (
   const response = await fetch(qstring({ locale }, RouteApi.uploads), {
     method: 'POST',
     headers: { 'Content-type': 'application/json' },
-    body: JSON.stringify({ cancelable: false, isAudio: true, wid, ...payload }),
+    body: JSON.stringify({ isAudio: true, wid, ...payload }),
   })
 
   const json = (await response.json()) as { data: unknown }
