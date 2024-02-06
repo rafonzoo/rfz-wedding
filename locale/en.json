@@ -19,8 +19,9 @@
     "general": {
       "failedToSave": "Failed to save a changes",
       "failedToUpload": "Failed to upload {name}",
-      "failedToFetch": "Failed to load {name}",
-      "failedToRemove": "Failed to remove {name}"
+      "failedToLoad": "Failed to load {name}",
+      "failedToRemove": "Failed to remove {name}",
+      "failedToFetch": "Failed to fetch data"
     }
   },
   "success": {

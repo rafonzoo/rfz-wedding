@@ -58,7 +58,7 @@ const SheetGuest: RFZ = () => {
       })
     },
     onError: () => {
-      toast.error(t('error.general.failedToFetch', { name: t('def.guest') }))
+      toast.error(t('error.general.failedToFetch'))
     },
   })
 
@@ -281,7 +281,7 @@ const SheetGuest: RFZ = () => {
             disabled={isSaving || isEqual || isError}
             onClick={isSaving || isEqual || isError ? void 0 : onSave}
           >
-            {isSaving ? <Spinner /> : 'Simpan'}
+            {isSaving || isLoading ? <Spinner /> : 'Simpan'}
           </button>
         ),
         prepend: !(isSaving || isEqual || isError) && (

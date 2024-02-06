@@ -178,7 +178,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
         <div
           className={tw(
             'flex min-h-11 w-full items-center overflow-hidden py-2 transition-transform duration-300',
-            !isEditable && '-translate-x-2',
+            !isEditable && '-translate-x-0',
             !isModeEdit && isEditable && '-translate-x-11',
             isModeEdit && isEditable && '-translate-x-6'
           )}

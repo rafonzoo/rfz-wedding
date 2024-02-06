@@ -176,15 +176,14 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     onScrollHeightChange('observe', onScrollingBorder)
 
     focusRef.current = document.activeElement as HTMLElement
-    sheetRef.current?.classList.add('data-[state=open]:animate-dialog-show')
-
     e.preventDefault()
     content?.onOpenAutoFocus?.(e)
   }
 
   function onAnimationEnd(e: AnimationEvent<HTMLDivElement>) {
-    !option?.disableFocus &&
-      (option?.triggerRef ?? closeButtonRef).current?.focus()
+    if (!option?.disableFocus) {
+      ;(option?.triggerRef ?? closeButtonRef).current?.focus()
+    }
 
     setIsAnimating(false)
     content?.onAnimationEnd?.(e)
@@ -193,7 +192,6 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   function onCloseStart() {
     if (isAnimating) return
 
-    sheetRef.current?.classList.remove('data-[state=open]:animate-dialog-show')
     setIsAnimating(true)
     onCloseClicked?.()
   }
@@ -284,12 +282,16 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           <Dialog.Overlay
             {...overlay}
             asChild={overlay?.asChild ?? true}
-            style={{ zIndex: `${998 + sheetIndex}`, ...overlay?.style }}
             tabIndex={overlay?.tabIndex ?? isAnimating ? -1 : 0}
+            style={{
+              zIndex: `${998 + sheetIndex}`,
+              backfaceVisibility: 'hidden',
+              animationFillMode: 'forwards',
+              ...overlay?.style,
+            }}
             className={tw(
-              'fixed left-0 top-0 z-[777] h-full w-full cursor-auto select-none bg-black/70 will-change-[opacity]',
-              'data-[state=open]:animate-fade-in',
-              'data-[state=closed]:animate-fade-out',
+              'fixed left-0 top-0 z-[777] h-full w-full cursor-auto select-none bg-black/70 opacity-0 will-change-[opacity]',
+              'data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in data-[state=closed]:opacity-100',
               overlay?.className
             )}
           >
@@ -307,8 +309,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           }}
           className={tw(
             'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none translate-3d-y-full',
-            'data-[state=closed]:animate-dialog-hide',
-            !pointerEvent && 'data-[state=open]:animate-dialog-show', // prettier-ignore
+            'data-[state=closed]:animate-dialog-hide data-[state=open]:animate-dialog-show',
             content?.className
           )}
           onOpenAutoFocus={onOpenAutoFocus}

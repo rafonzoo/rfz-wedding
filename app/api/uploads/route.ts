@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     if (!(await authorizationQuery(supabaseServer()))) {
       throw new AppError(
         ErrorMap.authError,
-        t('error.general.failedToFetch', { name: t('def.photo') })
+        t('error.general.failedToLoad', { name: t('def.photo') })
       )
     }
 
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     if (lists.$ResponseMetadata.statusCode !== 200) {
       throw new AppError(
         ErrorMap.internalError,
-        t('error.general.failedToFetch', { name: t('def.photo') })
+        t('error.general.failedToLoad', { name: t('def.photo') })
       )
     }
 

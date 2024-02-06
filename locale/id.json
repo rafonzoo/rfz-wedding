@@ -19,8 +19,9 @@
     "general": {
       "failedToSave": "Gagal menyimpan perubahan",
       "failedToUpload": "Gagal mengunggah {name}",
-      "failedToFetch": "Gagal memuat {name}",
-      "failedToRemove": "Gagal menghapus {name}"
+      "failedToLoad": "Gagal memuat {name}",
+      "failedToRemove": "Gagal menghapus {name}",
+      "failedToFetch": "Gagal menerima data"
     }
   },
   "success": {

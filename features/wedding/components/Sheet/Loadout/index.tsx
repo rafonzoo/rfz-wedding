@@ -9,7 +9,11 @@ import { GoMoon, GoSun } from 'react-icons/go'
 import { colorType } from '@wedding/schema'
 import { updateWeddingLoadoutQuery } from '@wedding/query'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
+import {
+  useIsEditorOrDev,
+  useOutlinedClasses,
+  useUtilities,
+} from '@/tools/hook'
 import { assets, exact, keys, swatches } from '@/tools/helper'
 import { Queries } from '@/tools/config'
 import { useTranslations } from 'use-intl'
@@ -34,6 +38,7 @@ const SheetLoadout: RF = () => {
 
   const ulRef = useRef<HTMLUListElement | null>(null)
   const isEditor = useIsEditorOrDev()
+  const outlined = useOutlinedClasses()
   const myWedding = queryClient.getQueryData<Wedding[]>(Queries.weddingGetAll)
   const [prevDetail, setPrevDetail] = useState(detail)
   const [previousList, setPreviousList] = useState(myWedding)
@@ -184,19 +189,21 @@ const SheetLoadout: RF = () => {
             })
           },
           onOpenAutoFocus: () => {
-            const selector = 'button[data-active=true]'
-            const button = ulRef.current?.querySelector<HTMLElement>(selector)
+            setTimeout(() => {
+              const selector = 'button[data-active=true]'
+              const button = ulRef.current?.querySelector<HTMLElement>(selector)
 
-            if (!openSheet || !ulRef.current || !button) {
-              return
-            }
+              if (!openSheet || !ulRef.current || !button) {
+                return
+              }
 
-            const viewportWidth = window.innerWidth
-            const scrollLeft = button.offsetLeft - viewportWidth
+              const viewportWidth = window.innerWidth
+              const scrollLeft = button.offsetLeft - viewportWidth
 
-            ulRef.current.scrollBy({
-              left: scrollLeft + 20 + viewportWidth / 2,
-            })
+              ulRef.current.scrollBy({
+                left: scrollLeft + 20 + viewportWidth / 2,
+              })
+            }, 50)
           },
         }}
       >
@@ -230,11 +237,10 @@ const SheetLoadout: RF = () => {
                 <button
                   onClick={onClickSubmit({ foreground: color })}
                   data-active={foreground === color}
-                  // prettier-ignore
-                  className={tw({
-                  [[swatches(color), 'h-8 w-8 rounded-full'].join(' ')]: true,
-                  'outline outline-[3px] outline-offset-[3px] outline-blue-400': foreground === color,
-                })}
+                  className={tw(
+                    [swatches(color), 'h-8 w-8 rounded-full'].join(' '),
+                    outlined(foreground === color, 'outline-offset-[3px]')
+                  )}
                 />
               </li>
             ))}
