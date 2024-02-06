@@ -16,7 +16,7 @@ const FieldGroup: RFZ<InputGroupProps> = ({ title, classNames, children }) => {
       {title && (
         <p
           className={tw(
-            'bg-zinc-100 px-6 py-2 text-xs font-semibold uppercase tracking-wide dark:bg-zinc-700',
+            'bg-zinc-100 px-6 py-2 text-xs font-semibold uppercase tracking-wide [.dark_&]:bg-zinc-700',
             classNames?.p
           )}
         >

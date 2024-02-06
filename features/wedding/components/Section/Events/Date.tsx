@@ -341,7 +341,7 @@ const EventDate: RF<EventDateProps> = ({
               ].join(', ')}
               .
             </p>
-            <hr className='border-zinc-300 dark:border-zinc-700' />
+            <hr className='border-zinc-300 [.dark_&]:border-zinc-700' />
             <p>{getAddress.detail}</p>
           </div>
         </BottomSheet>
@@ -356,7 +356,7 @@ const EventDate: RF<EventDateProps> = ({
                 {isLoading && <Spinner />}
                 {hasError && !isLoading && (
                   <button
-                    className='relative text-blue-600 dark:text-blue-400'
+                    className='relative text-blue-600 [.dark_&]:text-blue-400'
                     onClick={() => updateDate(getAddress)}
                   >
                     Simpan
@@ -463,7 +463,7 @@ const EventDate: RF<EventDateProps> = ({
                     Dipisahkan oleh koma.{' '}
                     <a
                       href='#'
-                      className='text-blue-600 dark:text-blue-400'
+                      className='text-blue-600 [.dark_&]:text-blue-400'
                       onClick={(e) => e.preventDefault()}
                     >
                       Learn more

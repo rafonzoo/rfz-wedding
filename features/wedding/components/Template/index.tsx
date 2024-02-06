@@ -15,9 +15,10 @@ const WeddingTemplate: RFZ<Wedding & { csrfToken?: string }> = ({
   ...wedding
 }) => {
   return (
-    <div className={tw({ dark: wedding.loadout.background === 'black' })}>
+    // prettier-ignore
+    <div className={tw({ 'dark': wedding.loadout.background === 'black' })}>
       <main className='mx-auto max-w-[440px]'>
-        <div className='transition-colors duration-200 ease-out dark:bg-black dark:text-white'>
+        <div className='transition-colors duration-200 ease-out [.dark_&]:bg-black [.dark_&]:text-white'>
           <SectionLanding {...wedding} />
           <SectionCouple {...wedding} />
           <SectionEvents {...wedding} />

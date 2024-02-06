@@ -28,7 +28,7 @@ const FieldSearchRef = (
         autoComplete={props.autoComplete ?? 'off'}
         onChange={onChange}
         className={tw(
-          'inline-flex h-9 w-full appearance-none items-center rounded-lg bg-zinc-100 px-3 opacity-100 placeholder:text-zinc-500 dark:bg-zinc-700 placeholder:dark:text-zinc-400',
+          'inline-flex h-9 w-full appearance-none items-center rounded-lg bg-zinc-100 px-3 opacity-100 placeholder:text-zinc-500 [.dark_&]:bg-zinc-700 placeholder:[.dark_&]:text-zinc-400',
           props.className
         )}
       />

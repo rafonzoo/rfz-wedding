@@ -233,7 +233,7 @@ const EventTime: RFZ<EventTimeProps> = ({
 
   return (
     <div className='mb-[min(179px,max(129px,40.512820512820513vw))] mr-0 mt-5 flex justify-center'>
-      <p className='relative flex flex-col items-end text-right text-sm tracking-normal text-zinc-500 dark:text-zinc-400'>
+      <p className='relative flex flex-col items-end text-right text-sm tracking-normal text-zinc-500 [.dark_&]:text-zinc-400'>
         <span>{caption}</span>
         <span>
           ({[isMainEvent ? 'Utama' : '', eventName].filter(Boolean).join(' / ')}
@@ -270,7 +270,7 @@ const EventTime: RFZ<EventTimeProps> = ({
                   {isLoading && <Spinner />}
                   {hasError && !isLoading && (
                     <button
-                      className='relative text-blue-600 dark:text-blue-400'
+                      className='relative text-blue-600 [.dark_&]:text-blue-400'
                       onClick={() => updateTime(time)}
                     >
                       Simpan
@@ -332,7 +332,7 @@ const EventTime: RFZ<EventTimeProps> = ({
                     <label
                       htmlFor={`localTimeCode-${index}`}
                       key={index}
-                      className='flex w-1/3 flex-col space-y-2 rounded-md border p-3 dark:border-zinc-700'
+                      className='flex w-1/3 flex-col space-y-2 rounded-md border p-3 [.dark_&]:border-zinc-700'
                     >
                       <input
                         required

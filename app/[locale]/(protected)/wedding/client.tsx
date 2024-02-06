@@ -131,7 +131,7 @@ const MyWeddingAddNewSheet: RF<{
         children: (
           <button
             aria-label='Add new invitation'
-            className='flex h-8 w-8 items-center justify-center rounded-full text-2xl text-blue-600 dark:text-blue-400'
+            className='flex h-8 w-8 items-center justify-center rounded-full text-2xl text-blue-600 [.dark_&]:text-blue-400'
           >
             <BsPlusLg />
           </button>
@@ -194,17 +194,17 @@ const MyWeddingItems: RF<{
       className={tw(
         'relative overflow-hidden',
         isLoading && 'animate-[pulse_500ms_ease-in-out_infinite]', // prettier-ignore
-        highlight && 'z-[999] bg-zinc-100 dark:bg-zinc-900'
+        highlight && 'z-[999] bg-zinc-100 [.dark_&]:bg-zinc-900'
       )}
     >
       <button
         {...longpressAction}
         className={tw(
-          'flex w-full touch-none select-none space-x-4 pl-4 hover:bg-zinc-100 dark:hover:bg-zinc-900',
+          'flex w-full touch-none select-none space-x-4 pl-4 hover:bg-zinc-100 [.dark_&]:hover:bg-zinc-900',
           index === 0 ? 'pt-4' : 'pt-2'
         )}
       >
-        <span className='relative block min-h-14 min-w-14 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800'>
+        <span className='relative block min-h-14 min-w-14 overflow-hidden rounded-full bg-zinc-200 [.dark_&]:bg-zinc-800'>
           {imageUrl && (
             <img
               alt='Gambar utama'
@@ -220,7 +220,7 @@ const MyWeddingItems: RF<{
                 {wedding.displayName}
               </span>
             </span>
-            <span className='line-clamp-2 min-h-10 pr-4 text-sm tracking-normal text-zinc-600 dark:text-zinc-300'>
+            <span className='line-clamp-2 min-h-10 pr-4 text-sm tracking-normal text-zinc-600 [.dark_&]:text-zinc-300'>
               {wedding.events[0].detail}
             </span>
             <span className='mt-1 flex justify-between'>
@@ -234,19 +234,19 @@ const MyWeddingItems: RF<{
                 >
                   {wedding.status.toUpperCase()}
                 </span>
-                <span className='flex space-x-1 truncate text-xs tracking-base text-zinc-500 dark:text-zinc-400'>
+                <span className='flex space-x-1 truncate text-xs tracking-base text-zinc-500 [.dark_&]:text-zinc-400'>
                   <span className='block'>·</span>
                   <span className='block truncate'>
                     {djs().tz().format('DD/MM/YYYY')}
                   </span>
                 </span>
               </span>
-              <span className='ml-1 mr-3 block truncate text-xs tracking-base text-zinc-500 dark:text-zinc-400'>
+              <span className='ml-1 mr-3 block truncate text-xs tracking-base text-zinc-500 [.dark_&]:text-zinc-400'>
                 {wedding.name}
               </span>
             </span>
             {index !== length - 1 ? (
-              <hr className='mt-2 border-zinc-300 dark:border-zinc-700' />
+              <hr className='mt-2 border-zinc-300 [.dark_&]:border-zinc-700' />
             ) : (
               <span className='mt-2 block' />
             )}

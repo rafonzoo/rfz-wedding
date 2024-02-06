@@ -36,7 +36,7 @@ const markdownConfig = {
         const value = props.children.replace(/copy:|copy: /g, '')
         return (
           <button
-            className='inline-flex items-center justify-center text-blue-600 dark:text-blue-400'
+            className='inline-flex items-center justify-center text-blue-600 [.dark_&]:text-blue-400'
             onClick={onCopy}
             data-value={value}
           >

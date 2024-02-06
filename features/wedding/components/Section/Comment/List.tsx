@@ -124,7 +124,7 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
             <>
               <p>Oops, something went wrong..</p>
               <button
-                className='text-blue-600 dark:text-blue-400'
+                className='text-blue-600 [.dark_&]:text-blue-400'
                 onClick={() => allComment.refetch()}
               >
                 Try again
@@ -148,9 +148,9 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
                 {comments.length > 3 &&
                   idx === array.length - 1 &&
                   page < comments.length - 1 && (
-                    <div className='mb-4 ml-14 flex items-center justify-center space-x-1 bg-[url(/assets/bg/dotted-light.png)] bg-no-repeat dark:bg-[url(/assets/bg/dotted-dark.png)]'>
+                    <div className='mb-4 ml-14 flex items-center justify-center space-x-1 bg-[url(/assets/bg/dotted-light.png)] bg-no-repeat [.dark_&]:bg-[url(/assets/bg/dotted-dark.png)]'>
                       <button
-                        className='flex items-center bg-white pl-4 pr-3 tracking-normal text-blue-600 transition-colors duration-200 ease-out dark:bg-black dark:text-blue-400'
+                        className='flex items-center bg-white pl-4 pr-3 tracking-normal text-blue-600 transition-colors duration-200 ease-out [.dark_&]:bg-black [.dark_&]:text-blue-400'
                         onClick={() => {
                           if (page < comments.length - 1) {
                             setPage((prev) => prev + 3)
@@ -158,7 +158,7 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
                         }}
                       >
                         Load more
-                        <span className='ml-1 block text-xl text-blue-600 dark:text-blue-400'>
+                        <span className='ml-1 block text-xl text-blue-600 [.dark_&]:text-blue-400'>
                           <IoChevronDownCircleOutline />
                         </span>
                       </button>
@@ -179,8 +179,8 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
                     isLoading && removedComment?.alias === alias && 'animate-[pulse_500ms_ease-in-out_infinite]' // prettier-ignore
                   )}
                 >
-                  <div className='relative flex h-11 w-11 min-w-11 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800'>
-                    <p className='text-sm tracking-normal text-zinc-500 dark:text-zinc-400'>
+                  <div className='relative flex h-11 w-11 min-w-11 items-center justify-center rounded-lg bg-zinc-100 [.dark_&]:bg-zinc-800'>
+                    <p className='text-sm tracking-normal text-zinc-500 [.dark_&]:text-zinc-400'>
                       {createInitial(alias)}
                     </p>
                     <span
@@ -194,7 +194,7 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
                       )}
                     />
                   </div>
-                  <div className='relative flex flex-grow flex-col space-y-1.5 overflow-hidden rounded-lg bg-zinc-100 p-4 dark:bg-zinc-800'>
+                  <div className='relative flex flex-grow flex-col space-y-1.5 overflow-hidden rounded-lg bg-zinc-100 p-4 [.dark_&]:bg-zinc-800'>
                     <p className='flex space-x-1.5'>
                       <strong className='block leading-5'>
                         {guestName(alias)}
@@ -240,7 +240,7 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
             ))}
             {/* Left Border */}
             {comments.length > 0 && (
-              <span className='absolute bottom-0 left-[21px] h-full w-px bg-zinc-300 dark:bg-zinc-600' />
+              <span className='absolute bottom-0 left-[21px] h-full w-px bg-zinc-300 [.dark_&]:bg-zinc-600' />
             )}
           </ul>
           {/* User Comment */}

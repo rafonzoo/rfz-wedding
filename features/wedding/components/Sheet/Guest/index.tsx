@@ -277,7 +277,7 @@ const SheetGuest: RFZ = () => {
         wrapper: { className: tw('grid-cols-3') },
         append: (
           <button
-            className='mx-auto inline-flex w-full items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:dark:bg-zinc-700 disabled:dark:text-zinc-600'
+            className='mx-auto inline-flex w-full items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:[.dark_&]:bg-zinc-700 disabled:[.dark_&]:text-zinc-600'
             disabled={isSaving || isEqual || isError}
             onClick={isSaving || isEqual || isError ? void 0 : onSave}
           >
@@ -301,7 +301,7 @@ const SheetGuest: RFZ = () => {
               <div className='text-center text-sm tracking-normal'>
                 <p>Oops, something went wrong..</p>
                 <button
-                  className='text-blue-600 dark:text-blue-400'
+                  className='text-blue-600 [.dark_&]:text-blue-400'
                   onClick={() => getAllGuest()}
                 >
                   Try again
@@ -313,7 +313,7 @@ const SheetGuest: RFZ = () => {
           </div>
         ) : (
           <div className='flex h-[inherit] flex-col'>
-            <div className='sticky top-0 z-20 bg-white translate-z-0 dark:bg-zinc-800'>
+            <div className='sticky top-0 z-20 bg-white translate-z-0 [.dark_&]:bg-zinc-800'>
               <div className='relative'>
                 {guests.length > 5 && (
                   <div className='px-2 pb-2 pt-px'>
@@ -329,7 +329,7 @@ const SheetGuest: RFZ = () => {
                   </div>
                 )}
               </div>
-              <hr className='border-t-zinc-300 dark:border-t-zinc-700' />
+              <hr className='border-t-zinc-300 [.dark_&]:border-t-zinc-700' />
             </div>
             <div
               ref={scrollRef}
@@ -345,7 +345,7 @@ const SheetGuest: RFZ = () => {
               />
             </div>
             <div className='sticky bottom-0 mt-auto translate-z-0'>
-              <hr className='border-t-zinc-300 dark:border-t-zinc-700' />
+              <hr className='border-t-zinc-300 [.dark_&]:border-t-zinc-700' />
               <SheetGuestAction
                 searchRef={searchRef}
                 editId={editedGuestId}

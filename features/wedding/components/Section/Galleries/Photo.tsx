@@ -84,7 +84,7 @@ const GalleriesPhoto: RF<GalleriesPhotoProps> = ({
         className={tw(
           'absolute left-0 top-0 flex h-full w-full items-center justify-center overflow-hidden',
           outlinedClasses(currentIndex === index),
-          (!!photo || !squareIndex.includes(index) || isEditor) && 'rounded-[inherit] bg-zinc-900 dark:bg-zinc-800' // prettier-ignore
+          (!!photo || !squareIndex.includes(index) || isEditor) && 'rounded-[inherit] bg-zinc-900 [.dark_&]:bg-zinc-800' // prettier-ignore
         )}
       >
         {isLoaded && isEditor && !photo && (
@@ -97,7 +97,7 @@ const GalleriesPhoto: RF<GalleriesPhotoProps> = ({
             {Array.from(Array(16).keys()).map((key) => (
               <span
                 key={key}
-                className='flex w-full rounded-full bg-zinc-800 pt-[100%] dark:bg-zinc-700'
+                className='flex w-full rounded-full bg-zinc-800 pt-[100%] [.dark_&]:bg-zinc-700'
               />
             ))}
           </span>

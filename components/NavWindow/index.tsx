@@ -18,7 +18,7 @@ const NavWindow: RFZ<NavigationWindowProps> = ({
     <div
       {...container}
       className={tw(
-        'relative flex border-b border-zinc-200 dark:border-zinc-800',
+        'relative flex border-b border-zinc-200 [.dark_&]:border-zinc-800',
         container?.className
       )}
     >

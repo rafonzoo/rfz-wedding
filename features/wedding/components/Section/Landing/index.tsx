@@ -183,7 +183,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
                         {updateLoading && <Spinner />}
                         {isError && !updateLoading && (
                           <button
-                            className='relative text-blue-600 dark:text-blue-400'
+                            className='relative text-blue-600 [.dark_&]:text-blue-400'
                             onClick={() => updateName(displayName)}
                           >
                             Simpan
@@ -201,7 +201,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
                     },
                     prepend: detail.music && !isRemoving && (
                       <button
-                        className='mr-auto w-auto text-blue-600 dark:text-blue-400'
+                        className='mr-auto w-auto text-blue-600 [.dark_&]:text-blue-400'
                         onClick={() => removeSong()}
                       >
                         Hapus

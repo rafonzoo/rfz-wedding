@@ -143,7 +143,7 @@ const SheetLoadout: RF = () => {
   const prepend = (
     <button
       ref={focusRef}
-      className='text-2xl text-zinc-500 dark:text-zinc-400 rounded-full'
+      className='text-2xl text-zinc-500 [.dark_&]:text-zinc-400 rounded-full'
       onClick={onClickSubmit({
         background: background === 'black' ? 'white' : 'black',
       })}
@@ -201,7 +201,7 @@ const SheetLoadout: RF = () => {
         }}
       >
         <div className='px-6'>
-          <div className='rounded-lg bg-zinc-100 p-5 dark:bg-zinc-700'>
+          <div className='rounded-lg bg-zinc-100 p-5 [.dark_&]:bg-zinc-700'>
             <div className='relative mx-auto w-full pt-[64.23841059602649%]'>
               <img
                 className='absolute left-0 top-0 w-full'
@@ -217,7 +217,7 @@ const SheetLoadout: RF = () => {
           </div>
         </div>
         <div className='pb-8'>
-          <div className='h-px w-full bg-zinc-200 dark:bg-zinc-700' />
+          <div className='h-px w-full bg-zinc-200 [.dark_&]:bg-zinc-700' />
           <ul ref={ulRef} className='mt-4 flex space-x-4 overflow-x-auto p-2'>
             {keys(colorType.Enum).map((color, index) => (
               <li

@@ -114,7 +114,7 @@ const FigureImage: RFZ<{
     <figure
       ref={imageRef}
       className={tw(
-        'shadow-[0_1px_0_1px_rgb(160_160_160)] dark:shadow-[0_1px_0_1px_rgb(80_80_80_/_50%)]', // prettier-ignore
+        'shadow-[0_1px_0_1px_rgb(160_160_160)] [.dark_&]:shadow-[0_1px_0_1px_rgb(80_80_80_/_50%)]', // prettier-ignore
         'relative block w-full rounded-2xl bg-zinc-800 pt-[133.333333333333333%]', // prettier-ignore
         className
       )}

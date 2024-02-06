@@ -47,7 +47,7 @@ const SectionCounter = () => {
           <button
             onClick={onClick}
             className={tw(
-              'dark:bg-zinc-700/bg-zinc-300/70 mb-4 ml-4 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-300/70 text-2xl backdrop-blur'
+              '[.dark_&]:bg-zinc-700/bg-zinc-300/70 mb-4 ml-4 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-300/70 text-2xl backdrop-blur'
             )}
           >
             {!isPlaying && (
@@ -70,7 +70,7 @@ const SectionCounter = () => {
           </button>
         </div>
       )}
-      <section className='relative z-[70] min-h-[72px] bg-white dark:bg-black'>
+      <section className='relative z-[70] min-h-[72px] bg-white [.dark_&]:bg-black'>
         {/* @TODO */}
       </section>
     </>

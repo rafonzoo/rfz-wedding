@@ -299,7 +299,7 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
                 partialError.length > 0) && (
                 <button
                   className={tw(
-                    'text-blue-600 dark:text-blue-400',
+                    'text-blue-600 [.dark_&]:text-blue-400',
                     mutation.isLoading && 'opacity-50'
                   )}
                   disabled={mutation.isLoading}
@@ -319,7 +319,7 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
                   {mutation.isLoading && <Spinner />}
                   {errorInfo && !mutation.isLoading && (
                     <button
-                      className='relative text-blue-600 dark:text-blue-400'
+                      className='relative text-blue-600 [.dark_&]:text-blue-400'
                       onClick={() => mutation.mutate(info)}
                     >
                       Simpan

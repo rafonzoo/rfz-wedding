@@ -113,7 +113,7 @@ const SectionCoupleStories: RFZ = () => {
             useBorder: true,
             prepend: (
               <button
-                className='text-blue-600 dark:text-blue-400'
+                className='text-blue-600 [.dark_&]:text-blue-400'
                 onClick={() => setViewParsed((prev) => !prev)}
               >
                 {viewParsed ? 'Edit' : 'Lihat'}
@@ -124,7 +124,7 @@ const SectionCoupleStories: RFZ = () => {
                 {isLoading && <Spinner />}
                 {isError && !isLoading && (
                   <button
-                    className='relative text-blue-600 dark:text-blue-400'
+                    className='relative text-blue-600 [.dark_&]:text-blue-400'
                     onClick={() => updateStories(reactiveStory)}
                   >
                     Simpan
@@ -136,7 +136,7 @@ const SectionCoupleStories: RFZ = () => {
           trigger={{
             asChild: true,
             children: (
-              <button className='relative flex h-14 items-center space-x-3 rounded-full bg-black/70 pl-6 pr-4 font-semibold text-white backdrop-blur-lg dark:bg-white/70 dark:text-black'>
+              <button className='relative flex h-14 items-center space-x-3 rounded-full bg-black/70 pl-6 pr-4 font-semibold text-white backdrop-blur-lg [.dark_&]:bg-white/70 [.dark_&]:text-black'>
                 <span>Edit Kisah</span>
                 <span className='flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xl text-white'>
                   <BsPlusLg />
@@ -193,7 +193,7 @@ const SectionCoupleStories: RFZ = () => {
           trigger={{
             asChild: true,
             children: (
-              <button className='flex h-14 items-center space-x-3 rounded-full bg-black pl-6 pr-4 font-semibold text-white dark:bg-white dark:text-black'>
+              <button className='flex h-14 items-center space-x-3 rounded-full bg-black pl-6 pr-4 font-semibold text-white [.dark_&]:bg-white [.dark_&]:text-black'>
                 <span>Lihat Kisah</span>
                 <span className='flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xl text-white'>
                   <BsPlusLg />

@@ -73,7 +73,7 @@ const LandingMediaPlayer: RF<LandingMediaPlayerProps> = ({ isRemoving }) => {
     <FieldGroup title='Lagu' classNames={{ root: 'pt-6 pb-1' }}>
       {!detail.music || isRemoving ? (
         isRemoving || isLoading ? (
-          <div className='flex h-[76px] w-full items-center justify-center rounded-md border border-zinc-300 dark:border-zinc-700'>
+          <div className='flex h-[76px] w-full items-center justify-center rounded-md border border-zinc-300 [.dark_&]:border-zinc-700'>
             <Spinner />
           </div>
         ) : (

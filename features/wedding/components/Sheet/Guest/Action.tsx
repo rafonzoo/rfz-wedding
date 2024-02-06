@@ -323,13 +323,15 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
           tabIndex={isShow ? 0 : -1}
           errorMessage={error}
           className={tw(
-            'bg-zinc-100 dark:!border-zinc-600 dark:bg-zinc-700',
+            'bg-zinc-100 [.dark_&]:!border-zinc-600 [.dark_&]:bg-zinc-700',
             showSend && !error && '!pr-11'
           )}
           labelProps={
             !error
               ? {
-                  className: tw(!error && '!text-zinc-600 dark:!text-zinc-300'),
+                  className: tw(
+                    !error && '!text-zinc-600 [.dark_&]:!text-zinc-300'
+                  ),
                 }
               : void 0
           }
@@ -340,7 +342,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
               Menulis nama tamu didalam {'"("'} dan {'")"'} diawal kolom akan
               membuat grup tamu.{' '}
               <a
-                className='text-blue-600 dark:text-blue-400'
+                className='text-blue-600 [.dark_&]:text-blue-400'
                 href='#'
                 tabIndex={isShow ? 0 : -1}
                 onClick={isShow ? (e) => e.preventDefault() : void 0}
@@ -354,7 +356,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
             <button
               type='submit'
               tabIndex={-1}
-              className='absolute right-2 top-[30px] rounded-full text-3xl text-blue-600 dark:text-blue-400'
+              className='absolute right-2 top-[30px] rounded-full text-3xl text-blue-600 [.dark_&]:text-blue-400'
               aria-label='Tambah/edit tamu'
             >
               <IoArrowForwardCircle />

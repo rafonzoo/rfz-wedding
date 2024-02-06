@@ -103,7 +103,7 @@ const SectionGalleries: RF<Wedding> = (wedding) => {
   useEffect(() => setPhotos(detail.galleries), [detail.galleries])
 
   return (
-    <section className='min-h-screen bg-black pb-[24.615384615384615%] dark:bg-zinc-950'>
+    <section className='min-h-screen bg-black pb-[24.615384615384615%] [.dark_&]:bg-zinc-950'>
       <TextTitle className='text-white'>The Galleries</TextTitle>
       <div className='mx-6 mt-6 flex flex-wrap space-y-4'>
         <GalleriesPhoto

@@ -38,7 +38,7 @@ const RootLayout = async ({
       <body
         className={tw(
           inter.variable,
-          'min-w-[320px] font-inter text-base -tracking-base text-black dark:bg-black dark:text-white'
+          'min-w-[320px] font-inter text-base -tracking-base text-black [.dark_&]:bg-black [.dark_&]:text-white'
         )}
       >
         <NextIntlClientProvider messages={messages}>

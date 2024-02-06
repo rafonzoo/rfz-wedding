@@ -179,7 +179,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
               }
               className={tw(
                 '-mr-4 -mt-2 box-content flex h-8 w-8 items-center justify-center rounded-full p-2 text-[21px]',
-                isDisabledPrevious && 'text-zinc-300 dark:text-zinc-700' // prettier-ignore
+                isDisabledPrevious && 'text-zinc-300 [.dark_&]:text-zinc-700' // prettier-ignore
               )}
             >
               <FaChevronLeft />
@@ -192,7 +192,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
               }
               className={tw(
                 '-mr-2 -mt-2 box-content flex h-8 w-8 items-center justify-center rounded-full p-2 text-[21px]',
-                isDisabledNext && 'text-zinc-300 dark:text-zinc-700' // prettier-ignore
+                isDisabledNext && 'text-zinc-300 [.dark_&]:text-zinc-700' // prettier-ignore
               )}
             >
               <FaChevronRight />
@@ -230,7 +230,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
                 'h-1.5 w-1.5 rounded-full transition-[width,background-color] duration-200',
                 {
                   '!w-8 bg-zinc-500': activeIndex === index,
-                  'bg-zinc-300 delay-100 dark:bg-zinc-700': activeIndex !== index, // prettier-ignore
+                  'bg-zinc-300 delay-100 [.dark_&]:bg-zinc-700': activeIndex !== index, // prettier-ignore
                   'opacity-0': array.length === 1,
                 }
               )}

@@ -331,7 +331,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
     !uploadNames.length &&
     isOnRemoval === false && (
       <button
-        className='text-blue-600 dark:text-blue-400'
+        className='text-blue-600 [.dark_&]:text-blue-400'
         onClick={() => {
           setIsModeSelect((prev) => !prev)
           isModeSelect && selectionId.length > 0 && setSelectionId([])
@@ -408,7 +408,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
         <div className='relative min-h-[min(max(56.25vw,180px),247.5px)]'>
           {!galleries.data ? (
             galleries.isError && !galleries.isLoading ? (
-              <div className='absolute left-1/2 top-1/2 w-48 -translate-x-1/2 -translate-y-1/2 text-center text-sm tracking-normal dark:text-zinc-300'>
+              <div className='absolute left-1/2 top-1/2 w-48 -translate-x-1/2 -translate-y-1/2 text-center text-sm tracking-normal [.dark_&]:text-zinc-300'>
                 <p>Error while fetching data.</p>
                 <a
                   href='#'
@@ -427,7 +427,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
               </div>
             )
           ) : !galleries.data.length ? (
-            <div className='absolute left-1/2 top-1/2 w-48 -translate-x-1/2 -translate-y-1/2 text-center text-sm tracking-normal dark:text-zinc-300'>
+            <div className='absolute left-1/2 top-1/2 w-48 -translate-x-1/2 -translate-y-1/2 text-center text-sm tracking-normal [.dark_&]:text-zinc-300'>
               Foto yang sudah diunggah akan muncul disini.
             </div>
           ) : (

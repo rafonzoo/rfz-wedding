@@ -116,7 +116,7 @@ const CommentSurprise: RF = () => {
           useBorder: true,
           prepend: isEditor && (
             <button
-              className='text-blue-600 dark:text-blue-400'
+              className='text-blue-600 [.dark_&]:text-blue-400'
               onClick={() => setViewParsed((prev) => !prev)}
             >
               {viewParsed ? 'Edit' : 'Lihat'}
@@ -127,7 +127,7 @@ const CommentSurprise: RF = () => {
               {isLoading && <Spinner />}
               {isError && !isLoading && (
                 <button
-                  className='relative text-blue-600 dark:text-blue-400'
+                  className='relative text-blue-600 [.dark_&]:text-blue-400'
                   onClick={() => updateSurprise(surprise)}
                 >
                   Simpan

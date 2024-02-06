@@ -132,11 +132,11 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
           className={tw(
             'peer inline-flex w-full appearance-none rounded-md border px-3 pb-3 pt-8 -tracking-base outline-none transition-shadow',
             'disabled:opacity-40 [&:not(:disabled)]:opacity-100',
-            'border-zinc-300 bg-white dark:border-zinc-700 dark:bg-transparent',
-            props.placeholder && 'placeholder:text-base placeholder:text-zinc-500 dark:placeholder:text-zinc-400', // prettier-ignore
+            'border-zinc-300 bg-white [.dark_&]:border-zinc-700 [.dark_&]:bg-transparent',
+            props.placeholder && 'placeholder:text-base placeholder:text-zinc-500 [.dark_&]:placeholder:text-zinc-400', // prettier-ignore
             !props.placeholder && 'placeholder:text-transparent',
             !errorMessage && 'focus:!border-blue-600 focus:shadow-focus',
-            !errorMessage && 'border-zinc-300 dark:border-zinc-700',
+            !errorMessage && 'border-zinc-300 [.dark_&]:border-zinc-700',
             errorMessage && 'focus:shadow-error !border-red-500', // prettier-ignore
             props.className
           )}
@@ -147,7 +147,7 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
             className={tw(
               'block px-3 pt-2 text-xs tracking-wide',
               {
-                'text-zinc-500 dark:text-zinc-400':
+                'text-zinc-500 [.dark_&]:text-zinc-400':
                   !!infoMessage && !errorMessage,
                 'text-red-500': !!errorMessage,
               },
@@ -161,7 +161,7 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
           {...labelProps}
           className={tw(
             'pointer-events-none absolute left-3 top-3 text-xs tracking-wide',
-            !errorMessage && 'text-zinc-500 peer-focus:!text-blue-600 peer-focus:dark:!text-blue-400 dark:text-zinc-400', // prettier-ignore
+            !errorMessage && 'text-zinc-500 peer-focus:!text-blue-600 peer-focus:[.dark_&]:!text-blue-400 [.dark_&]:text-zinc-400', // prettier-ignore
             errorMessage && '!text-red-500',
             labelProps?.className
           )}

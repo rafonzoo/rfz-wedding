@@ -91,12 +91,12 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
       )}
     >
       <div className='flex w-full space-x-3'>
-        <div className='flex h-11 w-11 min-w-11 items-center justify-center rounded-lg border border-zinc-300 dark:border-zinc-600'>
-          <p className='text-sm tracking-wider text-zinc-500 dark:text-zinc-400'>
+        <div className='flex h-11 w-11 min-w-11 items-center justify-center rounded-lg border border-zinc-300 [.dark_&]:border-zinc-600'>
+          <p className='text-sm tracking-wider text-zinc-500 [.dark_&]:text-zinc-400'>
             {alias && createInitial(alias)}
           </p>
         </div>
-        <p className='flex h-11 w-full items-center overflow-hidden rounded-lg border border-zinc-300 bg-transparent px-3 text-zinc-500 dark:border-zinc-600 dark:text-zinc-400'>
+        <p className='flex h-11 w-full items-center overflow-hidden rounded-lg border border-zinc-300 bg-transparent px-3 text-zinc-500 [.dark_&]:border-zinc-600 [.dark_&]:text-zinc-400'>
           <span className='truncate'>
             {isEditor ? 'Nama tamu' : guestName(alias)}
           </span>
@@ -104,7 +104,7 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
       </div>
       <div
         className={tw(
-          'rounded-lg border border-zinc-300 transition-shadow dark:border-zinc-600',
+          'rounded-lg border border-zinc-300 transition-shadow [.dark_&]:border-zinc-600',
           isFocus && 'shadow-focus !border-blue-600' // prettier-ignore
         )}
       >
@@ -113,7 +113,7 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
             autoComplete='off'
             disabled={isDisabled}
             name='comment'
-            className='min-h-[140px] w-full appearance-none bg-transparent px-4 pt-3 opacity-100 outline-none placeholder:text-zinc-500 dark:placeholder:text-zinc-400'
+            className='min-h-[140px] w-full appearance-none bg-transparent px-4 pt-3 opacity-100 outline-none placeholder:text-zinc-500 [.dark_&]:placeholder:text-zinc-400'
             placeholder={
               isEditor
                 ? 'Ucapan tamu'
@@ -159,10 +159,10 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
                     </label>
                   </div>
                   <div className='relative mx-3'>
-                    <span className='absolute top-1/2 h-8 w-px -translate-y-1/2 bg-black opacity-25 dark:bg-white'></span>
+                    <span className='absolute top-1/2 h-8 w-px -translate-y-1/2 bg-black opacity-25 [.dark_&]:bg-white'></span>
                   </div>
                   <button
-                    className='rounded-full text-3xl text-blue-600 dark:text-blue-400'
+                    className='rounded-full text-3xl text-blue-600 [.dark_&]:text-blue-400'
                     aria-label='Post a comment'
                     onClick={() => mutation.mutate({ comment, isComing })}
                   >

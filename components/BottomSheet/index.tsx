@@ -319,25 +319,25 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           <div
             className={tw(
               'relative mx-auto flex w-full max-w-[440px] flex-col rounded-t-2xl',
-              !option?.isTransparent ? 'bg-white dark:bg-zinc-800 shadow-[0_0_0_1px_rgb(0_0_0_/_25%)]' : 'bg-transparent' // prettier-ignore
+              !option?.isTransparent ? 'bg-white [.dark_&]:bg-zinc-800 shadow-[0_0_0_1px_rgb(0_0_0_/_25%)]' : 'bg-transparent' // prettier-ignore
             )}
           >
             {header && !option?.isTransparent && (
-              <div className='relative rounded-[inherit] bg-white dark:bg-zinc-800'>
+              <div className='relative rounded-[inherit] bg-white [.dark_&]:bg-zinc-800'>
                 <div className='px-6 pb-3 pt-4'>
-                  <div className='absolute left-3 top-4 text-blue-600 dark:text-blue-400'>
+                  <div className='absolute left-3 top-4 text-blue-600 [.dark_&]:text-blue-400'>
                     {header?.prepend}
                   </div>
                   <div className='text-center font-semibold'>
                     {header?.title ?? 'Title here'}
                   </div>
-                  <div className='absolute right-3 top-4 text-blue-600 dark:text-blue-400'>
+                  <div className='absolute right-3 top-4 text-blue-600 [.dark_&]:text-blue-400'>
                     {header?.append}
                   </div>
                 </div>
                 <hr
                   ref={headerBorderRef}
-                  className={tw('border-zinc-300 dark:border-zinc-700', {
+                  className={tw('border-zinc-300 [.dark_&]:border-zinc-700', {
                     invisible: header?.useBorder === false,
                     '!visible': header?.useBorder === true,
                   })}
@@ -368,7 +368,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
                 <hr
                   ref={footerBorderRef}
                   className={tw(
-                    'border-zinc-300 dark:border-zinc-700',
+                    'border-zinc-300 [.dark_&]:border-zinc-700',
                     footer?.useBorder && '!visible'
                   )}
                 />
@@ -386,7 +386,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
                       aria-label='Close sheet'
                       onClick={onCloseStart}
                       className={tw(
-                        'flex h-11 w-11 items-center justify-center rounded-full bg-zinc-100 text-2xl text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400',
+                        'flex h-11 w-11 items-center justify-center rounded-full bg-zinc-100 text-2xl text-zinc-500 [.dark_&]:bg-zinc-700 [.dark_&]:text-zinc-400',
                         !(footer.append || footer.prepend) && 'mx-auto'
                       )}
                     >
