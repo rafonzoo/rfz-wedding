@@ -189,21 +189,18 @@ const SheetLoadout: RF = () => {
             })
           },
           onOpenAutoFocus: () => {
-            setTimeout(() => {
-              const selector = 'button[data-active=true]'
-              const button = ulRef.current?.querySelector<HTMLElement>(selector)
+            const selector = 'button[data-active=true]'
+            const button = ulRef.current?.querySelector<HTMLElement>(selector)
 
-              if (!openSheet || !ulRef.current || !button) {
-                return
-              }
+            if (!openSheet || !ulRef.current || !button) {
+              return
+            }
 
-              const viewportWidth = window.innerWidth
-              const scrollLeft = button.offsetLeft - viewportWidth
+            const viewportWidth = window.innerWidth
+            const scrollLeft = button.offsetLeft - viewportWidth
+            const center = scrollLeft + 20 + viewportWidth / 2
 
-              ulRef.current.scrollBy({
-                left: scrollLeft + 20 + viewportWidth / 2,
-              })
-            }, 50)
+            setTimeout(() => ulRef.current?.scrollBy({ left: center }), 50)
           },
         }}
       >
