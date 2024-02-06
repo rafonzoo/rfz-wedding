@@ -177,8 +177,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     onScrollHeightChange('observe', onScrollingBorder)
 
     focusRef.current = document.activeElement as HTMLElement
-    !isNonModal &&
-      sheetRef.current?.classList.add('data-[state=open]:animate-dialog-show')
+    sheetRef.current?.classList.add('data-[state=open]:animate-dialog-show')
 
     e.preventDefault()
     content?.onOpenAutoFocus?.(e)
@@ -195,11 +194,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   function onCloseStart() {
     if (isAnimating) return
 
-    !isNonModal &&
-      sheetRef.current?.classList.remove(
-        'data-[state=open]:animate-dialog-show'
-      )
-
+    sheetRef.current?.classList.remove('data-[state=open]:animate-dialog-show')
     setIsAnimating(true)
     onCloseClicked?.()
   }
@@ -286,7 +281,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     <Dialog.Root {...root} onOpenChange={onOpenChange}>
       {trigger && <Dialog.Trigger {...trigger} />}
       <Dialog.Portal {...portal}>
-        {option?.useOverlay && (
+        {(option?.useOverlay || (!isNonModal && !pointerEvent)) && (
           <Dialog.Overlay
             {...overlay}
             asChild={overlay?.asChild ?? true}
