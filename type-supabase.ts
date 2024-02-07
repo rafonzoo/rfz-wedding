@@ -6,7 +6,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       wedding: {
@@ -22,6 +22,7 @@ export interface Database {
           loadout: Json
           music: Json | null
           name: string
+          payment: Json
           status: Database["public"]["Enums"]["status"]
           stories: string
           surprise: string
@@ -41,6 +42,7 @@ export interface Database {
           loadout?: Json
           music?: Json | null
           name?: string
+          payment?: Json
           status?: Database["public"]["Enums"]["status"]
           stories?: string
           surprise?: string
@@ -60,6 +62,7 @@ export interface Database {
           loadout?: Json
           music?: Json | null
           name?: string
+          payment?: Json
           status?: Database["public"]["Enums"]["status"]
           stories?: string
           surprise?: string
@@ -70,6 +73,77 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: "wedding_userId_fkey"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      wedding_prod: {
+        Row: {
+          comments: Json
+          couple: Json
+          createdAt: string
+          displayName: string
+          events: Json
+          galleries: Json
+          guests: Json
+          id: number
+          loadout: Json
+          music: Json | null
+          name: string
+          payment: Json
+          status: Database["public"]["Enums"]["status"]
+          stories: string
+          surprise: string
+          updatedAt: string
+          userId: string
+          wid: string
+        }
+        Insert: {
+          comments?: Json
+          couple?: Json
+          createdAt?: string
+          displayName?: string
+          events?: Json
+          galleries?: Json
+          guests?: Json
+          id?: number
+          loadout?: Json
+          music?: Json | null
+          name?: string
+          payment?: Json
+          status?: Database["public"]["Enums"]["status"]
+          stories?: string
+          surprise?: string
+          updatedAt?: string
+          userId?: string
+          wid?: string
+        }
+        Update: {
+          comments?: Json
+          couple?: Json
+          createdAt?: string
+          displayName?: string
+          events?: Json
+          galleries?: Json
+          guests?: Json
+          id?: number
+          loadout?: Json
+          music?: Json | null
+          name?: string
+          payment?: Json
+          status?: Database["public"]["Enums"]["status"]
+          stories?: string
+          surprise?: string
+          updatedAt?: string
+          userId?: string
+          wid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wedding_prod_userId_fkey"
             columns: ["userId"]
             isOneToOne: false
             referencedRelation: "users"
@@ -90,6 +164,7 @@ export interface Database {
           loadout: Json
           music: Json | null
           name: string
+          payment: Json
           status: Database["public"]["Enums"]["status"]
           stories: string
           surprise: string
@@ -109,6 +184,7 @@ export interface Database {
           loadout?: Json
           music?: Json | null
           name?: string
+          payment?: Json
           status?: Database["public"]["Enums"]["status"]
           stories?: string
           surprise?: string
@@ -128,6 +204,7 @@ export interface Database {
           loadout?: Json
           music?: Json | null
           name?: string
+          payment?: Json
           status?: Database["public"]["Enums"]["status"]
           stories?: string
           surprise?: string

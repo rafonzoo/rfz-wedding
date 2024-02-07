@@ -52,13 +52,13 @@ const config: Config = {
       },
       keyframes: {
         'dialog-show': {
-          '0%': { transform: 'translate3d(0,100%,0)' },
+          '0%': { transform: 'translate3d(0,calc(100% + 1px),0)' },
           '100%': { transform: 'translate3d(0,0,0)' },
         },
 
         'dialog-hide': {
           '0%': { transform: 'translate3d(0,0,0)scale(1)' },
-          '100%': { transform: 'translate3d(0,100%,0)scale(1)' },
+          '100%': { transform: 'translate3d(0,calc(100% + 1px),0)scale(1)' },
         },
 
         'fade-in': {
@@ -81,7 +81,9 @@ const config: Config = {
       addUtilities({
         '.translate-z-0': { transform: 'translateZ(0)' },
         '.translate-3d-0': { transform: 'translate3d(0,0,0)' },
-        '.translate-3d-y-full': { transform: 'translate3d(0,100%,0)' },
+        '.translate-3d-y-full': {
+          transform: 'translate3d(0,calc(100% + 1px),0)',
+        },
         '.overflow-touch': { '-webkit-overflow-scrolling': 'touch' },
       })
     }),

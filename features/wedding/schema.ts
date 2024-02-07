@@ -144,6 +144,14 @@ export const musicType = z.object({
   fileId: z.string(),
 })
 
+export type Payment = Infer<typeof paymentType>
+export const paymentType = z.object({
+  id: z.string().uuid(),
+  forever: z.boolean(),
+  maxGuest: z.number(),
+  amount: z.number(),
+})
+
 export type WeddingAdd = Partial<Wedding>
 export type Wedding = Infer<typeof weddingType>
 export const weddingType = z.object({
@@ -163,4 +171,5 @@ export const weddingType = z.object({
   couple: weddingCoupleType.array(),
   events: weddingEventType.array(),
   surprise: z.string(),
+  payment: paymentType.array(),
 })

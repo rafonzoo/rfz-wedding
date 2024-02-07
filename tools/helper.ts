@@ -176,6 +176,14 @@ export function cleaner<T extends object>(obj: T) {
   }, Object.create({})) as T
 }
 
+export function price(num: number, locale = '') {
+  const isDollar = locale === 'en'
+  const current = isDollar ? num / 15649 : num
+  const value = current.toLocaleString(isDollar ? 'en-US' : 'id-ID')
+
+  return !locale ? value : isDollar ? '$' + value : 'IDR. ' + value
+}
+
 export function omit<T extends object, K extends keyof T>(
   obj: T,
   ...keys: K[]

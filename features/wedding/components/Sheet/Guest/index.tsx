@@ -75,6 +75,12 @@ const SheetGuest: RFZ = () => {
       })
     },
     onSuccess: async (updatedGuests) => {
+      setPreviousGuests(updatedGuests)
+      queryClient.setQueryData<Wedding | undefined>(
+        Queries.weddingDetail,
+        (prev) => (!prev ? prev : { ...prev, guests: updatedGuests })
+      )
+
       if (comments) {
         const validateComment = comments.filter(
           (comment) =>
@@ -130,13 +136,8 @@ const SheetGuest: RFZ = () => {
           } catch (e) {
             toast.error('Failed to update named guest in the comment.')
           }
-
-          setPreviousGuests(updatedGuests)
-          return
         }
       }
-
-      setPreviousGuests(updatedGuests)
     },
     onError: () => {
       toast.error(t('error.general.failedToSave'))
@@ -228,7 +229,18 @@ const SheetGuest: RFZ = () => {
       content={{
         className: 'h-full',
         onCloseAutoFocus,
-        onAnimationEnd: () => open && !guests && getAllGuest(),
+        onAnimationEnd: async () => {
+          if (open && !guests) {
+            const guests = await getAllGuest()
+
+            if (guests.data) {
+              queryClient.setQueryData<Wedding | undefined>(
+                Queries.weddingDetail,
+                (prev) => (!prev ? prev : { ...prev, guests: guests.data })
+              )
+            }
+          }
+        },
       }}
       header={{
         title: 'Daftar tamu',
@@ -302,7 +314,17 @@ const SheetGuest: RFZ = () => {
                 <p>Oops, something went wrong..</p>
                 <button
                   className='text-blue-600 [.dark_&]:text-blue-400'
-                  onClick={() => getAllGuest()}
+                  onClick={async () => {
+                    const guests = await getAllGuest()
+
+                    if (guests.data) {
+                      queryClient.setQueryData<Wedding | undefined>(
+                        Queries.weddingDetail,
+                        (prev) =>
+                          !prev ? prev : { ...prev, guests: guests.data }
+                      )
+                    }
+                  }}
                 >
                   Try again
                 </button>

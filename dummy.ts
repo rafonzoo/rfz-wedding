@@ -45,6 +45,7 @@ export const DUMMY_INVITATION: WeddingAdd = {
   galleries: [],
   events: [DUMMY_EVENT],
   displayName: DUMMY_NAME.replace(/-/g, ' & '),
+  payment: [],
   couple: [
     {
       id: 0,

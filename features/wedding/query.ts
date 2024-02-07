@@ -27,7 +27,7 @@ import { DUMMY_INVITATION } from '@/dummy'
 export const WEDDING_ROW = AppConfig.Column[process.env.NEXT_PUBLIC_SITE_ENV as 'development']
 
 // prettier-ignore
-export const WEDDING_COLUMN = 'wid,userId,status,name,displayName,createdAt,updatedAt,stories,music,couple,loadout,galleries,events,surprise' as const
+export const WEDDING_COLUMN = 'wid,userId,status,name,displayName,createdAt,updatedAt,stories,music,couple,loadout,galleries,events,surprise,payment' as const
 
 export const deleteWeddingQuery = async ({
   path,

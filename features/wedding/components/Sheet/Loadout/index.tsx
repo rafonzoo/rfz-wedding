@@ -172,7 +172,7 @@ const SheetLoadout: RF = () => {
       <BottomSheet
         root={{ open: openSheet, onOpenChange: setOpenSheet }}
         header={{ append, prepend, title: 'Tampilan' }}
-        option={{ useOverlay: true, triggerRef: focusRef }}
+        option={{ useOverlay: true }}
         trigger={{
           'aria-label': 'Ubah tampilan',
           children: <MdModeEdit />,
@@ -189,18 +189,16 @@ const SheetLoadout: RF = () => {
             })
           },
           onOpenAutoFocus: () => {
-            const selector = 'button[data-active=true]'
-            const button = ulRef.current?.querySelector<HTMLElement>(selector)
+            function goCenter() {
+              const button = ulRef.current?.querySelector<HTMLElement>(
+                'button[data-active=true]'
+              )
 
-            if (!openSheet || !ulRef.current || !button) {
-              return
+              button?.scrollIntoView({ inline: 'center' })
+              button?.focus()
             }
 
-            const viewportWidth = window.innerWidth
-            const scrollLeft = button.offsetLeft - viewportWidth
-            const center = scrollLeft + 20 + viewportWidth / 2
-
-            setTimeout(() => ulRef.current?.scrollBy({ left: center }), 50)
+            setTimeout(goCenter, 50)
           },
         }}
       >
