@@ -78,7 +78,6 @@ export async function POST(request: NextRequest) {
     const file = await imagekit().upload({
       file: payload.file,
       fileName: payload.fileName,
-      useUniqueFileName: false,
       folder: uploads(`/${payload.path}`),
     })
 

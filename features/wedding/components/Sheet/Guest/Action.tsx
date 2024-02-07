@@ -354,10 +354,14 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         >
           {showSend && !error && (
             <button
-              type='submit'
+              type='button'
               tabIndex={-1}
               className='absolute right-2 top-[30px] rounded-full text-3xl text-blue-600 [.dark_&]:text-blue-400'
               aria-label='Tambah/edit tamu'
+              onClick={() => {
+                onSubmit()
+                inputRef.current?.blur()
+              }}
             >
               <IoArrowForwardCircle />
             </button>

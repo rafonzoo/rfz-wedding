@@ -107,20 +107,13 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
     }
 
     setErrors([])
-    files.forEach(async (file, index, array) => {
+    files.forEach(async (file) => {
       if (!SUPPORTED_FORMAT.includes(file.type)) {
         return setErrors((prev) => [...prev, `Unsupported file: ${file.type}`])
       }
 
       if (file.size > MAX_FILE_SIZE) {
         return setErrors((prev) => [...prev, `File size limit: ${file.name}`])
-      }
-
-      if (
-        galleries.data &&
-        galleries.data.some((fl) => fl.name.includes(file.name))
-      ) {
-        return setErrors((prev) => [...prev, `Duplicate file: ${file.name}`])
       }
 
       const uri = URL.createObjectURL(file)
@@ -145,7 +138,8 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
       )
 
       const compressedFile = new Compressor(file, {
-        quality: 0.2,
+        quality: 0.3,
+        checkOrientation: false,
         success: async (blob) => {
           const image = await blobToUri(blob)
 
