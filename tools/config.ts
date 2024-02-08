@@ -88,7 +88,7 @@ export const AppConfig = {
     MaxDraft: 3,
     MaxFileItem: 13,
     MaxFileSize: 5120,
-    GuestFree: 5,
+    GuestFree: 300,
     GuestMax: 1000,
     PricePerGuest: 500,
     PriceForever: 799_000,

@@ -12,7 +12,12 @@ import {
   updateWeddingGuestQuery,
 } from '@wedding/query'
 import { djs, supabaseClient, tw } from '@/tools/lib'
-import { useMountedEffect, usePayment, useUtilities } from '@/tools/hook'
+import {
+  useFeatureDetection,
+  useMountedEffect,
+  usePayment,
+  useUtilities,
+} from '@/tools/hook'
 import { exact, guestAlias, isArrayEqual } from '@/tools/helper'
 import { AppError } from '@/tools/error'
 import { ErrorMap, Queries } from '@/tools/config'
@@ -38,15 +43,16 @@ const SheetGuest: RFZ = () => {
   const [isAddShown, setIsAddShown] = useState(false)
   const [isModeEdit, setIsModeEdit] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const queryClient = useQueryClient()
   const { getSignal: querySignal } = useUtilities()
   const { getSignal: mutationSignal } = useUtilities()
+  const queryClient = useQueryClient()
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const searchRef = useRef<HTMLInputElement | null>(null)
   const wid = useParams().wid as string
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
   const toast = new Toast()
   const t = useTranslations()
+  const { pointerEvent } = useFeatureDetection()
   const {
     refetch: getAllGuest,
     data: guests,
@@ -62,7 +68,11 @@ const SheetGuest: RFZ = () => {
       })
     },
     onError: () => {
-      toast.error(t('error.general.failedToFetch'))
+      if (!pointerEvent) {
+        return toast.error(t('error.general.failedToFetch'))
+      }
+
+      toast.error(t('error.general.failedToLoad', { name: t('def.guest') }))
     },
   })
 

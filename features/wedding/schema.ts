@@ -146,7 +146,7 @@ export const musicType = z.object({
 
 export type Payment = Infer<typeof paymentType>
 export const paymentType = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
   foreverActive: z.boolean(),
   additionalGuest: z.number(),
   amount: z.number(),
