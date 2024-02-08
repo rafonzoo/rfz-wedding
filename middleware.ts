@@ -19,6 +19,7 @@ export const middleware = async (req: NextRequest) => {
 
   const token = uuid()
   response.cookies.set(RouteCookie.csrf, token, {
+    domain: process.env.NEXT_PUBLIC_SITE_URL,
     sameSite: 'lax',
     secure: process.env.NEXT_PUBLIC_SITE_ENV !== 'development',
     httpOnly: true,
