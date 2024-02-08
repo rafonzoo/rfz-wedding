@@ -1,6 +1,7 @@
 import type {
   Comment,
   Guest,
+  Payment,
   WeddingCouple,
   WeddingEvent,
   WeddingGallery,
@@ -11,6 +12,7 @@ import {
   commentType,
   guestType,
   musicType,
+  paymentType,
   weddingEventAddressType,
   weddingEventTimeType,
   weddingEventType,
@@ -546,4 +548,29 @@ export const updateWeddingSurpriseQuery = async ({
   }
 
   return data.surprise
+}
+
+export const checkoutWeddingQuery = async ({
+  wid,
+  signal,
+  payment,
+}: {
+  wid: string
+  signal: AbortSignal
+  payment: Payment[]
+}) => {
+  const supabase = supabaseClient()
+  const { data, error } = await supabase
+    .from(WEDDING_ROW)
+    .update({ payment, status: 'live', updatedAt: djs().toISOString() })
+    .abortSignal(signal)
+    .eq('wid', wid)
+    .select('payment')
+    .single()
+
+  if (error || !data) {
+    throw new AppError(ErrorMap.internalError, error?.message)
+  }
+
+  return paymentType.array().parse(data.payment)
 }

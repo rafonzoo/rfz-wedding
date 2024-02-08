@@ -292,6 +292,11 @@ export function blobToUri(blob: Blob) {
   })
 }
 
+export function localThousand(num: number, locale = '') {
+  const isDollar = locale === 'en'
+  return isDollar ? '$' + num / 1000 : num / 1000 + 'rb'
+}
+
 export function placeName(text: string) {
   return text
     .split(AppConfig.Wedding.NewlineSymbol)

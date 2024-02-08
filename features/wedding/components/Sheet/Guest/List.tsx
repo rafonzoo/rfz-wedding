@@ -52,21 +52,19 @@ const SheetGuestList: RF<SheetGuestListProps> = ({
       No result for {`"${searchQuery}"`}
     </div>
   ) : (
-    <>
-      <ul className='divide-y translate-z-0'>
-        {filteredGuest.map((guest) => (
-          <SheetGuestShare
-            key={guest.id}
-            {...guest}
-            isSynced={isSynced}
-            isModeEdit={isModeEdit}
-            editedGuestId={editedGuestId}
-            previousGuest={previousGuest}
-            onClick={onClick}
-          />
-        ))}
-      </ul>
-    </>
+    <ul className='divide-y translate-z-0'>
+      {filteredGuest.map((guest) => (
+        <SheetGuestShare
+          key={guest.id}
+          {...guest}
+          isSynced={isSynced}
+          isModeEdit={isModeEdit}
+          editedGuestId={editedGuestId}
+          previousGuest={previousGuest}
+          onClick={onClick}
+        />
+      ))}
+    </ul>
   )
 }
 

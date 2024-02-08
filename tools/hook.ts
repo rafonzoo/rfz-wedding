@@ -1,11 +1,13 @@
 'use client'
 
 import type { MutableRefObject } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import type { Guest, Payment, Wedding } from '@wedding/schema'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { tw } from '@/tools/lib'
-import { isObjectEqual, preventDefault } from '@/tools/helper'
-import { AppConfig } from '@/tools/config'
+import { exact, isObjectEqual, preventDefault } from '@/tools/helper'
+import { AppConfig, Queries } from '@/tools/config'
 import { useLocalePathname } from '@/locale/config'
 
 interface PressHandlers<T> {
@@ -63,6 +65,35 @@ export const useLongPress = <T>(
     onMouseUp: (e: React.MouseEvent<T>) => clear(e),
     onMouseLeave: (e: React.MouseEvent<T>) => clear(e, false),
     onTouchEnd: (e: React.TouchEvent<T>) => clear(e),
+  }
+}
+
+export const usePayment = () => {
+  const queryClient = useQueryClient()
+  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const guests = queryClient.getQueryData<Guest[]>(Queries.weddingGuests)
+  const sumOfAdditionalGuest = useMemo(
+    () =>
+      detail.payment
+        .map((item) => item.additionalGuest)
+        .reduce((acc, val) => acc + val, 0),
+    [detail.payment]
+  )
+
+  // prettier-ignore
+  const payment = (
+    detail.payment[detail.payment.length - 1] ?? null
+  ) as Payment | null
+
+  const guestCounter = AppConfig.Wedding.GuestFree + sumOfAdditionalGuest
+  const addMoreGuest = guests ? guests.length >= guestCounter : false
+  const fullQuota = guests ? guests.length >= AppConfig.Wedding.GuestMax : false
+  const guestTrackCounts = AppConfig.Wedding.GuestFree + sumOfAdditionalGuest
+
+  return {
+    isRequirePayment: payment ? addMoreGuest : false,
+    isMaxOut: fullQuota,
+    guestTrackCounts,
   }
 }
 
