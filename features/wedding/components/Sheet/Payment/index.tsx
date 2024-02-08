@@ -6,7 +6,7 @@ import { useLocale } from 'next-intl'
 import { checkoutWeddingQuery } from '@wedding/query'
 import { tw } from '@/tools/lib'
 import { useUtilities } from '@/tools/hook'
-import { exact, localThousand, price } from '@/tools/helper'
+import { exact, localThousand, numbers, price } from '@/tools/helper'
 import { AppConfig, Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import Spinner from '@/components/Loading/Spinner'
@@ -109,7 +109,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
 
   function onCheckout() {
     const payload = {
-      id: crypto.randomUUID(),
+      id: numbers(12),
       additionalGuest: paidGuest,
       foreverActive: activeTime === 1,
       amount: priceTotal,
