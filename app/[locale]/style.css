@@ -8,6 +8,11 @@
   }
 }
 
+.pointer-not-support [role='dialog'][data-state='open'],
+.pointer-not-support [data-radix-menu-content][data-state='open'] {
+  animation-delay: 320ms !important;
+}
+
 input::-webkit-date-and-time-value {
   text-align: left;
 }

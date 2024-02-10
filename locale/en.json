@@ -27,7 +27,8 @@
   "success": {
     "invitation": {
       "create": "Success creating invitation",
-      "delete": "Success deleting invitation"
+      "delete": "Success deleting invitation",
+      "payment": "Payment success! The receipt has been sent to your email."
     }
   }
 }

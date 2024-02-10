@@ -27,7 +27,8 @@
   "success": {
     "invitation": {
       "create": "Undangan berhasil dibuat",
-      "delete": "Undangan berhasil dihapus"
+      "delete": "Undangan berhasil dihapus",
+      "payment": "Pembayaran berhasil! Bukti pembayaran telah dikirimkan melalui email Anda."
     }
   }
 }

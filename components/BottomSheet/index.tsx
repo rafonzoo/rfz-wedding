@@ -4,7 +4,8 @@ import type { AnimationEvent, MutableRefObject, ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { tw } from '@/tools/lib'
-import { useFeatureDetection, useMountedEffect } from '@/tools/hook'
+import { useMountedEffect } from '@/tools/hook'
+import { debounceOnOlderDevice, isPointerNotSupported } from '@/tools/helper'
 import * as Dialog from '@radix-ui/react-dialog'
 
 if (typeof window !== 'undefined' && !('ResizeObserver' in window)) {
@@ -85,9 +86,11 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   const footerBorderRef = useRef<HTMLHRElement | null>(null)
   const lastPosRef = useRef(0)
   const observerRef = useRef<ResizeObserver | null>(null)
-  const { pointerEvent } = useFeatureDetection()
-  const isModalNonOverlay =
-    !option?.useOverlay && !pointerEvent && !(root?.modal === false)
+
+  // prettier-ignore
+  const isModalNonOverlay = (
+    !option?.useOverlay && isPointerNotSupported() && !(root?.modal === false)
+  )
 
   useMountedEffect(() => onLoad?.())
 
@@ -177,7 +180,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
 
     focusRef.current = document.activeElement as HTMLElement
     e.preventDefault()
-    content?.onOpenAutoFocus?.(e)
+    debounceOnOlderDevice(() => content?.onOpenAutoFocus?.(e))
   }
 
   function onAnimationEnd(e: AnimationEvent<HTMLDivElement>) {
@@ -302,11 +305,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           {...content}
           ref={sheetRef}
           data-is-animating={`${isAnimating}`}
-          style={{
-            zIndex: `${999 + sheetIndex}`,
-            backfaceVisibility: 'hidden',
-            animationFillMode: 'forwards',
-          }}
+          style={{ zIndex: `${999 + sheetIndex}` }}
           className={tw(
             'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none translate-3d-y-full',
             'data-[state=closed]:animate-dialog-hide data-[state=open]:animate-dialog-show',
@@ -353,7 +352,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
                 wrapper?.onScroll?.(e)
               }}
               className={tw(
-                'max-h-full overflow-y-auto translate-z-0 overflow-touch',
+                'max-h-full overflow-y-auto overflow-touch translate-z-0',
                 wrapper?.className
               )}
             >

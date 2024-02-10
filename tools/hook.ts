@@ -6,7 +6,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { tw } from '@/tools/lib'
-import { exact, isObjectEqual, preventDefault } from '@/tools/helper'
+import {
+  exact,
+  isObjectEqual,
+  isPointerNotSupported,
+  preventDefault,
+} from '@/tools/helper'
 import { AppConfig, Queries } from '@/tools/config'
 import { useLocalePathname } from '@/locale/config'
 
@@ -81,19 +86,19 @@ export const usePayment = () => {
   )
 
   // prettier-ignore
-  const payment = (
-    detail.payment[detail.payment.length - 1] ?? null
-  ) as Payment | null
-
-  const guestCounter = AppConfig.Wedding.GuestFree + sumOfAdditionalGuest
-  const addMoreGuest = guests ? guests.length >= guestCounter : false
-  const fullQuota = guests ? guests.length >= AppConfig.Wedding.GuestMax : false
+  const payment = (detail.payment[detail.payment.length - 1] ?? null) as Payment | null
   const guestTrackCounts = AppConfig.Wedding.GuestFree + sumOfAdditionalGuest
+  const addMoreGuest = guests ? guests.length >= guestTrackCounts : false
+  const fullQuota = guests ? guests.length >= AppConfig.Wedding.GuestMax : false
+  const isForeverActive = detail.payment.some((pay) => !!pay.foreverActive)
+  const isGuestMax = guestTrackCounts === AppConfig.Wedding.GuestMax
 
   return {
-    isRequirePayment: payment ? addMoreGuest : false,
-    isMaxOut: fullQuota,
     guestTrackCounts,
+    isRequirePayment: payment ? addMoreGuest : false,
+    isGuestMaxout: fullQuota,
+    isForeverActive,
+    isPaymentComplete: isGuestMax && isForeverActive,
   }
 }
 
@@ -104,25 +109,9 @@ export const useIsEditorOrDev = () => {
   return haveId
 }
 
-export const useFeatureDetection = () => {
-  const [{ pointerEvent }, setFeatures] = useState({
-    pointerEvent: true, // Most is supported.
-  })
-
-  useMountedEffect(() =>
-    setFeatures({
-      pointerEvent: window.onpointerdown !== undefined,
-    })
-  )
-
-  return { pointerEvent }
-}
-
 export const useOutlinedClasses = () => {
-  const { pointerEvent } = useFeatureDetection()
-
   return (isFocused = false, additionalClasses?: string) => {
-    if (!pointerEvent) {
+    if (isPointerNotSupported()) {
       return tw(
         'transition-shadow',
         !isFocused && 'shadow-none',

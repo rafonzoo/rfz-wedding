@@ -14,7 +14,13 @@ import {
   useOutlinedClasses,
   useUtilities,
 } from '@/tools/hook'
-import { assets, exact, keys, swatches } from '@/tools/helper'
+import {
+  assets,
+  debounceOnOlderDevice,
+  exact,
+  keys,
+  swatches,
+} from '@/tools/helper'
 import { Queries } from '@/tools/config'
 import { useTranslations } from 'use-intl'
 import dynamic from 'next/dynamic'
@@ -198,7 +204,7 @@ const SheetLoadout: RF = () => {
               button?.focus()
             }
 
-            setTimeout(goCenter, 50)
+            debounceOnOlderDevice(goCenter)
           },
         }}
       >

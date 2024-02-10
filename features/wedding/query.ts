@@ -574,3 +574,28 @@ export const checkoutWeddingQuery = async ({
 
   return paymentType.array().parse(data.payment)
 }
+
+export const updateStatusWeddingQuery = async ({
+  wid,
+  signal,
+  status,
+}: {
+  wid: string
+  signal: AbortSignal
+  status: 'live' | 'draft'
+}) => {
+  const supabase = supabaseClient()
+  const { data, error } = await supabase
+    .from(WEDDING_ROW)
+    .update({ status, updatedAt: djs().toISOString() })
+    .abortSignal(signal)
+    .eq('wid', wid)
+    .select('status')
+    .single()
+
+  if (error || !data) {
+    throw new AppError(ErrorMap.internalError, error?.message)
+  }
+
+  return weddingType.shape.status.parse(data.status)
+}

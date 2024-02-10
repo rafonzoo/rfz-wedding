@@ -90,6 +90,7 @@ export const AppConfig = {
     MaxFileSize: 5120,
     GuestFree: 300,
     GuestMax: 1000,
+    PriceTax: 5_000, // Include transfer cost and real tax
     PricePerGuest: 500,
     PriceForever: 799_000,
     Price: 299_000,

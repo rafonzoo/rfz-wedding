@@ -116,31 +116,31 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
         return setErrors((prev) => [...prev, `File size limit: ${file.name}`])
       }
 
-      const uri = URL.createObjectURL(file)
       const ac = { id: file.name, controller: new AbortController() }
-      controller.current.push(ac)
-
-      setUploadNames((prev) => [...prev, file.name])
-      queryClient.setQueryData<WeddingGalleries[] | undefined>(
-        Queries.weddingGalleries,
-        (prev) => {
-          return !prev
-            ? prev
-            : [
-                ...prev,
-                {
-                  thumbnail: uri,
-                  name: file.name,
-                  fileId: '',
-                },
-              ]
-        }
-      )
-
       const compressedFile = new Compressor(file, {
         quality: 0.3,
         checkOrientation: false,
         success: async (blob) => {
+          const uri = URL.createObjectURL(file)
+          controller.current.push(ac)
+
+          setUploadNames((prev) => [...prev, file.name])
+          queryClient.setQueryData<WeddingGalleries[] | undefined>(
+            Queries.weddingGalleries,
+            (prev) => {
+              return !prev
+                ? prev
+                : [
+                    ...prev,
+                    {
+                      thumbnail: uri,
+                      name: file.name,
+                      fileId: '',
+                    },
+                  ]
+            }
+          )
+
           const image = await blobToUri(blob)
 
           try {
@@ -171,15 +171,18 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
             }
 
             const data = weddingGalleriesType.parse(json.data)
-
             queryClient.setQueryData<WeddingGalleries[] | undefined>(
               Queries.weddingGalleries,
               (prev) => {
                 if (!prev) return prev
 
-                const copy = prev.filter((item) => item.name !== data.name)
-                const previousIndex = prev.findIndex(
-                  (item) => item.name === data.name
+                const pattern = /\.(jpg|jpeg|png)/g
+                const copy = prev.filter(
+                  (item) => !data.name.includes(item.name.replace(pattern, ''))
+                )
+
+                const previousIndex = prev.findIndex((item) =>
+                  data.name.includes(item.name.replace(pattern, ''))
                 )
 
                 if (previousIndex < 0) {

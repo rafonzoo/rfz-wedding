@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
       file: payload.file,
       fileName: payload.fileName,
       folder: uploads(`/${payload.path}`),
+      useUniqueFileName: true,
     })
 
     if (file.$ResponseMetadata.statusCode !== 200) {

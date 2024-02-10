@@ -12,13 +12,13 @@ import {
   updateWeddingGuestQuery,
 } from '@wedding/query'
 import { djs, supabaseClient, tw } from '@/tools/lib'
+import { useMountedEffect, usePayment, useUtilities } from '@/tools/hook'
 import {
-  useFeatureDetection,
-  useMountedEffect,
-  usePayment,
-  useUtilities,
-} from '@/tools/hook'
-import { exact, guestAlias, isArrayEqual } from '@/tools/helper'
+  exact,
+  guestAlias,
+  isArrayEqual,
+  isPointerNotSupported,
+} from '@/tools/helper'
 import { AppError } from '@/tools/error'
 import { ErrorMap, Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
@@ -42,6 +42,7 @@ const SheetGuest: RFZ = () => {
   const [openPayment, setOpenPayment] = useState(false)
   const [isAddShown, setIsAddShown] = useState(false)
   const [isModeEdit, setIsModeEdit] = useState(false)
+  const [isError, setIsError] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const { getSignal: querySignal } = useUtilities()
   const { getSignal: mutationSignal } = useUtilities()
@@ -52,13 +53,11 @@ const SheetGuest: RFZ = () => {
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
   const toast = new Toast()
   const t = useTranslations()
-  const { pointerEvent } = useFeatureDetection()
   const {
     refetch: getAllGuest,
     data: guests,
-    isLoading,
     isFetched,
-    isError,
+    isLoading,
   } = useQuery({
     queryKey: Queries.weddingGuests,
     queryFn: () => {
@@ -68,7 +67,9 @@ const SheetGuest: RFZ = () => {
       })
     },
     onError: () => {
-      if (!pointerEvent) {
+      setIsError(true)
+
+      if (isPointerNotSupported()) {
         return toast.error(t('error.general.failedToFetch'))
       }
 
@@ -76,7 +77,7 @@ const SheetGuest: RFZ = () => {
     },
   })
 
-  const { isRequirePayment, isMaxOut, guestTrackCounts } = usePayment()
+  const { isRequirePayment, isGuestMaxout, guestTrackCounts } = usePayment()
   const { mutate: saveGuest, isLoading: isSaving } = useMutation<
     Guest[],
     unknown,
@@ -247,6 +248,23 @@ const SheetGuest: RFZ = () => {
     setEditedGuestId(-1)
   }
 
+  async function fetchQuery() {
+    setIsError(false)
+
+    try {
+      const guests = await getAllGuest()
+
+      if (guests.data) {
+        queryClient.setQueryData<Wedding | undefined>(
+          Queries.weddingDetail,
+          (prev) => (!prev ? prev : { ...prev, guests: guests.data })
+        )
+      }
+    } catch (error) {
+      setIsError(true)
+    }
+  }
+
   // NOTE: Guest tracker
   // useEffect(() => console.log(guests, previousGuests), [guests, previousGuests])
 
@@ -259,18 +277,7 @@ const SheetGuest: RFZ = () => {
         content={{
           className: 'h-full',
           onCloseAutoFocus,
-          onAnimationEnd: async () => {
-            if (open && !guests) {
-              const guests = await getAllGuest()
-
-              if (guests.data) {
-                queryClient.setQueryData<Wedding | undefined>(
-                  Queries.weddingDetail,
-                  (prev) => (!prev ? prev : { ...prev, guests: guests.data })
-                )
-              }
-            }
-          },
+          onAnimationEnd: () => open && !guests && fetchQuery(),
         }}
         header={{
           title: 'Daftar tamu',
@@ -284,7 +291,7 @@ const SheetGuest: RFZ = () => {
               {!isModeEdit ? 'Edit' : 'Batal'}
             </button>
           ),
-          append: !!guests?.length && !isMaxOut && (
+          append: !!guests?.length && !isGuestMaxout && (
             <button
               aria-label='Add new guest'
               disabled={isSaving}
@@ -337,24 +344,14 @@ const SheetGuest: RFZ = () => {
         }}
       >
         <div className='relative h-[inherit]'>
-          {!guests || isLoading ? (
+          {!guests ? (
             <div className='absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center'>
-              {!guests && isError && !isLoading ? (
+              {isError && !isLoading ? (
                 <div className='text-center text-sm tracking-normal'>
                   <p>Oops, something went wrong..</p>
                   <button
                     className='text-blue-600 [.dark_&]:text-blue-400'
-                    onClick={async () => {
-                      const guests = await getAllGuest()
-
-                      if (guests.data) {
-                        queryClient.setQueryData<Wedding | undefined>(
-                          Queries.weddingDetail,
-                          (prev) =>
-                            !prev ? prev : { ...prev, guests: guests.data }
-                        )
-                      }
-                    }}
+                    onClick={fetchQuery}
                   >
                     Try again
                   </button>
@@ -374,9 +371,9 @@ const SheetGuest: RFZ = () => {
                         placeholder='Search...'
                         value={searchQuery}
                         disabled={isSaving || isError}
-                        onChange={(e) =>
-                          !(isSaving || isError) &&
-                          setSearchQuery(e.target.value)
+                        onChange={
+                          (e) =>
+                          !(isSaving || isError) && setSearchQuery(e.target.value) // prettier-ignore
                         }
                       />
                     </div>
@@ -427,7 +424,11 @@ const SheetGuest: RFZ = () => {
           )}
         </div>
       </BottomSheet>
-      <SheetPayment isOpen={openPayment} setIsOpen={setOpenPayment} openGuest />
+      <SheetPayment
+        isOpen={openPayment}
+        setIsOpen={setOpenPayment}
+        scope='guest'
+      />
     </>
   )
 }

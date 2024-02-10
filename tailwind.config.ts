@@ -44,8 +44,10 @@ const config: Config = {
         panel: '640ms',
       },
       animation: {
-        'dialog-show': 'dialog-show 640ms cubic-bezier(.32,.72,0,1) 320ms',
-        'dialog-hide': 'dialog-hide 640ms cubic-bezier(.32,.72,0,1)',
+        'dropdown-show': 'dropdown-show 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards', // prettier-ignore
+        'dropdown-hide': 'dropdown-hide 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards', // prettier-ignore
+        'dialog-show': 'dialog-show 640ms cubic-bezier(.32,.72,0,1) forwards',
+        'dialog-hide': 'dialog-hide 640ms cubic-bezier(.32,.72,0,1) forwards',
         'fade-in': 'fade-in 320ms cubic-bezier(0.4, 0, 0.2, 1)',
         'fade-out': 'fade-out 320ms cubic-bezier(0.4, 0, 0.2, 1) 160ms',
         'song-play': 'song-play 20s linear infinite',
@@ -61,14 +63,26 @@ const config: Config = {
           '100%': { transform: 'translate3d(0,calc(100% + 1px),0)scale(1)' },
         },
 
+        'dropdown-show': {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+
+        'dropdown-hide': {
+          '0%': { transform: 'scale(1)', opacity: '1' },
+          '100%': { transform: 'scale(0)', opacity: '0' },
+        },
+
         'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
+
         'fade-out': {
           '0%': { opacity: '1' },
           '100%': { opacity: '0' },
         },
+
         'song-play': {
           '0%': { transform: 'rotate(0)' },
           '100%': { transform: 'rotate(360deg)' },
@@ -79,12 +93,12 @@ const config: Config = {
   plugins: [
     plugin(({ addUtilities }) => {
       addUtilities({
+        '.overflow-touch': { '-webkit-overflow-scrolling': 'touch' },
         '.translate-z-0': { transform: 'translateZ(0)' },
         '.translate-3d-0': { transform: 'translate3d(0,0,0)' },
         '.translate-3d-y-full': {
           transform: 'translate3d(0,calc(100% + 1px),0)',
         },
-        '.overflow-touch': { '-webkit-overflow-scrolling': 'touch' },
       })
     }),
   ],

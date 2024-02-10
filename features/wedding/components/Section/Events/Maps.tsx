@@ -1,23 +1,26 @@
 'use client'
 
 import type { WeddingEvent } from '@wedding/schema'
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { FaMapMarkerAlt } from 'react-icons/fa'
 import { tw } from '@/tools/lib'
-import { useFeatureDetection } from '@/tools/hook'
+import { useMountedEffect } from '@/tools/hook'
 
 const EventMaps: RF<
   Pick<WeddingEvent, 'placeName' | 'district' | 'province'>
 > = ({ placeName, district, province }) => {
   const isPublic = !!useParams().name
   const isLocalDev = process.env.NEXT_PUBLIC_SITE_ENV !== 'development'
-  const { pointerEvent } = useFeatureDetection()
+  const [pointerEvent, setPointerEvent] = useState(true)
 
   const mapSearch = [
     placeName.replace(/\s?-+\s?/g, ' ').trim(),
     district,
     province,
   ].join(', ')
+
+  useMountedEffect(() => setPointerEvent(window.onpointerdown !== undefined))
 
   return (
     <>

@@ -227,6 +227,22 @@ export function numbers(length = 4) {
   return result
 }
 
+export function isPointerNotSupported() {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  return !(window.onpointerdown !== undefined)
+}
+
+export function debounceOnOlderDevice(cb: () => void, timer = 50) {
+  if (isPointerNotSupported()) {
+    return cb()
+  }
+
+  setTimeout(() => cb(), timer)
+}
+
 export function keys<T extends object>(obj: T) {
   return Object.keys(obj) as (keyof T)[]
 }

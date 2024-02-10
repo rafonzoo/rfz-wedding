@@ -1,8 +1,8 @@
 import type { Guest, Payment, Wedding } from '@wedding/schema'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { checkoutWeddingQuery } from '@wedding/query'
 import { tw } from '@/tools/lib'
 import { useUtilities } from '@/tools/hook'
@@ -10,13 +10,15 @@ import { exact, localThousand, price } from '@/tools/helper'
 import { AppConfig, Queries } from '@/tools/config'
 import { v4 as uuid } from 'uuid'
 import dynamic from 'next/dynamic'
+import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
 import FieldGroup from '@/components/Field/Group'
 
 type SheetPaymentProps = {
+  title?: string
   isOpen?: boolean
+  scope?: 'guest' | 'period'
   setIsOpen?: (open: boolean) => void
-  openGuest?: boolean
 }
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
@@ -25,15 +27,17 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
 
 const SheetPayment: RFZ<SheetPaymentProps> = ({
   children,
+  title,
   isOpen,
+  scope,
   setIsOpen,
-  openGuest,
 }) => {
   const [open, onOpenChange] = useState(false)
   const [isFetching, setIsFetching] = useState(false)
+  const [isError, setIsError] = useState(false)
   const [activeTime, setActiveTime] = useState(0)
   const [guestLength, setGuestLength] = useState(0)
-  const [guestToggle, setGuestToggle] = useState(!!openGuest)
+  const [guestToggle, setGuestToggle] = useState(scope === 'guest')
   const [additionalGuest, setAdditionalGuest] = useState(0)
   const queryClient = useQueryClient()
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
@@ -44,9 +48,10 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     detail.payment[detail.payment.length - 1] ?? null
   ) as Payment | null
 
-  const currentGuest = queryClient.getQueryData<Guest[]>(Queries.weddingGuests)
+  const currentGuest = queryClient.getQueryState<Guest[]>(Queries.weddingGuests)
+  const guests = currentGuest?.data
   const totalGuest = guestLength - AppConfig.Wedding.GuestFree
-  const isReady = !(isFetching || !currentGuest)
+  const isReady = !!guests
 
   // prettier-ignore
   const paidGuestLen = !payment ? additionalGuest || totalGuest : additionalGuest
@@ -62,10 +67,12 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
   const priceForever = activeTime * AppConfig.Wedding.PriceForever
   const priceWedding = !payment ? AppConfig.Wedding.Price : 0
   const priceActive = payment?.foreverActive ? 0 : priceForever
+  const priceTax = AppConfig.Wedding.PriceTax
   const priceTotal = priceWedding + priceActive + priceGuest
   const locale = useLocale()
   const wid = useParams().wid as string
-
+  const toast = new Toast()
+  const t = useTranslations()
   const priceTag = [20, 50, 100, 200, 400, 700].map((len, i, a) => ({
     text: i === a.length - 1 ? 'Max' : `${len}`,
     len,
@@ -101,10 +108,14 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     },
     onSuccess: (payment) => {
       ;(setIsOpen ?? onOpenChange)(false)
-      queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
-        (prev) => (!prev ? prev : { ...prev, payment })
-      )
+
+      toast.success(t('success.invitation.payment'))
+      setTimeout(() => {
+        queryClient.setQueryData<Wedding | undefined>(
+          Queries.weddingDetail,
+          (prev) => (!prev ? prev : { ...prev, status: 'live', payment })
+        )
+      }, 640)
     },
   })
 
@@ -119,37 +130,44 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     checkout([...detail.payment, payload])
   }
 
-  function onRefetchGuest() {
+  useEffect(() => {
+    if (guests) {
+      setGuestLength(guests.length)
+      queryClient.setQueryData<Wedding | undefined>(
+        Queries.weddingDetail,
+        (prev) => (!prev ? prev : { ...prev, guests })
+      )
+    }
+  }, [guests, queryClient])
+
+  async function onRefetchGuest() {
     setIsFetching(true)
-    queryClient
-      .refetchQueries({ queryKey: Queries.weddingGuests })
-      .finally(() => setIsFetching(false))
-      .then(() => {
-        const guests = queryClient.getQueryData<Guest[]>(Queries.weddingGuests)
+    setIsError(false)
 
-        if (!guests?.length) {
-          return
-        }
-
-        setGuestLength(guests.length)
-        queryClient.setQueryData<Wedding | undefined>(
-          Queries.weddingDetail,
-          (prev) => (!prev ? prev : { ...prev, guests })
-        )
+    try {
+      const data = await queryClient.fetchQuery<Guest[]>({
+        queryKey: Queries.weddingGuests,
       })
+
+      setGuestLength(data.length)
+      queryClient.setQueryData<Wedding | undefined>(
+        Queries.weddingDetail,
+        (prev) => (!prev ? prev : { ...prev, guests: data })
+      )
+    } catch (e) {
+      setIsError(true)
+    } finally {
+      setIsFetching(false)
+    }
   }
 
   function onOpenAutoFocus() {
-    if (!currentGuest) {
+    if (!guests) {
       onRefetchGuest()
     } else {
       if (detail.guests?.length) {
         setGuestLength(detail.guests.length)
       }
-    }
-
-    if (payment) {
-      setActiveTime(Number(payment.foreverActive))
     }
   }
 
@@ -167,7 +185,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
       option={{ useOverlay: true }}
       root={{ open: isOpen ?? open, onOpenChange: setIsOpen ?? onOpenChange }}
       header={{
-        title: 'Checkout',
+        title: title ?? 'Checkout',
         prepend: isReady && (
           <button onClick={() => setGuestToggle((prev) => !prev)}>
             {!guestToggle ? 'Tamu' : 'Periode'}
@@ -188,8 +206,18 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
         ),
       }}
       content={{
-        onOpenAutoFocus: () => openGuest && setGuestToggle(true),
-        onAnimationEnd: () => open && onOpenAutoFocus(),
+        onOpenAutoFocus: () => {
+          setGuestToggle(scope === 'guest')
+
+          if (payment) {
+            return setActiveTime(
+              scope === 'period' ? 1 : Number(payment.foreverActive)
+            )
+          }
+
+          setActiveTime(0)
+        },
+        onAnimationEnd: () => (isOpen ?? open) && onOpenAutoFocus(),
         onCloseAutoFocus: () => {
           setActiveTime(0)
           setGuestToggle(false)
@@ -202,11 +230,9 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
       }}
     >
       <div className='min-h-[381px]'>
-        {!isReady ? (
+        {!guests ? (
           <div className='flex min-h-[inherit] items-center justify-center'>
-            {!currentGuest || isFetching ? (
-              <Spinner />
-            ) : (
+            {isError && !isFetching ? (
               <div className='text-center text-sm tracking-normal'>
                 <p>Oops, something went wrong..</p>
                 <button
@@ -216,11 +242,13 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
                   Try again
                 </button>
               </div>
+            ) : (
+              <Spinner />
             )}
           </div>
         ) : (
           <div className='space-y-6'>
-            <FieldGroup title={!guestToggle ? 'Masa aktif' : 'Paket tamu'}>
+            <FieldGroup title={!guestToggle ? 'Masa aktif' : 'Tambah tamu'}>
               {!guestToggle ? (
                 <div className='space-y-4'>
                   <div
@@ -324,9 +352,16 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
                 </p>
                 <hr className='my-2 border-zinc-300 [.dark_&]:border-zinc-700' />
                 <p className='flex justify-between'>
-                  <span className='font-semibold'>Total:</span>
                   <span className='font-semibold'>
-                    {price(priceTotal, locale)}
+                    {priceTotal
+                      ? `Total + (Tax ${localThousand(priceTax)}):`
+                      : `Total:`}
+                  </span>
+                  <span className='font-semibold'>
+                    {price(
+                      priceTotal ? priceTotal + priceTax : priceTotal,
+                      locale
+                    )}
                   </span>
                 </p>
               </div>
