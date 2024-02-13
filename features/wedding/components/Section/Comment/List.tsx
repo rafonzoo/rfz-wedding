@@ -22,11 +22,16 @@ import {
   guestName,
 } from '@/tools/helper'
 import { Queries } from '@/tools/config'
+import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import CommentSurprise from '@wedding/components/Section/Comment/Surprise'
 import CommentInput from '@wedding/components/Section/Comment/Input'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
+
+const Alert = dynamic(() => import('@/components/Notification/Alert'), {
+  ssr: false,
+})
 
 const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
   comments: defaultComment = [],
@@ -38,7 +43,7 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
   const guestSlug = useSearchParams().get('to') ?? ''
   const guestFullName = guestAlias(guestSlug)
-  const session = queryClient.getQueryData<Session>(Queries.accountVerify)
+  const session = queryClient.getQueryData<Session>(Queries.accountSession)
   const wid = useParams().wid as string
   const hasSession = !!(session?.user.id === detail.userId && wid)
   const comments = defaultComment.map((item) => ({
@@ -215,25 +220,33 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
                   {hasSession &&
                     !(isLoading && removedComment?.alias === alias) &&
                     alias !== 'GGRFZ Team' && (
-                      <button
-                        aria-label='Remove comment'
-                        disabled={isLoading && removedComment?.alias === alias}
-                        onClick={() => {
-                          if (isLoading && removedComment?.alias === alias) {
-                            return
-                          }
-
-                          removeComment({ alias })
+                      <Alert
+                        trigger={{
+                          asChild: true,
+                          children: (
+                            <button
+                              aria-label='Remove comment'
+                              disabled={isLoading && removedComment?.alias === alias } // prettier-ignore
+                              className={tw(
+                                'absolute -right-4 -top-4 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-red-600',
+                                isLoading && removedComment?.alias === alias && 'opacity-50' // prettier-ignore
+                              )}
+                            >
+                              <FaCircleMinus />
+                            </button>
+                          ),
                         }}
-                        className={tw(
-                          'absolute -right-4 -top-4 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-red-600',
-                          isLoading &&
-                            removedComment?.alias === alias &&
-                            'opacity-50'
-                        )}
-                      >
-                        <FaCircleMinus />
-                      </button>
+                        title={{ children: 'Hapus komentar' }}
+                        description={{
+                          children:
+                            'Tamu Anda nantinya tetap bisa berkomentar walaupun Anda pernah menghapusnya. Tetap lanjutkan?',
+                        }}
+                        cancel={{ children: 'Batal' }}
+                        action={{
+                          children: 'OK',
+                          onClick: () => removeComment({ alias }),
+                        }}
+                      />
                     )}
                 </div>
               </li>

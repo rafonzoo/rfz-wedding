@@ -6,14 +6,14 @@ import { Queries } from '@/tools/config'
 import { useLocaleRouter } from '@/locale/config'
 
 const AccountPageClient = () => {
-  const query = useQueryClient()
+  const queryClient = useQueryClient()
   const router = useLocaleRouter()
   const { mutate: signout } = useMutation({
     mutationKey: Queries.accountLogout,
     mutationFn: () => supabaseClient().auth.signOut(),
     onSuccess: () => {
-      query.setQueryData(Queries.weddingGetAll, void 0)
-      query.setQueryData(Queries.accountVerify, void 0)
+      queryClient.setQueryData(Queries.weddingGetAll, void 0)
+      queryClient.setQueryData(Queries.accountSession, void 0)
       router.refresh()
     },
   })

@@ -2,6 +2,7 @@ import type { MutableRefObject } from 'react'
 import type { OpUnitType } from 'dayjs'
 import { djs } from '@/tools/lib'
 import { ASSETS_PATH, AppConfig, UPLOADS_PATH } from '@/tools/config'
+import Compressor from 'compressorjs'
 
 export function isObjectEqual<T1, T2>(
   obj1: T1,
@@ -112,6 +113,17 @@ export function isLocal() {
   return ['localhost', '127.0.0.1'].some(
     (url) => new URL(abspath()).hostname === url
   )
+}
+
+export function midtrans(path: string) {
+  const envKey = process.env.NEXT_PUBLIC_SITE_ENV as keyof typeof env
+  const env = {
+    development: 'https://app.sandbox.midtrans.com',
+    staging: 'https://app.sandbox.midtrans.com',
+    production: 'https://app.midtrans.com',
+  }
+
+  return [env[envKey], path].join('')
 }
 
 export function assets(path: string) {
@@ -236,11 +248,7 @@ export function isPointerNotSupported() {
 }
 
 export function debounceOnOlderDevice(cb: () => void, timer = 50) {
-  if (isPointerNotSupported()) {
-    return cb()
-  }
-
-  setTimeout(() => cb(), timer)
+  isPointerNotSupported() ? setTimeout(() => cb(), timer) : cb()
 }
 
 export function keys<T extends object>(obj: T) {
@@ -272,6 +280,16 @@ export function swatches(key: keyof typeof colorClasses) {
   }
 
   return colorClasses[key]
+}
+
+export function compress(qty: number, file: File | Blob) {
+  return new Promise<File | Blob>((resolve) => {
+    new Compressor(file, {
+      quality: qty / 10,
+      checkOrientation: false,
+      success: resolve,
+    })
+  })
 }
 
 export function retina(url?: string, r: 'w' | 'h' = 'w', ...raw: string[]) {
@@ -356,6 +374,9 @@ export function createInitial(name: string) {
   return names.length === 1 ? [...names, ...char(1)].join('') : names.join('')
 }
 
+/**
+ * @deprecated
+ */
 export function sheetFocus(
   element: MutableRefObject<HTMLElement | null>,
   option?: { bound: 'bottom' | 'center'; canScroll?: boolean }

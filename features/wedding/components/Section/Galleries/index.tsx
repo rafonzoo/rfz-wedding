@@ -7,6 +7,7 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { updateWeddingGalleryQuery } from '@wedding/query'
 import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
+import { exact } from '@/tools/helper'
 import { Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import TextTitle from '@wedding/components/Text/Title'
@@ -18,12 +19,12 @@ const SheetGallery = dynamic(
   { ssr: false }
 )
 
-const SectionGalleries: RF<Wedding> = (wedding) => {
+const SectionGalleries: RF<Wedding> = () => {
   const [index, setIndex] = useState(-1)
   const isEditor = useIsEditorOrDev()
   const isOpen = index > -1
-  const query = useQueryClient()
-  const detail = query.getQueryData<Wedding>(Queries.weddingDetail) ?? wedding
+  const queryClient = useQueryClient()
+  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
   const [photos, setPhotos] = useState(detail.galleries)
   const [isSheetMounted, setIsSheetMounted] = useState(false)
   const photoRef = useRef<HTMLDivElement | null>(null)
@@ -48,7 +49,10 @@ const SectionGalleries: RF<Wedding> = (wedding) => {
       })
     },
     onMutate: () => {
-      return query.getQueryData<Wedding>(Queries.weddingDetail)?.galleries ?? []
+      return (
+        queryClient.getQueryData<Wedding>(Queries.weddingDetail)?.galleries ??
+        []
+      )
     },
     onError: (e, p, previous) => {
       if ((e as Error).message.includes('AbortError')) {
@@ -58,9 +62,10 @@ const SectionGalleries: RF<Wedding> = (wedding) => {
       toast.error((e as Error)?.message)
       setPhotos(previous ?? [])
     },
-    onSuccess: (data) => {
-      query.setQueryData<Wedding | undefined>(Queries.weddingDetail, (prev) =>
-        !prev ? prev : { ...prev, galleries: data }
+    onSuccess: (galleries) => {
+      queryClient.setQueryData<Wedding | undefined>(
+        Queries.weddingDetail,
+        (prev) => (!prev ? prev : { ...prev, galleries })
       )
     },
   })
@@ -75,7 +80,6 @@ const SectionGalleries: RF<Wedding> = (wedding) => {
 
         if (!isAnimating) {
           index === idx ? setIndex(-1) : setIndex(idx)
-          // sheetFocus(photoRef, { bound: 'center' })
         }
       }
     }

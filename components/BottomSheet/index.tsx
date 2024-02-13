@@ -286,12 +286,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
             {...overlay}
             asChild={overlay?.asChild ?? true}
             tabIndex={overlay?.tabIndex ?? isAnimating ? -1 : 0}
-            style={{
-              zIndex: `${998 + sheetIndex}`,
-              backfaceVisibility: 'hidden',
-              animationFillMode: 'forwards',
-              ...overlay?.style,
-            }}
+            style={{ zIndex: `${998 + sheetIndex}`, ...overlay?.style }}
             className={tw(
               'fixed left-0 top-0 z-[777] h-full w-full cursor-auto select-none bg-black/70 opacity-0 will-change-[opacity]',
               'data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in data-[state=closed]:opacity-100',
@@ -308,7 +303,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           style={{ zIndex: `${999 + sheetIndex}` }}
           className={tw(
             'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none translate-3d-y-full',
-            'data-[state=closed]:animate-dialog-hide data-[state=open]:animate-dialog-show',
+            'data-[state=closed]:animate-sheet-hide data-[state=open]:animate-sheet-show',
             content?.className
           )}
           onOpenAutoFocus={onOpenAutoFocus}
@@ -398,12 +393,6 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
               </div>
             )}
           </div>
-          {/* <div
-            className={tw(
-              'absolute left-1/2 top-full h-[200%] w-full max-w-[440px] -translate-x-1/2',
-              !option?.isTransparent && 'bg-white'
-            )}
-          /> */}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

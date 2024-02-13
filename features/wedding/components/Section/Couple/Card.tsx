@@ -19,8 +19,8 @@ import dynamic from 'next/dynamic'
 import TextCard from '@wedding/components/Text/Card'
 import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -403,21 +403,24 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
             {keys(socialUrl)?.map(
               (social, index) =>
                 socialUrl[social] && (
-                  <div className='block h-5' key={index}>
-                    <a
-                      href={socialUrl[social]}
-                      target='_blank'
+                  <div className='block h-6' key={index}>
+                    <span
+                      tabIndex={0}
                       aria-label={social}
-                      onClick={(e) => isEditor && e.preventDefault()}
+                      onClick={(e) =>
+                        isEditor
+                          ? e.preventDefault()
+                          : window.open(socialUrl[social])
+                      }
                       className={tw(
-                        'text-xl text-zinc-500 hover:text-blue-500',
+                        'text-2xl text-zinc-500 hover:text-blue-500',
                         social === 'facebook' && 'rounded-full'
                       )}
                     >
                       {social === 'facebook' && <FaFacebook />}
                       {social === 'twitter' && <FaTwitter />}
                       {social === 'instagram' && <AiFillInstagram />}
-                    </a>
+                    </span>
                   </div>
                 )
             )}

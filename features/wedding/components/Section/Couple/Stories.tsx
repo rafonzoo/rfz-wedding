@@ -16,7 +16,7 @@ import dynamic from 'next/dynamic'
 import Notify from '@/components/Notification/Notify'
 import markdownConfig from '@/components/Markdown/config'
 import Spinner from '@/components/Loading/Spinner'
-import FieldTextArea from '@/components/Field/TextArea'
+import FieldTextArea from '@/components/FormField/TextArea'
 
 const Markdown = dynamic(() => import('@/components/Markdown'), {
   ssr: false,

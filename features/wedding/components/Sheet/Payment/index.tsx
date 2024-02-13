@@ -1,18 +1,26 @@
-import type { Guest, Payment, Wedding } from '@wedding/schema'
+import type { Session } from '@supabase/auth-helpers-nextjs'
 import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
-import { checkoutWeddingQuery } from '@wedding/query'
+import {
+  type Guest,
+  type Payment,
+  type PaymentToken,
+  type Wedding,
+  paymentType,
+} from '@wedding/schema'
+import { checkoutWeddingQuery, paymentWeddingQuery } from '@wedding/query'
 import { tw } from '@/tools/lib'
 import { useUtilities } from '@/tools/hook'
-import { exact, localThousand, price } from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import { exact, localThousand, midtrans, price } from '@/tools/helper'
+import { AppError } from '@/tools/error'
+import { AppConfig, ErrorMap, Queries } from '@/tools/config'
 import { v4 as uuid } from 'uuid'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
-import FieldGroup from '@/components/Field/Group'
+import FieldGroup from '@/components/FormField/Group'
 
 type SheetPaymentProps = {
   title?: string
@@ -93,17 +101,19 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     AppConfig.Wedding.GuestMax
   )
 
+  const session = queryClient.getQueryData<Session>(Queries.accountSession)
   const { getSignal } = useUtilities()
-  const { isLoading, mutate: checkout } = useMutation<
+
+  const { isLoading: isLoadingCheckout, mutate: checkout } = useMutation<
     Payment[],
     unknown,
     Payment[]
   >({
-    mutationFn: (payment) => {
+    mutationFn: (payload) => {
       return checkoutWeddingQuery({
-        signal: getSignal(),
         wid,
-        payment,
+        signal: getSignal(),
+        payment: payload,
       })
     },
     onSuccess: (payment) => {
@@ -118,16 +128,65 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
       }, 640)
     },
   })
+  const { isLoading, mutate: requestPayment } = useMutation<
+    PaymentToken,
+    unknown,
+    Omit<Payment, 'transaction'>
+  >({
+    mutationFn: (payment) => {
+      if (!session) {
+        throw new AppError(ErrorMap.authError, 'Forbidden')
+      }
+
+      const email = session.user.email ?? session.user.user_metadata.email ?? ''
+      const name = session.user.user_metadata.full_name || session.user.user_metadata.name || '' // prettier-ignore
+
+      return paymentWeddingQuery({
+        wid,
+        payment,
+        user: {
+          email,
+          name: name.length < 3 ? email : name,
+        },
+      })
+    },
+    onSuccess: ({ token }, payload) => {
+      if (!('snap' in window)) {
+        const script = document.createElement('script')
+        script.type = 'text/javascript'
+        script.dataset.clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? '' // prettier-ignore
+        script.src = midtrans('/snap/snap.js')
+        script.onload = () => onCallback(token, payload)
+
+        document.head.append(script)
+        return
+      }
+
+      onCallback(token, payload)
+    },
+  })
+
+  function onCallback(token: string, payload: Omit<Payment, 'transaction'>) {
+    // @ts-expect-error No type
+    window.snap.pay(token, {
+      onSuccess: (result: unknown) => {
+        const { transaction: trx } = paymentType.shape
+        const transaction = trx.parse(result)
+
+        checkout([...detail.payment, { ...payload, transaction }])
+      },
+    })
+  }
 
   function onCheckout() {
     const payload = {
       id: uuid(),
       additionalGuest: paidGuest,
       foreverActive: activeTime === 1,
-      amount: priceTotal,
+      amount: priceTotal + priceTax,
     }
 
-    checkout([...detail.payment, payload])
+    requestPayment(payload)
   }
 
   useEffect(() => {
@@ -198,10 +257,14 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
         append: isReady && (
           <button
             className='mx-auto inline-flex flex-grow items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:[.dark_&]:bg-zinc-700 disabled:[.dark_&]:text-zinc-600'
-            onClick={isLoading || !priceTotal ? void 0 : onCheckout}
-            disabled={isLoading || !priceTotal}
+            disabled={isLoading || isLoadingCheckout || !priceTotal}
+            onClick={
+              isLoading || isLoadingCheckout || !priceTotal
+                ? void 0
+                : onCheckout
+            }
           >
-            {isLoading ? <Spinner /> : 'Bayar'}
+            {isLoading || isLoadingCheckout ? <Spinner /> : 'Bayar'}
           </button>
         ),
       }}
@@ -224,10 +287,14 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
           setAdditionalGuest(0)
         },
       }}
-      trigger={{
-        asChild: !!children || void 0,
-        children,
-      }}
+      trigger={
+        typeof children === 'undefined'
+          ? void 0
+          : {
+              asChild: true,
+              children,
+            }
+      }
     >
       <div className='min-h-[381px]'>
         {!guests ? (
@@ -352,16 +419,14 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
                 </p>
                 <hr className='my-2 border-zinc-300 [.dark_&]:border-zinc-700' />
                 <p className='flex justify-between'>
-                  <span className='font-semibold'>
-                    {priceTotal
-                      ? `Total + (Tax ${localThousand(priceTax)}):`
-                      : `Total:`}
+                  <span className='flex space-x-1'>
+                    <span className='font-semibold'>Total:</span>
+                    <span className='text-zinc-600 [.dark_&]:text-zinc-300'>
+                      {priceTotal ? `(+Tax ${localThousand(priceTax)})` : ''}
+                    </span>
                   </span>
                   <span className='font-semibold'>
-                    {price(
-                      priceTotal ? priceTotal + priceTax : priceTotal,
-                      locale
-                    )}
+                    {price(priceTotal ? priceTotal + priceTax : 0, locale)}
                   </span>
                 </p>
               </div>

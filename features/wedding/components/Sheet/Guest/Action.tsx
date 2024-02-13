@@ -19,7 +19,7 @@ import {
   numbers,
 } from '@/tools/helper'
 import { Queries } from '@/tools/config'
-import FieldText from '@/components/Field/Text'
+import FieldText from '@/components/FormField/Text'
 
 type SheetGuestActionProps = {
   editId: number

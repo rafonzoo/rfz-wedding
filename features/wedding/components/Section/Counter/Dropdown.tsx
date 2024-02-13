@@ -6,11 +6,12 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { updateStatusWeddingQuery } from '@wedding/query'
+import { deleteWeddingQuery, updateStatusWeddingQuery } from '@wedding/query'
 import { tw } from '@/tools/lib'
 import { usePayment, useUtilities } from '@/tools/hook'
 import { exact } from '@/tools/helper'
 import { Queries } from '@/tools/config'
+import { useLocaleRouter } from '@/locale/config'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
@@ -24,22 +25,29 @@ const Dropdown = dynamic(() => import('@/components/Dropdown'), {
   ssr: false,
 })
 
+const Alert = dynamic(() => import('@/components/Notification/Alert'), {
+  ssr: false,
+})
+
 const SheetDropdown: RF = () => {
   const [open, onOpenChange] = useState(false)
   const [openPayment, setOpenPayment] = useState(false)
   const [sheetTitle, setSheetTitle] = useState('Pembelian')
+  const [showAlert, setShowAlert] = useState(false)
   const queryClient = useQueryClient()
+  const router = useLocaleRouter()
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
   const status = detail.status
   const { getSignal } = useUtilities()
-  const { isForeverActive, isPaymentComplete } = usePayment()
+  const { isPaymentComplete } = usePayment()
   const isDraft = status === 'draft'
   const isNew = !detail.payment.length
   const wid = useParams().wid as string
+  const path = detail.name
   const toast = new Toast()
   const t = useTranslations()
 
-  const { mutate: updateStatus, isLoading } = useMutation<
+  const { mutate: updateStatus, isLoading: isUpdating } = useMutation<
     'live' | 'draft',
     unknown,
     'live' | 'draft'
@@ -53,9 +61,22 @@ const SheetDropdown: RF = () => {
     },
     onSuccess: (status) => {
       onOpenChange(false)
+      setShowAlert(false)
+
       queryClient.setQueryData<Wedding | undefined>(
         Queries.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, status })
+      )
+
+      queryClient.setQueryData<Wedding[] | undefined>(
+        Queries.weddingGetAll,
+        (prev) => {
+          return !prev
+            ? [{ ...detail, status }]
+            : prev.map((item) =>
+                item.wid === wid ? { ...item, status } : item
+              )
+        }
       )
     },
     onError: (e) => {
@@ -67,8 +88,37 @@ const SheetDropdown: RF = () => {
     },
   })
 
+  const { mutate: deleteWedding, isLoading: isDeleting } = useMutation<
+    string,
+    unknown,
+    { wid: string; path: string }
+  >({
+    mutationFn: ({ wid, path }) => {
+      return deleteWeddingQuery({ path, wid, signal: getSignal() })
+    },
+    onSuccess: (deletedWid) => {
+      queryClient.setQueryData<Wedding[] | undefined>(
+        Queries.weddingGetAll,
+        (prev) => {
+          return !prev ? [] : prev.filter((item) => item.wid !== deletedWid)
+        }
+      )
+
+      toast.success(t('success.invitation.delete'))
+      router.refresh()
+    },
+    onError: (e) => {
+      if ((e as Error)?.message.includes('AbortError')) {
+        return
+      }
+
+      toast.error((e as Error)?.message)
+    },
+  })
+
   const publishText = isNew ? 'Tayang perdana' : 'Publish'
-  const isLoadingOrComplete = isLoading || isPaymentComplete || isNew
+  const isLoading = isUpdating || isDeleting
+  const isLoadingOrComplete = isLoading || isPaymentComplete
   const items = [
     {
       disabled: isLoading,
@@ -95,21 +145,36 @@ const SheetDropdown: RF = () => {
               return
             }
 
+            if (!isDraft) {
+              return setShowAlert(true)
+            }
+
             e.preventDefault()
-            updateStatus(isDraft ? 'live' : 'draft')
+            updateStatus('live')
           },
     },
-    {
-      disabled: isLoadingOrComplete,
-      children: 'Tambahan',
-      className: tw('disabled:opacity-40'),
-      onClick: isLoadingOrComplete
-        ? void 0
-        : () => {
-            setOpenPayment(true)
-            setSheetTitle('Tambahan')
+    ...(isNew
+      ? [
+          {
+            disabled: isLoading,
+            children: 'Hapus',
+            className: tw('text-red-500'),
+            onClick: isLoading ? void 0 : () => setShowAlert(true),
           },
-    },
+        ]
+      : [
+          {
+            disabled: isLoadingOrComplete,
+            children: 'Tambahan',
+            className: tw('disabled:opacity-40'),
+            onClick: isLoadingOrComplete
+              ? void 0
+              : () => {
+                  setOpenPayment(true)
+                  setSheetTitle('Tambahan')
+                },
+          },
+        ]),
   ]
 
   return (
@@ -157,7 +222,26 @@ const SheetDropdown: RF = () => {
         title={sheetTitle}
         isOpen={openPayment}
         setIsOpen={setOpenPayment}
-        scope={isForeverActive ? 'guest' : 'period'}
+        scope='guest'
+      />
+      <Alert
+        root={{ open: showAlert, onOpenChange: setShowAlert }}
+        title={{ children: isNew ? 'Hapus undangan?' : 'Kembalikan ke draft?' }}
+        description={{
+          children: isNew
+            ? 'Undangan yang sudah dihapus tidak dapat dikembalikan. Lanjutkan?'
+            : 'Tamu Anda tidak dapat menemukan undangan Anda ketika dalam mode draft. Tetap lanjutkan?',
+        }}
+        cancel={{ children: 'Batal', disabled: isLoading }}
+        action={{
+          disabled: isLoading,
+          className: isNew ? tw('bg-red-600') : void 0,
+          children: isLoading ? <Spinner /> : isNew ? 'Hapus' : 'OK',
+          onClick: (e) => {
+            e.preventDefault()
+            isNew ? deleteWedding({ wid, path }) : updateStatus('draft')
+          },
+        }}
       />
     </>
   )

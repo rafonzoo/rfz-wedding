@@ -21,8 +21,8 @@ import LandingMediaPlayer from '@wedding/components/Section/Landing/MediaPlayer'
 import SectionLandingBackground from '@wedding/components/Section/Landing/Background'
 import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 const SheetGuest = dynamic(() => import('@wedding/components/Sheet/Guest'), {
   ssr: false,
@@ -101,6 +101,19 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
       queryClient.setQueryData<Wedding | undefined>(
         Queries.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, displayName: newDisplayName })
+      )
+
+      queryClient.setQueryData<Wedding[] | undefined>(
+        Queries.weddingGetAll,
+        (prev) => {
+          return !prev
+            ? [{ ...detail, displayName: newDisplayName }]
+            : prev.map((item) =>
+                item.wid === wid
+                  ? { ...item, displayName: newDisplayName }
+                  : item
+              )
+        }
       )
     },
     onError: (e) => {

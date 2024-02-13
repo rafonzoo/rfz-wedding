@@ -46,19 +46,32 @@ const config: Config = {
       animation: {
         'dropdown-show': 'dropdown-show 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards', // prettier-ignore
         'dropdown-hide': 'dropdown-hide 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards', // prettier-ignore
-        'dialog-show': 'dialog-show 640ms cubic-bezier(.32,.72,0,1) forwards',
-        'dialog-hide': 'dialog-hide 640ms cubic-bezier(.32,.72,0,1) forwards',
-        'fade-in': 'fade-in 320ms cubic-bezier(0.4, 0, 0.2, 1)',
-        'fade-out': 'fade-out 320ms cubic-bezier(0.4, 0, 0.2, 1) 160ms',
+        'sheet-show': 'sheet-show 640ms cubic-bezier(.32,.72,0,1) forwards',
+        'sheet-hide': 'sheet-hide 640ms cubic-bezier(.32,.72,0,1) forwards',
+        'alert-show': 'alert-show 320ms cubic-bezier(.32,.72,0,1) forwards',
+        'alert-hide': 'alert-hide 320ms cubic-bezier(.32,.72,0,1) forwards',
+        'fade-in': 'fade-in 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards',
+        'fade-out': 'fade-out 320ms cubic-bezier(0.4, 0, 0.2, 1) 160ms forwards', // prettier-ignore
         'song-play': 'song-play 20s linear infinite',
       },
       keyframes: {
-        'dialog-show': {
+        'alert-show': {
+          '0%': { opacity: '0', transform: 'translate(-50%, -48%)scale(0.80)' },
+          '100%': { opacity: '1', transform: 'translate(-50%, -50%)scale(1)' },
+        },
+
+        'alert-hide': {
+          '0%': { opacity: '1', transform: 'translate(-50%, -50%)scale(1)' },
+          '50%': { opacity: '0' },
+          '100%': { transform: 'translate(-50%, -48%)scale(0.80)' },
+        },
+
+        'sheet-show': {
           '0%': { transform: 'translate3d(0,calc(100% + 1px),0)' },
           '100%': { transform: 'translate3d(0,0,0)' },
         },
 
-        'dialog-hide': {
+        'sheet-hide': {
           '0%': { transform: 'translate3d(0,0,0)scale(1)' },
           '100%': { transform: 'translate3d(0,calc(100% + 1px),0)scale(1)' },
         },

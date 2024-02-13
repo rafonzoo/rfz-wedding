@@ -1,4 +1,4 @@
-import withAuthServer from '@/components/HoC/withAuthServer'
+import withAuthServer from '@/components/WrapperHoc/withAuthServer'
 import AccountPageClient from './client'
 
 const AccountPage = withAuthServer(() => {

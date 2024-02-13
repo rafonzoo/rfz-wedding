@@ -31,11 +31,18 @@ const SectionLandingBackground: RFZ = ({ children }) => {
   const index = AppConfig.Wedding.ImageryStartIndex
   const imageRef = useRef(null)
   const { abort, getSignal, debounce } = useUtilities()
-  const isIntersecting = useIntersection(imageRef)
   const [open, onOpenChange] = useState(false)
   const [background, setBackground] = useState(
     detail.galleries.find((item) => item.index === index)
   )
+
+  const [position, setPosition] = useState('')
+  const isIntersecting = useIntersection(imageRef)
+  const coordinates = (position || background?.coordinate)?.split(':')
+  const coordinate = {
+    x: coordinates?.[0] ?? '0',
+    y: coordinates?.[1] ?? '0',
+  }
 
   const toast = new Toast()
   const t = useTranslations()
@@ -72,10 +79,21 @@ const SectionLandingBackground: RFZ = ({ children }) => {
       toast.error((e as Error)?.message)
       setBackground(previous)
     },
-    onSuccess: (data) => {
+    onSuccess: (galleries) => {
       queryClient.setQueryData<Wedding | undefined>(
         Queries.weddingDetail,
-        (prev) => (!prev ? prev : { ...prev, galleries: data })
+        (prev) => (!prev ? prev : { ...prev, galleries })
+      )
+
+      queryClient.setQueryData<Wedding[] | undefined>(
+        Queries.weddingGetAll,
+        (prev) => {
+          return !prev
+            ? [{ ...detail, galleries }]
+            : prev.map((item) =>
+                item.wid === wid ? { ...item, galleries } : item
+              )
+        }
       )
     },
   })
@@ -84,6 +102,7 @@ const SectionLandingBackground: RFZ = ({ children }) => {
     setBackground(!file ? void 0 : { ...file, index })
     mutation.isLoading && abort()
 
+    setPosition((prev) => (!file ? '' : prev))
     const payload = !file
       ? detail.galleries.filter((item) => item.index !== index)
       : [
@@ -91,6 +110,23 @@ const SectionLandingBackground: RFZ = ({ children }) => {
           { ...file, index },
         ]
 
+    debounce(() => mutation.mutate(payload))
+  }
+
+  function onValueCommit(coordinate: string) {
+    const prevCoordinates = detail.galleries.find(
+      (item) => item.index === index
+    )?.coordinate
+
+    const payload = detail.galleries.map((gallery) =>
+      gallery.index === index ? { ...gallery, coordinate: coordinate } : gallery
+    )
+
+    if (prevCoordinates === coordinate) {
+      return
+    }
+
+    mutation.isLoading && abort()
     debounce(() => mutation.mutate(payload))
   }
 
@@ -108,12 +144,14 @@ const SectionLandingBackground: RFZ = ({ children }) => {
           <>
             <img
               className='absolute left-0 top-0 h-full w-full rounded-[inherit] object-cover object-center'
+              style={{ objectPosition: `${coordinate.x}% ${coordinate.y}%` }}
               src={backgroundUrl.blur}
               alt={`photo-${background?.fileName}`}
             />
             {isIntersecting && (
               <img
                 className='absolute left-0 top-0 h-full w-full rounded-[inherit] object-cover object-center'
+                style={{ objectPosition: `${coordinate.x}% ${coordinate.y}%` }}
                 src={backgroundUrl.src}
                 srcSet={backgroundUrl.srcSet}
                 alt={`photo-${background?.fileName}`}
@@ -129,8 +167,15 @@ const SectionLandingBackground: RFZ = ({ children }) => {
           defaultSelectedId={background?.fileId}
           content={{ onCloseAutoFocus: (e) => e.preventDefault() }}
           onItemPicked={onItemSelected}
+          coordinate={{
+            defaultCoordinate: background?.coordinate,
+            allowedAxis: ['x'],
+            onValueCommit,
+            onChangedCoordinate: setPosition,
+          }}
           root={{ open, onOpenChange }}
           trigger={{
+            'aria-label': 'Tambah / hapus foto',
             className: tw('absolute top-0 left-0 right-0 bottom-0 z-[2]'),
             children: isEditor && !backgroundUrl && (
               <span className='absolute left-1/2 top-1/2 -mt-[50%] flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500'>

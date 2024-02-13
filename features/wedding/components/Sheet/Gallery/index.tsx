@@ -9,10 +9,10 @@ import { IoCloudUploadOutline } from 'react-icons/io5'
 import { weddingGalleriesType } from '@wedding/schema'
 import { tw } from '@/tools/lib'
 import { useMountedEffect, useOutlinedClasses } from '@/tools/hook'
-import { blobToUri, exact, qstring, uploads } from '@/tools/helper'
+import { blobToUri, compress, exact, qstring, uploads } from '@/tools/helper'
 import { AppConfig, Queries, RouteApi } from '@/tools/config'
-import Compressor from 'compressorjs'
 import dynamic from 'next/dynamic'
+import RangeSlider from '@/components/RangeSlider'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
 
@@ -20,12 +20,24 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
 })
 
+const Alert = dynamic(() => import('@/components/Notification/Alert'), {
+  ssr: false,
+})
+
 const MAX_FILE_SIZE = AppConfig.Wedding.MaxFileSize * 1000 // byte
 
 const SUPPORTED_FORMAT = ['image/png', 'image/jpg', 'image/jpeg']
 
+type SheetGalleryCoordinate = {
+  defaultCoordinate?: string
+  allowedAxis?: string[]
+  onChangedCoordinate?: (coordinate: string) => void
+  onValueCommit?: (coordinate: string) => void
+}
+
 type SheetGalleryProps = BottomSheetProps & {
   defaultSelectedId?: string
+  coordinate?: SheetGalleryCoordinate
   onItemPicked?: (file?: Omit<WeddingGallery, 'index'>) => void
 }
 
@@ -36,6 +48,7 @@ type SheetGallerySignal = {
 
 const SheetGallery: RFZ<SheetGalleryProps> = ({
   defaultSelectedId,
+  coordinate,
   onItemPicked,
   ...sheetProps
 }) => {
@@ -43,9 +56,10 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
   const [isOnRemoval, setIsOnRemoval] = useState(false)
   const [selectionId, setSelectionId] = useState<string[]>([])
   const [uploadNames, setUploadNames] = useState<string[]>([])
+  const [coordinates, setCoordinates] = useState({ x: 50, y: 50 })
   const [selectedId, setSelectedId] = useState(defaultSelectedId)
   const [errors, setErrors] = useState<string[]>([])
-
+  const allowedAxis = coordinate?.allowedAxis ?? ['x', 'y']
   const toast = new Toast()
   const controller = useRef<SheetGallerySignal[]>([])
   const fileRef = useRef<HTMLInputElement | null>(null)
@@ -80,6 +94,9 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
       throw new Error(json.message)
     },
   })
+
+  const isInAction =
+    galleries.isLoading || !!uploadNames.length || isOnRemoval || isModeSelect
 
   function isProcessing(id: string, name: string) {
     return (
@@ -117,101 +134,97 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
       }
 
       const ac = { id: file.name, controller: new AbortController() }
-      const compressedFile = new Compressor(file, {
-        quality: 0.3,
-        checkOrientation: false,
-        success: async (blob) => {
-          const uri = URL.createObjectURL(file)
-          controller.current.push(ac)
+      const uri = URL.createObjectURL(file)
+      controller.current.push(ac)
 
-          setUploadNames((prev) => [...prev, file.name])
-          queryClient.setQueryData<WeddingGalleries[] | undefined>(
-            Queries.weddingGalleries,
-            (prev) => {
-              return !prev
-                ? prev
-                : [
-                    ...prev,
-                    {
-                      thumbnail: uri,
-                      name: file.name,
-                      fileId: '',
-                    },
-                  ]
+      setUploadNames((prev) => [...prev, file.name])
+      queryClient.setQueryData<WeddingGalleries[] | undefined>(
+        Queries.weddingGalleries,
+        (prev) => {
+          return !prev
+            ? prev
+            : [
+                ...prev,
+                {
+                  thumbnail: uri,
+                  name: file.name,
+                  fileId: '',
+                },
+              ]
+        }
+      )
+
+      let quality = 8
+      let blob = await compress(quality, file)
+
+      while (quality > 1 && blob.size > 1500 * 1000) {
+        blob = await compress(quality--, file)
+      }
+
+      try {
+        const image = await blobToUri(blob)
+        const response = await fetch(qstring({ locale }, RouteApi.uploads), {
+          method: 'POST',
+          signal: ac.controller.signal,
+          headers: { 'Content-type': 'application/json' },
+          body: JSON.stringify({
+            fileName: file.name,
+            file: image,
+            path,
+            wid,
+          }),
+        })
+
+        const json = (await response.json()) as {
+          data: unknown
+          message?: string
+        }
+
+        if (!response.ok) {
+          toast.error(json.message)
+
+          throw new Error(json.message)
+        }
+
+        const data = weddingGalleriesType.parse(json.data)
+        queryClient.setQueryData<WeddingGalleries[] | undefined>(
+          Queries.weddingGalleries,
+          (prev) => {
+            if (!prev) return prev
+
+            const pattern = /\.(jpg|jpeg|png)/g
+            const copy = prev.filter(
+              (item) => !data.name.includes(item.name.replace(pattern, ''))
+            )
+
+            const previousIndex = prev.findIndex((item) =>
+              data.name.includes(item.name.replace(pattern, ''))
+            )
+
+            if (previousIndex < 0) {
+              return prev
             }
-          )
 
-          const image = await blobToUri(blob)
-
-          try {
-            const response = await fetch(
-              qstring({ locale }, RouteApi.uploads),
-              {
-                method: 'POST',
-                signal: ac.controller.signal,
-                headers: { 'Content-type': 'application/json' },
-                body: JSON.stringify({
-                  fileName: file.name,
-                  file: image,
-                  path,
-                  wid,
-                }),
-              }
-            )
-
-            const json = (await response.json()) as {
-              data: unknown
-              message?: string
-            }
-
-            if (!response.ok) {
-              toast.error(json.message)
-
-              throw new Error(json.message)
-            }
-
-            const data = weddingGalleriesType.parse(json.data)
-            queryClient.setQueryData<WeddingGalleries[] | undefined>(
-              Queries.weddingGalleries,
-              (prev) => {
-                if (!prev) return prev
-
-                const pattern = /\.(jpg|jpeg|png)/g
-                const copy = prev.filter(
-                  (item) => !data.name.includes(item.name.replace(pattern, ''))
-                )
-
-                const previousIndex = prev.findIndex((item) =>
-                  data.name.includes(item.name.replace(pattern, ''))
-                )
-
-                if (previousIndex < 0) {
-                  return prev
-                }
-
-                copy.splice(previousIndex, 0, data)
-                return copy
-              }
-            )
-          } catch (e) {
-            queryClient.setQueryData<WeddingGalleries[] | undefined>(
-              Queries.weddingGalleries,
-              (prev) => prev?.filter((item) => item.name !== file.name)
-            )
-          } finally {
-            controller.current = controller.current.filter(
-              (item) => item.id !== file.name
-            )
-
-            URL.revokeObjectURL(uri)
-            setUploadNames((prev) => prev.filter((name) => name !== file.name))
+            copy.splice(previousIndex, 0, data)
+            return copy
           }
-        },
-      })
+        )
+      } catch (e) {
+        queryClient.setQueryData<WeddingGalleries[] | undefined>(
+          Queries.weddingGalleries,
+          (prev) => prev?.filter((item) => item.name !== file.name)
+        )
+      } finally {
+        controller.current = controller.current.filter(
+          (item) => item.id !== file.name
+        )
+
+        URL.revokeObjectURL(uri)
+        setUploadNames((prev) => prev.filter((name) => name !== file.name))
+      }
 
       if (ac.controller.signal.aborted) {
         ac.controller.abort()
-        compressedFile.abort()
       }
     })
 
@@ -280,6 +293,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
       if (!isModeSelect) {
         const isRemoving = selectedId === fileId
 
+        setCoordinates({ x: 50, y: 50 })
         setSelectedId(isRemoving ? void 0 : fileId)
         onItemPicked?.(
           isRemoving
@@ -287,6 +301,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
             : {
                 fileId,
                 fileName: uploads(`/${path}/${fileName}`),
+                coordinate: '50:50',
               }
         )
 
@@ -297,6 +312,35 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
         ids.includes(fileId)
           ? ids.filter((id) => id !== fileId)
           : [...ids.filter((id) => id !== fileId), fileId]
+      )
+    }
+  }
+
+  function onCoordinateChange(axis: 'x' | 'y') {
+    return ([value]: number[]) => {
+      if (!allowedAxis.includes(axis) || isInAction) {
+        return
+      }
+
+      setCoordinates((prev) => ({ ...prev, [axis]: value }))
+      coordinate?.onChangedCoordinate?.(
+        (axis === 'x' ? [value, coordinates.y] : [coordinates.x, value]).join(
+          ':'
+        )
+      )
+    }
+  }
+
+  function onCoordinateCommit(axis: 'x' | 'y') {
+    return ([value]: number[]) => {
+      if (!allowedAxis.includes(axis) || isInAction) {
+        return
+      }
+
+      coordinate?.onValueCommit?.(
+        (axis === 'x' ? [value, coordinates.y] : [coordinates.x, value]).join(
+          ':'
+        )
       )
     }
   }
@@ -321,6 +365,15 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
     }
   }, [defaultSelectedId, selectedId])
 
+  useEffect(() => {
+    if (coordinate?.defaultCoordinate) {
+      const coordinates = coordinate.defaultCoordinate
+      const [x, y] = coordinates.split(':').map(Number)
+
+      setCoordinates({ x, y })
+    }
+  }, [coordinate?.defaultCoordinate])
+
   // prettier-ignore
   const prepend = (
     galleries.data &&
@@ -342,12 +395,23 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
   // prettier-ignore
   const append = (
     isModeSelect && selectionId.length > 0 ? (
-      <button
-        aria-label='Delete'
-        onClick={() => onDelete(selectionId)}
-      >
-        Hapus
-      </button>
+      <Alert
+        title={{ children: 'Hapus foto?' }}
+        description={{
+          children:
+            'Foto yang dipilih akan dihapus dan dilepas dari gallery foto (jika ada). Lanjutkan?',
+        }}
+        cancel={{ children: 'Batal' }}
+        action={{
+          children: 'Hapus',
+          className: tw('bg-red-600'),
+          onClick: () => onDelete(selectionId),
+        }}
+        trigger={{
+          asChild: true,
+          children: <button>Hapus</button>
+        }}
+      />
     ) : !!galleries.data && (
       <button
         aria-label='Upload'
@@ -474,18 +538,55 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
           </div>
         )}
         <div className='mx-6 mt-4'>
-          <div className='rounded-lg bg-zinc-100 px-3 py-3 text-xs tracking-wide text-zinc-600'>
-            <ul className='flex flex-col pl-4'>
-              <li className='list-disc'>
-                <p>Max files in gallery is 13 item.</p>
-              </li>
-              <li className='list-disc'>
-                <p>
-                  Maximum file size is{' '}
-                  {`${AppConfig.Wedding.MaxFileSize}`.charAt(0)} MB
-                </p>
-              </li>
-            </ul>
+          <div className='flex min-h-20 items-center rounded-lg bg-zinc-100 px-3 py-3 text-xs tracking-wide text-zinc-600 [.dark_&]:bg-zinc-700 [.dark_&]:text-zinc-300'>
+            {galleries.data &&
+            !galleries.isLoading &&
+            selectedId &&
+            coordinate ? (
+              <div className='w-full'>
+                {(['x', 'y'] as const).map((axis, index) => (
+                  <div key={index} className='flex items-center space-x-3'>
+                    <span
+                      className={tw(
+                        'block min-w-16',
+                        (!allowedAxis.includes(axis) || isInAction) && 'opacity-40' // prettier-ignore
+                      )}
+                    >
+                      {axis === 'x' ? 'Horizontal' : 'Vertical'}
+                    </span>
+                    <RangeSlider
+                      root={{
+                        className: tw('max-w-full'),
+                        value: [coordinates[axis]],
+                        disabled: !allowedAxis.includes(axis) || isInAction,
+                        max: 100,
+                        step: 1,
+                        onValueCommit: onCoordinateCommit(axis),
+                        onValueChange: onCoordinateChange(axis),
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <ul className='flex w-full flex-col pl-4'>
+                <li className='list-disc'>
+                  <p>Max files in gallery is 13 item.</p>
+                </li>
+                <li className='list-disc'>
+                  <p>
+                    Maximum file size is{' '}
+                    {(AppConfig.Wedding.MaxFileSize / 1000).toFixed(0)} MB
+                  </p>
+                </li>
+                <li className='list-disc'>
+                  <p>
+                    Supported files:{' '}
+                    {SUPPORTED_FORMAT.join(', ').replace(/image\//g, '.')}{' '}
+                  </p>
+                </li>
+              </ul>
+            )}
           </div>
         </div>
       </div>

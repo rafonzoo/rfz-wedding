@@ -62,10 +62,6 @@ const GalleriesPhoto: RF<GalleriesPhotoProps> = ({
     9: retina(photo?.fileName, 'w', 'ar-16-9', 'fo-auto'),
   }[index]
 
-  // if (currentIndex === index && parentRef) {
-  //   sheetFocus(divRef, { bound: 'center' })
-  // }
-
   return (
     <div
       ref={divRef}

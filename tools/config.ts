@@ -34,6 +34,7 @@ export enum RouteApi {
   auth = '/api/auth',
   uploads = '/api/uploads',
   comment = '/api/comment',
+  transaction = '/api/transaction',
 }
 
 export enum RouteHeader {
@@ -87,7 +88,7 @@ export const AppConfig = {
     MaxEvent: 4,
     MaxDraft: 3,
     MaxFileItem: 13,
-    MaxFileSize: 5120,
+    MaxFileSize: 10_240,
     GuestFree: 300,
     GuestMax: 1000,
     PriceTax: 5_000, // Include transfer cost and real tax

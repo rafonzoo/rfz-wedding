@@ -17,7 +17,7 @@ import Toast from '@/components/Notification/Toast'
 const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
   const queryClient = useQueryClient()
   const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const session = queryClient.getQueryData<Session>(Queries.accountVerify)
+  const session = queryClient.getQueryData<Session>(Queries.accountSession)
   const hasSession = session?.user.id === detail.userId
   const cid = useSearchParams().get('cid')
   const commentId = cid ? decodeURI(cid) : null

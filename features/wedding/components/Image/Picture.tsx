@@ -83,10 +83,10 @@ const FigureImage: RFZ<{
       toast.error((e as Error)?.message)
       setPhoto(previous)
     },
-    onSuccess: (data) => {
+    onSuccess: (galleries) => {
       queryClient.setQueryData<Wedding | undefined>(
         Queries.weddingDetail,
-        (prev) => (!prev ? prev : { ...prev, galleries: data })
+        (prev) => (!prev ? prev : { ...prev, galleries })
       )
     },
   })

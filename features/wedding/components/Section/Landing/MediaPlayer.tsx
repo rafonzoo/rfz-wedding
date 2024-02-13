@@ -9,8 +9,8 @@ import { blobToUri, cleaner, exact } from '@/tools/helper'
 import { AppConfig, Queries } from '@/tools/config'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 type LandingMediaPlayerProps = {
   isRemoving?: boolean

@@ -43,11 +43,12 @@ export const weddingGalleryType = z.object({
   index: z.number(),
   fileName: z.string(),
   fileId: z.string(),
+  coordinate: z.string(),
 })
 
 export type WeddingGalleryUpload = Infer<typeof weddingGalleryUploadType>
 export const weddingGalleryUploadType = weddingGalleryType
-  .omit({ fileId: true, index: true })
+  .omit({ fileId: true, index: true, coordinate: true })
   .merge(
     z.object({
       file: z.string(),
@@ -144,12 +145,28 @@ export const musicType = z.object({
   fileId: z.string(),
 })
 
+export type PaymentTransaction = Infer<typeof paymentTransactionType>
+export const paymentTransactionType = z.object({
+  order_id: z.string().optional(),
+  payment_type: z.string().optional(),
+  status_code: z.string().optional(),
+  transaction_id: z.string().optional(),
+  transaction_time: z.string().optional(),
+})
+
+export type PaymentToken = Infer<typeof paymentTokenResponseType>
+export const paymentTokenResponseType = z.object({
+  token: z.string(),
+  redirect_url: z.string().url(),
+})
+
 export type Payment = Infer<typeof paymentType>
 export const paymentType = z.object({
   id: z.string().uuid(),
   foreverActive: z.boolean(),
   additionalGuest: z.number(),
   amount: z.number(),
+  transaction: paymentTransactionType,
 })
 
 export type WeddingAdd = Partial<Wedding>

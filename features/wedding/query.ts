@@ -2,6 +2,7 @@ import type {
   Comment,
   Guest,
   Payment,
+  PaymentToken,
   WeddingCouple,
   WeddingEvent,
   WeddingGallery,
@@ -203,7 +204,12 @@ export const updateWeddingGalleryQuery = async ({
     .single()
 
   if (error || !data.galleries) {
-    throw new AppError(ErrorMap.internalError, errorText)
+    const abortError = error?.code === '20'
+
+    throw new AppError(
+      abortError ? ErrorMap.abortError : ErrorMap.internalError,
+      abortError ? void 0 : errorText
+    )
   }
 
   return weddingType.shape.galleries.parse(data.galleries)
@@ -548,6 +554,39 @@ export const updateWeddingSurpriseQuery = async ({
   }
 
   return data.surprise
+}
+
+export const validateWeddingQuery = async (wid: string) => {
+  const response = await fetch(qstring({ wid }, RouteApi.transaction))
+
+  if (!response.ok) {
+    throw new AppError(ErrorMap.internalError, response.statusText)
+  }
+
+  const json = (await response.json()) as { data: unknown }
+  return json.data as PaymentToken
+}
+
+export const paymentWeddingQuery = async ({
+  wid,
+  payment,
+  user,
+}: {
+  wid: string
+  payment: Omit<Payment, 'transaction'>
+  user: { email: string; name: string }
+}) => {
+  const response = await fetch(RouteApi.transaction, {
+    method: 'POST',
+    body: JSON.stringify({ payment, wid, user }),
+  })
+
+  if (!response.ok) {
+    throw new AppError(ErrorMap.internalError, response.statusText)
+  }
+
+  const json = (await response.json()) as { data: unknown }
+  return json.data as PaymentToken
 }
 
 export const checkoutWeddingQuery = async ({

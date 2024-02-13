@@ -26,7 +26,7 @@ import SheetGuestList from '@wedding/components/Sheet/Guest/List'
 import SheetGuestAction from '@wedding/components/Sheet/Guest/Action'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
-import FieldSearch from '@/components/Field/Search'
+import FieldSearch from '@/components/FormField/Search'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -36,6 +36,10 @@ const SheetPayment = dynamic(
   () => import('features/wedding/components/Sheet/Payment'),
   { ssr: false }
 )
+
+const Alert = dynamic(() => import('@/components/Notification/Alert'), {
+  ssr: false,
+})
 
 const SheetGuest: RFZ = () => {
   const [open, onOpenChange] = useState(false)
@@ -334,12 +338,26 @@ const SheetGuest: RFZ = () => {
             </button>
           ),
           prepend: !(isSaving || isEqual || isError) && (
-            <button
-              className='absolute right-4 top-4 flex h-11 w-11 -rotate-45 -scale-x-100 items-center justify-center rounded-full text-2xl text-red-500'
-              onClick={() => revert()}
-            >
-              <VscRefresh />
-            </button>
+            <Alert
+              title={{ children: 'Batalkan perubahan?' }}
+              description={{
+                children:
+                  'Tamu yang sudah ditulis atau dihapus akan dikembalikan seperti semula. Lanjutkan?',
+              }}
+              cancel={{ children: 'Batal' }}
+              action={{
+                children: 'OK',
+                onClick: () => revert(),
+              }}
+              trigger={{
+                asChild: true,
+                children: (
+                  <button className='absolute right-4 top-4 flex h-11 w-11 -rotate-45 -scale-x-100 items-center justify-center rounded-full text-2xl text-red-500'>
+                    <VscRefresh />
+                  </button>
+                ),
+              }}
+            />
           ),
         }}
       >

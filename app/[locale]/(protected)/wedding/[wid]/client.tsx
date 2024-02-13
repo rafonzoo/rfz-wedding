@@ -2,8 +2,7 @@
 
 import type { Wedding } from '@wedding/schema'
 import type { Session } from '@supabase/auth-helpers-nextjs'
-import { useEffect } from 'react'
-import { useQuery, useQueryClient } from 'react-query'
+import { useQuery } from 'react-query'
 import { detailWeddingQuery } from '@wedding/query'
 import { supabaseClient } from '@/tools/lib'
 import { Queries, Route } from '@/tools/config'
@@ -15,7 +14,6 @@ const WeddingEditorPageClient: RFZ<{ wedding: Wedding; session: Session }> = ({
   session,
 }) => {
   const router = useLocaleRouter()
-  const queryClient = useQueryClient()
   const detail = useQuery({
     initialData: wedding,
     queryKey: Queries.weddingDetail,
@@ -23,36 +21,12 @@ const WeddingEditorPageClient: RFZ<{ wedding: Wedding; session: Session }> = ({
     onError: () => router.replace(Route.notFound),
   })
 
-  const detailData = detail.data ?? wedding
-
   useQuery({
     initialData: session,
-    queryKey: Queries.accountVerify,
+    queryKey: Queries.accountSession,
   })
 
-  useEffect(() => {
-    const prevWeddingList = queryClient.getQueryData<Wedding[]>(
-      Queries.weddingGetAll
-    )
-
-    if (!prevWeddingList?.some(({ wid }) => wid === detailData.wid)) {
-      return void queryClient.setQueryData<Wedding[] | undefined>(
-        Queries.weddingGetAll,
-        (prev) => (!prev ? prev : [...prev, detailData])
-      )
-    }
-
-    queryClient.setQueryData<Wedding[] | undefined>(
-      Queries.weddingGetAll,
-      (prev) => {
-        return !prev
-          ? prev
-          : prev.map((p) => (p.wid === detailData.wid ? detailData : p))
-      }
-    )
-  }, [detailData, queryClient])
-
-  return <WeddingTemplate {...detailData} />
+  return <WeddingTemplate {...(detail.data ?? wedding)} />
 }
 
 export default WeddingEditorPageClient

@@ -2,7 +2,7 @@ import { detailWeddingQuery } from '@wedding/query'
 import { supabaseServer } from '@/tools/server'
 import { Route } from '@/tools/config'
 import { localeRedirect } from '@/locale/config'
-import withAuthServer from '@/components/HoC/withAuthServer'
+import withAuthServer from '@/components/WrapperHoc/withAuthServer'
 import WeddingEditorPageClient from './client'
 
 const WeddingEditorPage = withAuthServer<{ wid: string }>(

@@ -30,6 +30,7 @@ const EventsAction: RF<EventsActionProps> = ({
   ) : (
     <div className='ml-5 h-10 w-10'>
       <button
+        aria-label='Tambah / hapus acara'
         tabIndex={isActive && !isFirstIndex ? 0 : -1}
         onClick={isFirstIndex ? void 0 : onClick}
         className={tw(

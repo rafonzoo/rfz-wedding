@@ -16,8 +16,8 @@ import { Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -49,8 +49,8 @@ const EventTime: RFZ<EventTimeProps> = ({
   const isEditor = useIsEditorOrDev()
   const caption = `Pukul ${timeStart} ${localTime} — ${timeEnd} ${localTime}`
   const wid = useParams().wid as string
-  const query = useQueryClient()
-  const detail = exact(query.getQueryData<Wedding>(Queries.weddingDetail))
+  const queryClient = useQueryClient()
+  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
   const [previousLength, setPreviousLength] = useState(detail.events.length)
   const { mutate: updateTime, isLoading } = useMutation<
     WeddingEventTime,
@@ -74,24 +74,26 @@ const EventTime: RFZ<EventTimeProps> = ({
         payload: updatedEvents,
       })
     },
-    onSuccess: (result) => {
+    onSuccess: (updatedEvent) => {
       previousError.current = previousError.current.filter(
         (item) => item.id !== id
       )
 
-      query.setQueryData<Wedding | undefined>(Queries.weddingDetail, (prev) =>
-        !prev
-          ? prev
-          : {
-              ...prev,
-              events: prev.events.map((event) => {
-                if (event.id !== id) {
-                  return event
-                }
+      queryClient.setQueryData<Wedding | undefined>(
+        Queries.weddingDetail,
+        (prev) =>
+          !prev
+            ? prev
+            : {
+                ...prev,
+                events: prev.events.map((event) => {
+                  if (event.id !== id) {
+                    return event
+                  }
 
-                return { ...event, ...result }
-              }),
-            }
+                  return { ...event, ...updatedEvent }
+                }),
+              }
       )
     },
     onError: (e, payload) => {
@@ -245,6 +247,7 @@ const EventTime: RFZ<EventTimeProps> = ({
               asChild: true,
               children: (
                 <button
+                  aria-label='Edit waktu acara'
                   onClick={() => onOpenChange(true)}
                   className={tw(
                     'absolute flex flex-col items-end text-right text-sm tracking-normal text-zinc-500',

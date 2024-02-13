@@ -26,7 +26,7 @@ const WeddingPageClient: RFZ<{
 
   useQuery({
     initialData: session,
-    queryKey: Queries.accountVerify,
+    queryKey: Queries.accountSession,
     queryFn: () => authorizationQuery(supabaseClient()),
   })
 

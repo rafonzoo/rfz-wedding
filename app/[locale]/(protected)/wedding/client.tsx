@@ -8,13 +8,9 @@ import { useTranslations } from 'next-intl'
 import { ZodError } from 'zod'
 import { BsPlusLg } from 'react-icons/bs'
 import { type Wedding, weddingType } from '@wedding/schema'
-import {
-  addNewWeddingQuery,
-  deleteWeddingQuery,
-  getAllWeddingQuery,
-} from '@wedding/query'
+import { addNewWeddingQuery, getAllWeddingQuery } from '@wedding/query'
 import { djs, supabaseClient, tw } from '@/tools/lib'
-import { useIntersection, useLongPress, useUtilities } from '@/tools/hook'
+import { useIntersection, useUtilities } from '@/tools/hook'
 import { abspath, retina, sanitizeValue, trimBy } from '@/tools/helper'
 import { AppConfig, ErrorMap, Queries, Route } from '@/tools/config'
 import { useLocaleRouter } from '@/locale/config'
@@ -22,12 +18,21 @@ import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
 import NavWindow from '@/components/NavWindow'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldSearch from '@/components/Field/Search'
-import FieldGroup from '@/components/Field/Group'
+import FieldText from '@/components/FormField/Text'
+import FieldSearch from '@/components/FormField/Search'
+import FieldGroup from '@/components/FormField/Group'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
+})
+
+const Alert = dynamic(() => import('@/components/Notification/Alert'), {
+  ssr: false,
+  loading: () => (
+    <button className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'>
+      Hapus
+    </button>
+  ),
 })
 
 const MyWeddingAddNewSheet: RF<{
@@ -41,8 +46,6 @@ const MyWeddingAddNewSheet: RF<{
   const inputRef = useRef<HTMLInputElement>(null)
   const t = useTranslations()
   const toast = new Toast()
-  const queryClient = useQueryClient()
-  const router = useLocaleRouter()
   const { mutate: addNewWedding, isLoading } = useMutation<
     Wedding,
     unknown,
@@ -74,9 +77,9 @@ const MyWeddingAddNewSheet: RF<{
         }
       }
     },
-    onSuccess: (data) => {
+    onSuccess: (wedding) => {
       toast.success(t('success.invitation.create'))
-      onAddedNew(data)
+      onAddedNew(wedding)
 
       setCoupleName('')
       onOpenChange(false)
@@ -164,10 +167,8 @@ const MyWeddingItems: RF<{
   index: number
   length: number
   wedding: Wedding
-  isLoading: boolean
   onClick: () => void
-  onDeletion: (payload: { wid: string; name: string }) => void
-}> = ({ index, length, wedding, isLoading, onClick, onDeletion }) => {
+}> = ({ index, length, wedding, onClick }) => {
   const refLi = useRef<HTMLLIElement | null>(null)
   const [open, onOpenChange] = useState(false)
   const [highlight, setHighlight] = useState(false)
@@ -180,25 +181,16 @@ const MyWeddingItems: RF<{
     ? retina(heroImage.fileName, 'w', 'ar-1-1')
     : void 0
 
-  const longpressAction = useLongPress({
-    onClick,
-    onLongPress: () => {
-      onOpenChange(true)
-      setHighlight(true)
-    },
-  })
-
   return (
     <li
       ref={refLi}
       className={tw(
         'relative overflow-hidden',
-        isLoading && 'animate-[pulse_500ms_ease-in-out_infinite]', // prettier-ignore
         highlight && 'z-[999] bg-zinc-100 [.dark_&]:bg-zinc-900'
       )}
     >
       <button
-        {...longpressAction}
+        onClick={onClick}
         className={tw(
           'flex w-full touch-none select-none space-x-4 pl-4 hover:bg-zinc-100 [.dark_&]:hover:bg-zinc-900',
           index === 0 ? 'pt-4' : 'pt-2'
@@ -237,7 +229,7 @@ const MyWeddingItems: RF<{
                 <span className='flex space-x-1 truncate text-xs tracking-base text-zinc-500 [.dark_&]:text-zinc-400'>
                   <span className='block'>·</span>
                   <span className='block truncate'>
-                    {djs().tz().format('DD/MM/YYYY')}
+                    {djs(wedding.events[0].date).tz().format('DD/MM/YYYY')}
                   </span>
                 </span>
               </span>
@@ -260,17 +252,27 @@ const MyWeddingItems: RF<{
         content={{ onCloseAutoFocus: () => setHighlight(false) }}
       >
         <div className='px-6'>
-          <button
-            className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'
-            onClick={() => {
-              // @TODO
-              // Window confirm not detected after route change
-              onDeletion?.({ wid: wedding.wid, name: wedding.name })
-              onOpenChange(false)
+          <Alert
+            title={{ children: 'Hapus undangan?' }}
+            description={{
+              children:
+                'Undangan yang sudah dihapus tidak dapat dikembalikan. Lanjutkan?',
             }}
-          >
-            Hapus
-          </button>
+            cancel={{ children: 'Batal' }}
+            action={{
+              children: 'Hapus',
+              className: tw('bg-red-600'),
+              onClick: () => onOpenChange(false),
+            }}
+            trigger={{
+              asChild: true,
+              children: (
+                <button className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'>
+                  Hapus
+                </button>
+              ),
+            }}
+          />
         </div>
       </BottomSheet>
     </li>
@@ -292,10 +294,7 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
   const prevDetail = queryClient.getQueryData<Wedding>(Queries.weddingDetail)
   const usermeta = user.user_metadata
   const avatar_url: string | undefined = usermeta.avatar_url ?? usermeta.picture
-  const { getSignal } = useUtilities()
   const [withFilter] = useState<keyof typeof items>('createdAt')
-  const toast = new Toast()
-  const t = useTranslations()
   const allWedding = weddings ?? myWedding
   const items = {
     createdAt: allWedding.sort((a, b) =>
@@ -305,34 +304,6 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
         .localeCompare(djs(b.createdAt).tz().toISOString())
     ),
   }
-
-  const {
-    mutate: deleteWedding,
-    variables,
-    isLoading,
-  } = useMutation<string, unknown, { wid: string; path: string }>({
-    mutationFn: ({ wid, path }) => {
-      return deleteWeddingQuery({ path, wid, signal: getSignal() })
-    },
-    onSuccess: (d, { wid }) => {
-      toast.success(t('success.invitation.delete'))
-
-      queryClient.setQueryData<Wedding[] | undefined>(
-        Queries.weddingGetAll,
-        (prev) => {
-          return (prev ?? myWedding)?.filter((item) => item.wid !== wid)
-        }
-      )
-    },
-    onError: (e) => {
-      const err = e as Error
-      if (err.message.includes('AbortError')) {
-        return
-      }
-
-      toast.error(err.message)
-    },
-  })
 
   function gotoDetailPage(wedding: Wedding) {
     if (prevDetail && prevDetail.wid !== wedding.wid) {
@@ -351,9 +322,7 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
   return (
     <div className='mx-auto max-w-[440px]'>
       <NavWindow avatarUrl={avatar_url}>
-        {!isLoading && (
-          <MyWeddingAddNewSheet uid={user.id} onAddedNew={gotoDetailPage} />
-        )}
+        <MyWeddingAddNewSheet uid={user.id} onAddedNew={gotoDetailPage} />
       </NavWindow>
       {weddings && weddings.length >= 5 && (
         <div className='border-b border-zinc-200 px-4 py-1'>
@@ -366,10 +335,8 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
             key={index}
             wedding={wedding}
             index={index}
-            isLoading={isLoading && variables?.wid === wedding.wid}
             length={array.length}
             onClick={() => gotoDetailPage(wedding)}
-            onDeletion={({ wid, name: path }) => deleteWedding({ wid, path })}
           />
         ))}
       </ul>

@@ -20,9 +20,9 @@ import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
-import FieldTextArea from '@/components/Field/TextArea'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldTextArea from '@/components/FormField/TextArea'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -69,8 +69,8 @@ const EventDate: RF<EventDateProps> = ({
   })
 
   const t = useTranslations()
-  const query = useQueryClient()
-  const detail = exact(query.getQueryData<Wedding>(Queries.weddingDetail))
+  const queryClient = useQueryClient()
+  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
   const dateOrNow = djs(getAddress.date || djs())
   const dateValue = djs(getAddress.date).isValid()
     ? djs(getAddress.date).tz().format(AppConfig.Wedding.DateFormat)
@@ -145,25 +145,42 @@ const EventDate: RF<EventDateProps> = ({
         payload: updatedEvents,
       })
     },
-    onSuccess: (result) => {
+    onSuccess: (updatedEvent) => {
       previousError.current = previousError.current.filter(
         (item) => item.id !== id
       )
 
-      query.setQueryData<Wedding | undefined>(Queries.weddingDetail, (prev) =>
-        !prev
-          ? prev
-          : {
-              ...prev,
-              events: prev.events.map((event) => {
-                if (event.id !== id) {
-                  return event
-                }
+      const updatedDetail = queryClient.setQueryData<Wedding | undefined>(
+        Queries.weddingDetail,
+        (prev) =>
+          !prev
+            ? prev
+            : {
+                ...prev,
+                events: prev.events.map((event) => {
+                  if (event.id !== id) {
+                    return event
+                  }
 
-                return { ...event, ...result }
-              }),
-            }
+                  return { ...event, ...updatedEvent }
+                }),
+              }
       )
+
+      if (updatedDetail) {
+        queryClient.setQueryData<Wedding[] | undefined>(
+          Queries.weddingGetAll,
+          (prev) => {
+            return !prev
+              ? [{ ...detail, events: updatedDetail.events }]
+              : prev.map((item) =>
+                  item.wid === wid
+                    ? { ...item, events: updatedDetail.events }
+                    : item
+                )
+          }
+        )
+      }
     },
     onError: (e, payload) => {
       if ((e as Error)?.message.includes('AbortError')) {
