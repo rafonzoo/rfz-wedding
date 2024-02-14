@@ -183,10 +183,6 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
   })
 
   function onCallback(token: string, payload: Omit<Payment, 'transaction'>) {
-    window.onerror = (ev, source) => {
-      console.log(ev, source)
-    }
-
     // @ts-expect-error No type
     window.snap.pay(token, {
       onSuccess: (result: unknown) => {
@@ -196,6 +192,10 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
         checkout([...detail.payment, { ...payload, transaction }])
       },
     })
+
+    window.onerror = (ev, source) => {
+      console.log(ev, source)
+    }
   }
 
   function onCheckout() {
@@ -282,9 +282,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
               onClick={
                 isLoading || isLoadingCheckout || !priceTotal
                   ? void 0
-                  : !isIOS12
-                    ? onCheckout
-                    : () => setUnsupportedPayment(true)
+                  : onCheckout
               }
             >
               {isLoading || isLoadingCheckout ? <Spinner /> : 'Bayar'}
