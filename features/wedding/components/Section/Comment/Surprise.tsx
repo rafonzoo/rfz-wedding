@@ -7,10 +7,9 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { BsGift } from 'react-icons/bs'
 import { updateWeddingSurpriseQuery } from '@wedding/query'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Notify from '@/components/Notification/Notify'
 import markdownConfig from '@/components/Markdown/config'
@@ -42,7 +41,7 @@ const CommentSurprise: RF = () => {
   const isEditor = useIsEditorOrDev()
   const isPublic = !isEditor
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [viewParsed, setViewParsed] = useState(!!detail.surprise)
   const [surprise, setSurprise] = useState(detail.surprise)
   const [open, onOpenChange] = useState(false)
@@ -65,7 +64,7 @@ const CommentSurprise: RF = () => {
       setIsError(false)
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, surprise: updatedSurprise })
       )
     },

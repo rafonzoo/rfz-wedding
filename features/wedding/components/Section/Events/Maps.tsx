@@ -1,18 +1,18 @@
 'use client'
 
 import type { WeddingEvent } from '@wedding/schema'
-import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import { FaMapMarkerAlt } from 'react-icons/fa'
 import { tw } from '@/tools/lib'
-import { useMountedEffect } from '@/tools/hook'
+import { useIOSVersion } from '@/tools/hook'
 
 const EventMaps: RF<
   Pick<WeddingEvent, 'placeName' | 'district' | 'province'>
 > = ({ placeName, district, province }) => {
   const isPublic = !!useParams().name
   const isLocalDev = process.env.NEXT_PUBLIC_SITE_ENV !== 'development'
-  const [pointerEvent, setPointerEvent] = useState(true)
+  const iOSVersion = useIOSVersion()
+  const isIOS12 = iOSVersion && iOSVersion.array[0] <= 12
 
   const mapSearch = [
     placeName.replace(/\s?-+\s?/g, ' ').trim(),
@@ -20,17 +20,10 @@ const EventMaps: RF<
     province,
   ].join(', ')
 
-  useMountedEffect(() => setPointerEvent(window.onpointerdown !== undefined))
-
   return (
     <>
-      <div
-        className={tw(
-          'pt-[75.128205128205128%]',
-          !pointerEvent && 'bg-zinc-800'
-        )}
-      >
-        {(isPublic || isLocalDev) && !pointerEvent && (
+      <div className={tw('pt-[75.128205128205128%]', isIOS12 && 'bg-zinc-800')}>
+        {(isPublic || isLocalDev) && isIOS12 && (
           <a
             href={`https://google.com/maps/search/${mapSearch.replace(/\s/g, '+')}`}
             target='_blank'
@@ -43,7 +36,7 @@ const EventMaps: RF<
           </a>
         )}
       </div>
-      {(isPublic || isLocalDev) && pointerEvent && (
+      {(isPublic || isLocalDev) && !isIOS12 && (
         <iframe
           className='absolute left-0 top-0 h-full w-full hue-rotate-180 invert-[0.9] filter'
           src={`https://www.google.com/maps/embed/v1/place?q=${mapSearch.replace(/\s/g, '+')}&key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8`}

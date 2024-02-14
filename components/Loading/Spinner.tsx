@@ -1,5 +1,5 @@
 import { forwardRef } from 'react'
-import { assets } from '@/tools/helper'
+import { assets } from '@wedding/helpers'
 
 type SpinnerProps = Omit<Tag<'img'>, 'height' | 'width'> & {
   size?: number

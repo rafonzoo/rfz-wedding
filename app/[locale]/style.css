@@ -8,9 +8,7 @@
   }
 }
 
-.pointer-not-support [role='dialog'][data-state='open'],
-.pointer-not-support [role='alertdialog'][data-state='open'],
-.pointer-not-support [data-radix-menu-content][data-state='open'] {
+.ios-12 [role='dialog'][data-state='open'] {
   animation-delay: 320ms !important;
 }
 

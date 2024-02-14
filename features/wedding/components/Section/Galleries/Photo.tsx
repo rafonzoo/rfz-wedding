@@ -4,13 +4,13 @@ import type { MutableRefObject } from 'react'
 import type { WeddingGallery } from '@wedding/schema'
 import { useRef } from 'react'
 import { BsPlusLg } from 'react-icons/bs'
+import { retina } from '@wedding/helpers'
 import { tw } from '@/tools/lib'
 import {
   useIntersection,
   useIsEditorOrDev,
   useOutlinedClasses,
 } from '@/tools/hook'
-import { retina } from '@/tools/helper'
 
 type GalleriesPhotoProps = {
   index: number

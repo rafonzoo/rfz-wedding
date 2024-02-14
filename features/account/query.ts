@@ -1,5 +1,5 @@
 import { supabaseClient } from '@/tools/lib'
-import { abspath } from '@/tools/helper'
+import { abspath } from '@/tools/helpers'
 import { RouteApi } from '@/tools/config'
 
 export const authorizationQuery = async (

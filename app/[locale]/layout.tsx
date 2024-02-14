@@ -10,7 +10,7 @@ import { QueryProvider } from '@/components/Provider'
 import './style.css'
 
 // Track missmatch due to invariant time.
-process.env.TZ = 'America/Denver'
+// process.env.TZ = 'America/Denver'
 
 const inter = Inter({
   subsets: ['latin'],

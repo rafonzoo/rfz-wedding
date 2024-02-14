@@ -6,9 +6,8 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { updateWeddingGalleryQuery } from '@wedding/query'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { QueryWedding } from '@wedding/config'
+import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import TextTitle from '@wedding/components/Text/Title'
 import GalleriesPhoto from '@wedding/components/Section/Galleries/Photo'
@@ -19,12 +18,12 @@ const SheetGallery = dynamic(
   { ssr: false }
 )
 
-const SectionGalleries: RF<Wedding> = () => {
+const SectionGalleries = () => {
   const [index, setIndex] = useState(-1)
   const isEditor = useIsEditorOrDev()
   const isOpen = index > -1
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [photos, setPhotos] = useState(detail.galleries)
   const [isSheetMounted, setIsSheetMounted] = useState(false)
   const photoRef = useRef<HTMLDivElement | null>(null)
@@ -50,8 +49,8 @@ const SectionGalleries: RF<Wedding> = () => {
     },
     onMutate: () => {
       return (
-        queryClient.getQueryData<Wedding>(Queries.weddingDetail)?.galleries ??
-        []
+        queryClient.getQueryData<Wedding>(QueryWedding.weddingDetail)
+          ?.galleries ?? []
       )
     },
     onError: (e, p, previous) => {
@@ -64,7 +63,7 @@ const SectionGalleries: RF<Wedding> = () => {
     },
     onSuccess: (galleries) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, galleries })
       )
     },

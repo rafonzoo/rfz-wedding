@@ -8,10 +8,9 @@ import { useParams } from 'next/navigation'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { BsPlusLg } from 'react-icons/bs'
 import { updateWeddingStoriesQuery } from '@wedding/query'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Notify from '@/components/Notification/Notify'
 import markdownConfig from '@/components/Markdown/config'
@@ -33,7 +32,7 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
 
 const SectionCoupleStories: RFZ = () => {
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [open, setOpen] = useState<'public' | 'editor' | 'idle'>('idle')
   const [reactiveStory, setReactiveStory] = useState(detail.stories)
   const [viewParsed, setViewParsed] = useState(!!detail.stories)
@@ -62,7 +61,7 @@ const SectionCoupleStories: RFZ = () => {
       setIsError(false)
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, stories: updatedStories })
       )
     },

@@ -2,81 +2,21 @@
 
 import type { MutableRefObject } from 'react'
 import type { Guest, Payment, Wedding } from '@wedding/schema'
+import type { Session } from '@supabase/auth-helpers-nextjs'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
+import { QueryAccount } from '@account/config'
 import { tw } from '@/tools/lib'
-import {
-  exact,
-  isObjectEqual,
-  isPointerNotSupported,
-  preventDefault,
-} from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import { exact, iOSVersion, isObjectEqual } from '@/tools/helpers'
+import { AppConfig } from '@/tools/config'
 import { useLocalePathname } from '@/locale/config'
 
-interface PressHandlers<T> {
-  onLongPress: (e: React.MouseEvent<T> | React.TouchEvent<T>) => void
-  onClick?: (e: React.MouseEvent<T> | React.TouchEvent<T>) => void
-}
-
-interface Options {
-  delay?: number
-  shouldPreventDefault?: boolean
-}
-
-export const useLongPress = <T>(
-  { onLongPress, onClick }: PressHandlers<T>,
-  { delay = 500, shouldPreventDefault = true }: Options = {}
-) => {
-  const [longPressTriggered, setLongPressTriggered] = useState(false)
-  const timeout = useRef<NodeJS.Timeout>()
-  const target = useRef<EventTarget>()
-
-  const start = (e: React.MouseEvent<T> | React.TouchEvent<T>) => {
-    e.persist()
-    const clonedEvent = { ...e }
-
-    if (shouldPreventDefault && e.target) {
-      e.target.addEventListener('touchend', preventDefault, {
-        passive: false,
-      })
-      target.current = e.target
-    }
-
-    timeout.current = setTimeout(() => {
-      onLongPress(clonedEvent)
-      setLongPressTriggered(true)
-    }, delay)
-  }
-
-  const clear = (
-    e: React.MouseEvent<T> | React.TouchEvent<T>,
-    shouldTriggerClick = true
-  ) => {
-    timeout.current && clearTimeout(timeout.current)
-    shouldTriggerClick && !longPressTriggered && onClick?.(e)
-
-    setLongPressTriggered(false)
-
-    if (shouldPreventDefault && target.current) {
-      target.current.removeEventListener('touchend', preventDefault)
-    }
-  }
-
-  return {
-    onMouseDown: (e: React.MouseEvent<T>) => start(e),
-    onTouchStart: (e: React.TouchEvent<T>) => start(e),
-    onMouseUp: (e: React.MouseEvent<T>) => clear(e),
-    onMouseLeave: (e: React.MouseEvent<T>) => clear(e, false),
-    onTouchEnd: (e: React.TouchEvent<T>) => clear(e),
-  }
-}
-
-export const usePayment = () => {
+export const useWeddingPayment = () => {
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const guests = queryClient.getQueryData<Guest[]>(Queries.weddingGuests)
+  const detail = useWeddingDetail()
+  const guests = queryClient.getQueryData<Guest[]>(QueryWedding.weddingGuests)
   const sumOfAdditionalGuest = useMemo(
     () =>
       detail.payment
@@ -87,11 +27,11 @@ export const usePayment = () => {
 
   // prettier-ignore
   const payment = (detail.payment[detail.payment.length - 1] ?? null) as Payment | null
-  const guestTrackCounts = AppConfig.Wedding.GuestFree + sumOfAdditionalGuest
+  const guestTrackCounts = WeddingConfig.GuestFree + sumOfAdditionalGuest
   const addMoreGuest = guests ? guests.length >= guestTrackCounts : false
-  const fullQuota = guests ? guests.length >= AppConfig.Wedding.GuestMax : false
+  const fullQuota = guests ? guests.length >= WeddingConfig.GuestMax : false
   const isForeverActive = detail.payment.some((pay) => !!pay.foreverActive)
-  const isGuestMax = guestTrackCounts === AppConfig.Wedding.GuestMax
+  const isGuestMax = guestTrackCounts === WeddingConfig.GuestMax
 
   return {
     guestTrackCounts,
@@ -102,6 +42,46 @@ export const usePayment = () => {
   }
 }
 
+export const useWeddingDetail = () => {
+  const queryClient = useQueryClient()
+  const detail = exact(
+    queryClient.getQueryData<Wedding | undefined>(QueryWedding.weddingDetail)
+  )
+
+  return detail
+}
+
+export const useWeddingGuests = <T extends boolean>(ex?: T) => {
+  const queryClient = useQueryClient()
+  const guests = queryClient.getQueryData<Guest[] | undefined>(
+    QueryWedding.weddingGuests
+  )
+
+  return (ex ? exact(guests) : guests) as T extends true
+    ? Guest[]
+    : typeof guests
+}
+
+export const useWeddingGetAll = <T extends boolean>(ex?: T) => {
+  const queryClient = useQueryClient()
+  const myWedding = queryClient.getQueryData<Wedding[] | undefined>(
+    QueryWedding.weddingGetAll
+  )
+
+  return (ex ? exact(myWedding) : myWedding) as T extends true
+    ? Wedding[]
+    : typeof myWedding
+}
+
+export const useAccountSession = () => {
+  const queryClient = useQueryClient()
+  const session = queryClient.getQueryData<Session | undefined>(
+    QueryAccount.accountSession
+  )
+
+  return session
+}
+
 export const useIsEditorOrDev = () => {
   const haveId = !!useParams().wid
 
@@ -109,9 +89,25 @@ export const useIsEditorOrDev = () => {
   return haveId
 }
 
+export const useIOSVersion = () => {
+  const [iosVer, setIosVer] = useState<
+    | {
+        version: string
+        array: number[]
+      }
+    | undefined
+  >()
+
+  useMountedEffect(() => setIosVer(iOSVersion()))
+  return iosVer
+}
+
 export const useOutlinedClasses = () => {
+  const iOSVersion = useIOSVersion()
+  const isIOS12 = iOSVersion && iOSVersion.array[0] <= 12
+
   return (isFocused = false, additionalClasses?: string) => {
-    if (isPointerNotSupported()) {
+    if (isIOS12) {
       return tw(
         'transition-shadow',
         !isFocused && 'shadow-none',

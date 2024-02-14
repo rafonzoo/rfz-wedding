@@ -1,19 +1,24 @@
 'use client'
 
 import { useMutation, useQueryClient } from 'react-query'
+import { QueryWedding } from '@wedding/config'
+import { QueryAccount } from '@account/config'
 import { supabaseClient } from '@/tools/lib'
-import { Queries } from '@/tools/config'
 import { useLocaleRouter } from '@/locale/config'
 
 const AccountPageClient = () => {
   const queryClient = useQueryClient()
   const router = useLocaleRouter()
   const { mutate: signout } = useMutation({
-    mutationKey: Queries.accountLogout,
+    mutationKey: QueryAccount.accountLogout,
     mutationFn: () => supabaseClient().auth.signOut(),
     onSuccess: () => {
-      queryClient.setQueryData(Queries.weddingGetAll, void 0)
-      queryClient.setQueryData(Queries.accountSession, void 0)
+      queryClient.setQueryData(QueryAccount.accountSession, void 0)
+      queryClient.setQueryData(QueryWedding.weddingDetail, void 0)
+      queryClient.setQueryData(QueryWedding.weddingGetAll, void 0)
+      queryClient.setQueryData(QueryWedding.weddingGalleries, void 0)
+      queryClient.setQueryData(QueryWedding.weddingGuests, void 0)
+      queryClient.setQueryData(QueryWedding.weddingComments, void 0)
       router.refresh()
     },
   })

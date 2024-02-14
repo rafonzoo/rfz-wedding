@@ -8,17 +8,11 @@ import { useTranslations } from 'next-intl'
 import { ZodError } from 'zod'
 import { IoArrowForwardCircle } from 'react-icons/io5'
 import { guestType } from '@wedding/schema'
+import { groupMatch, groupName, guestAlias, guestName } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import {
-  cleaner,
-  exact,
-  groupMatch,
-  groupName,
-  guestAlias,
-  guestName,
-  numbers,
-} from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useWeddingGuests } from '@/tools/hook'
+import { cleaner, numbers } from '@/tools/helpers'
 import FieldText from '@/components/FormField/Text'
 
 type SheetGuestActionProps = {
@@ -44,7 +38,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
   const lastPosRef = useRef(0)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const queryClient = useQueryClient()
-  const guests = exact(queryClient.getQueryData<Guest[]>(Queries.weddingGuests))
+  const guests = useWeddingGuests(true)
   const guestEdit = guests.find((guest) => guest.id === editId)
   const fullName = guestEdit?.slug ? guestAlias(guestEdit.slug) : ''
   const [value, setValue] = useState(fullName)
@@ -238,7 +232,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         }
 
         queryClient.setQueryData<Guest[] | undefined>(
-          Queries.weddingGuests,
+          QueryWedding.weddingGuests,
           (prev) =>
             // Don't change array order in order to compare.
             !prev ? prev : prev.map((item) => (item.id !== id ? item : guest))
@@ -261,7 +255,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         )
 
         queryClient.setQueryData<Guest[] | undefined>(
-          Queries.weddingGuests,
+          QueryWedding.weddingGuests,
           (prev) => (!prev ? prev : [...prev, guestType.parse(guest)])
         )
 

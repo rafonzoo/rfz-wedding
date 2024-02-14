@@ -8,10 +8,10 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams, useSearchParams } from 'next/navigation'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6'
 import { updateWeddingEventQuery } from '@wedding/query'
+import { groupName, guestAlias } from '@wedding/helpers'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useUtilities } from '@/tools/hook'
-import { exact, groupName, guestAlias } from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import { useUtilities, useWeddingDetail } from '@/tools/hook'
 import { DUMMY_EVENT } from '@/dummy'
 import dynamic from 'next/dynamic'
 import Event from '@wedding/components/Section/Events/Event'
@@ -24,24 +24,24 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
 })
 
-const SectionEvents: RFZ<Wedding> = (wedding) => {
+const SectionEvents = () => {
   const [activeIndex, setActiveIndex] = useState(0)
   const [open, onOpenChange] = useState(false)
   const [isLoading, setIsLoading] = useState<'add' | 'delete' | null>(null)
   const { abort, getSignal } = useUtilities()
   const isPublic = !!useParams().name
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const guestSlug = useSearchParams().get('to') ?? ''
   const group = groupName(guestAlias(guestSlug))
 
   // prettier-ignore
   const opensToOnlyEvents = (
     !isPublic
-      ? wedding.events
+      ? detail.events
       : !group
-        ? wedding.events.filter((event) => !event.opensTo)
-        : wedding.events.filter((event) => {
+        ? detail.events.filter((event) => !event.opensTo)
+        : detail.events.filter((event) => {
             const lowerGroup = group.toLowerCase()
             const eventGroup = event.opensTo
               .split(',')
@@ -56,7 +56,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
   // In case group doesn't match any, show all event.
   // prettier-ignore
   const groupedEvents = (
-    !opensToOnlyEvents.length ? wedding.events : opensToOnlyEvents
+    !opensToOnlyEvents.length ? detail.events : opensToOnlyEvents
   )
 
   const events = groupedEvents.map((item, index) => ({
@@ -92,7 +92,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
     },
     onSuccess: (latestEvents, { onSuccess }) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => {
           return !prev
             ? prev
@@ -155,7 +155,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
     },
   ]
 
-  const isMax = events.length === AppConfig.Wedding.MaxEvent
+  const isMax = events.length === WeddingConfig.MaxEvent
   const actions =
     events.length === 1 || !activeIndex
       ? buttons.filter((item) => item.id !== 'delete')
@@ -212,10 +212,11 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
                 timeErrorRef={timeErrorRef}
               >
                 <EventsAction
+                  {...event}
                   isActive={activeIndex === index}
                   onClick={() => onOpenChange(true)}
                   isFirstIndex={
-                    !index && events.length === AppConfig.Wedding.MaxEvent
+                    !index && events.length === WeddingConfig.MaxEvent
                   }
                 />
               </Event>
@@ -239,10 +240,10 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
         </div>
       </div>
       <div className='absolute bottom-24 left-6 right-0'>
-        <ImageCallout model='bird' foreground={wedding.loadout.foreground} />
+        <ImageCallout model='bird' />
       </div>
       <div className='absolute bottom-0 right-0'>
-        <ImageTheme {...wedding.loadout} size={169} className='rotate-90' />
+        <ImageTheme {...detail.loadout} size={169} className='rotate-90' />
       </div>
       <BottomSheet
         root={{ open, onOpenChange }}

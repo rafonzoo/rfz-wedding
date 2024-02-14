@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
 import { tw } from '@/tools/lib'
 
 type NavigationWindowProps = {
+  title: ReactNode
   className?: string
   avatarUrl?: string
   wrapper?: Tag<'div'>
@@ -8,6 +10,7 @@ type NavigationWindowProps = {
 }
 
 const NavWindow: RFZ<NavigationWindowProps> = ({
+  title,
   children,
   className,
   avatarUrl,
@@ -33,7 +36,7 @@ const NavWindow: RFZ<NavigationWindowProps> = ({
               />
             )}
           </div>
-          <h2 className='text-2.5xl font-bold tracking-tight'>Undanganku</h2>
+          <h2 className='text-2.5xl font-bold tracking-tight'>{title}</h2>
         </div>
       </div>
       <div className='absolute right-2 top-2 flex items-center'>{children}</div>

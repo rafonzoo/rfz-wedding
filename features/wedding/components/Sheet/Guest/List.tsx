@@ -2,9 +2,8 @@
 
 import type { Guest } from '@wedding/schema'
 import { memo } from 'react'
-import { useQueryClient } from 'react-query'
-import { guestAlias } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { guestAlias } from '@wedding/helpers'
+import { useWeddingGuests } from '@/tools/hook'
 import SheetGuestShare from '@wedding/components/Sheet/Guest/Share'
 
 type SheetGuestListProps = {
@@ -24,10 +23,10 @@ const SheetGuestList: RF<SheetGuestListProps> = ({
   previousGuest,
   onEdit,
 }) => {
-  const queryClient = useQueryClient()
-  const guests = [
-    ...(queryClient.getQueryData<Guest[]>(Queries.weddingGuests) ?? []),
-  ].sort((a, b) => guestAlias(a.slug).localeCompare(guestAlias(b.slug)))
+  const initialGuest = useWeddingGuests()
+  const guests = [...(initialGuest ?? [])].sort((a, b) =>
+    guestAlias(a.slug).localeCompare(guestAlias(b.slug))
+  )
 
   const isNoGuest = (!guests || !guests.length) && !searchQuery
   const guestsFilteredByQuery = guests.filter((item) =>

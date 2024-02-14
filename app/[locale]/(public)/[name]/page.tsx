@@ -1,9 +1,10 @@
 import type { ResolvingMetadata } from 'next'
 import { weddingType } from '@wedding/schema'
 import { WEDDING_COLUMN, WEDDING_ROW } from '@wedding/query'
+import { WeddingConfig } from '@wedding/config'
 import { getCookie, supabaseService } from '@/tools/server'
 import { djs } from '@/tools/lib'
-import { AppConfig, Route, RouteCookie } from '@/tools/config'
+import { Route, RouteCookie } from '@/tools/config'
 import { localeRedirect } from '@/locale/config'
 import WeddingPageClient from './client'
 
@@ -40,7 +41,7 @@ export const generateMetadata = async (
       }
 
       const photo = galleries.find(
-        (item) => item.index === AppConfig.Wedding.ImageryStartIndex
+        (item) => item.index === WeddingConfig.ImageryStartIndex
       )
 
       const path = process.env.NEXT_PUBLIC_IMAGEKIT_URL ?? ''

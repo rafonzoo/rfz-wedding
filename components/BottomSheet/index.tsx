@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { tw } from '@/tools/lib'
 import { useMountedEffect } from '@/tools/hook'
-import { debounceOnOlderDevice, isPointerNotSupported } from '@/tools/helper'
+import { debounceOnOlderDevice } from '@/tools/helpers'
 import * as Dialog from '@radix-ui/react-dialog'
 
 if (typeof window !== 'undefined' && !('ResizeObserver' in window)) {
@@ -87,11 +87,6 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   const lastPosRef = useRef(0)
   const observerRef = useRef<ResizeObserver | null>(null)
 
-  // prettier-ignore
-  const isModalNonOverlay = (
-    !option?.useOverlay && isPointerNotSupported() && !(root?.modal === false)
-  )
-
   useMountedEffect(() => onLoad?.())
 
   useEffect(() => {
@@ -104,12 +99,17 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
       }
     }
 
-    if (isOpen && isModalNonOverlay) {
+    if (
+      isOpen &&
+      window.onpointerdown === undefined &&
+      !option?.useOverlay &&
+      !(root?.modal === false)
+    ) {
       document.addEventListener('click', fn)
     }
 
     return () => document.removeEventListener('click', fn)
-  }, [isOpen, isModalNonOverlay, isAnimating, root, onCloseClicked])
+  }, [isAnimating, isOpen, onCloseClicked, option?.useOverlay, root])
 
   useEffect(() => {
     return () => {

@@ -7,10 +7,15 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { BsPlusLg } from 'react-icons/bs'
 import { updateWeddingGalleryQuery } from '@wedding/query'
+import { retina } from '@wedding/helpers'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIntersection, useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact, retina } from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import {
+  useIntersection,
+  useIsEditorOrDev,
+  useUtilities,
+  useWeddingDetail,
+} from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
 
@@ -27,8 +32,8 @@ const SheetGallery = dynamic(
 const SectionLandingBackground: RFZ = ({ children }) => {
   const isEditor = useIsEditorOrDev()
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const index = AppConfig.Wedding.ImageryStartIndex
+  const detail = useWeddingDetail()
+  const index = WeddingConfig.ImageryStartIndex
   const imageRef = useRef(null)
   const { abort, getSignal, debounce } = useUtilities()
   const [open, onOpenChange] = useState(false)
@@ -68,7 +73,7 @@ const SectionLandingBackground: RFZ = ({ children }) => {
     },
     onMutate: () => {
       return queryClient
-        .getQueryData<Wedding>(Queries.weddingDetail)
+        .getQueryData<Wedding>(QueryWedding.weddingDetail)
         ?.galleries.find((item) => item.index === index)
     },
     onError: (e, p, previous) => {
@@ -81,12 +86,12 @@ const SectionLandingBackground: RFZ = ({ children }) => {
     },
     onSuccess: (galleries) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, galleries })
       )
 
       queryClient.setQueryData<Wedding[] | undefined>(
-        Queries.weddingGetAll,
+        QueryWedding.weddingGetAll,
         (prev) => {
           return !prev
             ? [{ ...detail, galleries }]

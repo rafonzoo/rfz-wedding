@@ -8,20 +8,17 @@ import { MdModeEdit } from 'react-icons/md'
 import { GoMoon, GoSun } from 'react-icons/go'
 import { colorType } from '@wedding/schema'
 import { updateWeddingLoadoutQuery } from '@wedding/query'
+import { assets, swatches } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import {
   useIsEditorOrDev,
   useOutlinedClasses,
   useUtilities,
+  useWeddingDetail,
+  useWeddingGetAll,
 } from '@/tools/hook'
-import {
-  assets,
-  debounceOnOlderDevice,
-  exact,
-  keys,
-  swatches,
-} from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { debounceOnOlderDevice, exact, keys } from '@/tools/helpers'
 import { useTranslations } from 'use-intl'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
@@ -37,7 +34,7 @@ type SheetLoadoutPayload = WeddingLoadout & {
 const SheetLoadout: RF = () => {
   const [openSheet, setOpenSheet] = useState(false)
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [{ theme, foreground, background }, setLoadout] = useState(
     detail.loadout
   )
@@ -45,7 +42,7 @@ const SheetLoadout: RF = () => {
   const ulRef = useRef<HTMLUListElement | null>(null)
   const isEditor = useIsEditorOrDev()
   const outlined = useOutlinedClasses()
-  const myWedding = queryClient.getQueryData<Wedding[]>(Queries.weddingGetAll)
+  const myWedding = useWeddingGetAll()
   const [prevDetail, setPrevDetail] = useState(detail)
   const [previousList, setPreviousList] = useState(myWedding)
   const { abort, getSignal } = useUtilities()
@@ -88,13 +85,13 @@ const SheetLoadout: RF = () => {
 
       if (previousList) {
         queryClient.setQueryData<Wedding[] | undefined>(
-          Queries.weddingGetAll,
+          QueryWedding.weddingGetAll,
           previousList
         )
       }
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, loadout: prevDetail.loadout })
       )
 
@@ -119,7 +116,7 @@ const SheetLoadout: RF = () => {
     const payload = { theme, background, foreground }
     const previous = exact(
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => {
           return !prev
             ? prev
@@ -129,7 +126,7 @@ const SheetLoadout: RF = () => {
     )
 
     queryClient.setQueryData<Wedding[] | undefined>(
-      Queries.weddingGetAll,
+      QueryWedding.weddingGetAll,
       (prev) => {
         return !prev
           ? prev

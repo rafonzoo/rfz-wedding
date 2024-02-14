@@ -1,14 +1,13 @@
 'use client'
 
-import type { Wedding } from '@wedding/schema'
 import { useRef } from 'react'
 import { useParams } from 'next/navigation'
+import { assets } from '@wedding/helpers'
 import { tw } from '@/tools/lib'
-import { useIntersection } from '@/tools/hook'
-import { assets } from '@/tools/helper'
+import { useIntersection, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 
-type ImageThemeProps = Wedding['loadout'] & {
+type ImageThemeProps = {
   className?: string
   size: keyof typeof sizeClasses
 }
@@ -23,13 +22,13 @@ const SheetLoadout = dynamic(
 const sizeClasses = {
   195: 'w-[min(220px,max(160px,50vw))]',
   169: 'w-[min(190px,max(139px,43.333333333333333vw))]',
-  134: 'w-full',
-  256: 'w-full',
+  134: 'w-[min(151px,max(110px,34.358974358974359vw))]',
+  256: 'w-[min(289px,max(210px,65.641025641025641vw))]',
   390: 'w-full',
 }
 
-const ImageTheme: RFZ<ImageThemeProps> = ({ className, size, ...loadout }) => {
-  const { theme, background, foreground } = loadout
+const ImageTheme: RFZ<ImageThemeProps> = ({ className, size }) => {
+  const { theme, background, foreground } = useWeddingDetail().loadout
   const param = useParams()
   const imageRef = useRef(null)
   const isEditor = !!param.wid

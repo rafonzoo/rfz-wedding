@@ -1,4 +1,4 @@
-import { isLocal } from '@/tools/helper'
+import { isLocal } from '@/tools/helpers'
 
 export class AppError extends Error {
   public readonly name: string

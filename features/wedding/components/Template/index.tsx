@@ -12,18 +12,18 @@ import SectionComment from '@wedding/components/Section/Comment'
  */
 const WeddingTemplate: RFZ<Wedding & { csrfToken?: string }> = ({
   csrfToken,
-  ...wedding
+  loadout,
 }) => {
   return (
     // prettier-ignore
-    <div className={tw({ 'dark': wedding.loadout.background === 'black' })}>
+    <div className={tw({ 'dark': loadout.background === 'black' })}>
       <main className='mx-auto max-w-[440px]'>
         <div className='transition-colors duration-200 ease-out [.dark_&]:bg-black [.dark_&]:text-white'>
-          <SectionLanding {...wedding} />
-          <SectionCouple {...wedding} />
-          <SectionEvents {...wedding} />
-          <SectionGalleries {...wedding} />
-          <SectionComment {...wedding} csrfToken={csrfToken} />
+          <SectionLanding />
+          <SectionCouple />
+          <SectionEvents />
+          <SectionGalleries />
+          <SectionComment csrfToken={csrfToken} />
           <SectionCounter />
         </div>
       </main>

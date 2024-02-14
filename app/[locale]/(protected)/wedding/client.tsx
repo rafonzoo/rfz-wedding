@@ -6,13 +6,14 @@ import { useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useTranslations } from 'next-intl'
 import { ZodError } from 'zod'
-import { BsPlusLg } from 'react-icons/bs'
 import { type Wedding, weddingType } from '@wedding/schema'
 import { addNewWeddingQuery, getAllWeddingQuery } from '@wedding/query'
+import { retina, sanitizeValue, trimBy } from '@wedding/helpers'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { djs, supabaseClient, tw } from '@/tools/lib'
-import { useIntersection, useUtilities } from '@/tools/hook'
-import { abspath, retina, sanitizeValue, trimBy } from '@/tools/helper'
-import { AppConfig, ErrorMap, Queries, Route } from '@/tools/config'
+import { useIntersection, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { abspath } from '@/tools/helpers'
+import { ErrorMap, Route } from '@/tools/config'
 import { useLocaleRouter } from '@/locale/config'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
@@ -68,7 +69,7 @@ const MyWeddingAddNewSheet: RF<{
         case ErrorMap.limitError: {
           return setErrorName(
             t('error.field.invalidLimit', {
-              maxDraft: AppConfig.Wedding.MaxDraft,
+              maxDraft: WeddingConfig.MaxDraft,
             })
           )
         }
@@ -134,9 +135,23 @@ const MyWeddingAddNewSheet: RF<{
         children: (
           <button
             aria-label='Add new invitation'
-            className='flex h-8 w-8 items-center justify-center rounded-full text-2xl text-blue-600 [.dark_&]:text-blue-400'
+            className={tw(
+              'relative flex h-6 w-6 items-center justify-center text-xl transition-transform duration-300',
+              'text-blue-600 data-[state=closed]:rotate-0 data-[state=open]:rotate-90'
+            )}
           >
-            <BsPlusLg />
+            <span
+              className={tw(
+                'absolute top-1/2 h-px w-4 -translate-y-1/2 rounded-xl bg-[currentColor] transition-transform',
+                '[[data-state=closed]_&]:rotate-0 [[data-state=open]_&]:rotate-90'
+              )}
+            />
+            <span
+              className={tw(
+                'absolute left-1/2 h-4 w-px -translate-x-1/2 rounded-xl bg-[currentColor] transition-transform',
+                '[[data-state=open]_&]:scale-y-0'
+              )}
+            />
           </button>
         ),
       }}
@@ -174,7 +189,7 @@ const MyWeddingItems: RF<{
   const [highlight, setHighlight] = useState(false)
   const isIntersecting = useIntersection(refLi)
   const heroImage = wedding.galleries.find(
-    (photo) => photo.index === AppConfig.Wedding.ImageryStartIndex
+    (photo) => photo.index === WeddingConfig.ImageryStartIndex
   )
 
   const imageUrl = heroImage?.fileName
@@ -284,14 +299,14 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
   user,
 }) => {
   const queryClient = useQueryClient()
+  const prevDetail = useWeddingDetail()
   const router = useLocaleRouter()
   const { data: weddings } = useQuery({
-    queryKey: Queries.weddingGetAll,
+    queryKey: QueryWedding.weddingGetAll,
     queryFn: () => getAllWeddingQuery(supabaseClient(), user.id),
     initialData: myWedding,
   })
 
-  const prevDetail = queryClient.getQueryData<Wedding>(Queries.weddingDetail)
   const usermeta = user.user_metadata
   const avatar_url: string | undefined = usermeta.avatar_url ?? usermeta.picture
   const [withFilter] = useState<keyof typeof items>('createdAt')
@@ -307,21 +322,31 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
 
   function gotoDetailPage(wedding: Wedding) {
     if (prevDetail && prevDetail.wid !== wedding.wid) {
-      queryClient.setQueryData(Queries.weddingDetail, wedding)
-      queryClient.resetQueries({ queryKey: Queries.weddingGalleries })
-      queryClient.resetQueries({ queryKey: Queries.weddingGuests })
-      queryClient.resetQueries({ queryKey: Queries.weddingComments })
+      queryClient.setQueryData(QueryWedding.weddingDetail, wedding)
+      queryClient.resetQueries({ queryKey: QueryWedding.weddingGalleries })
+      queryClient.resetQueries({ queryKey: QueryWedding.weddingGuests })
+      queryClient.resetQueries({ queryKey: QueryWedding.weddingComments })
     }
 
     router.push({
       pathname: Route.weddingEditor,
       params: { wid: wedding.wid },
     })
+
+    queryClient.setQueryData<Wedding[] | undefined>(
+      QueryWedding.weddingGetAll,
+      (prev) =>
+        !prev
+          ? [wedding]
+          : prev.some((p) => p.wid === wedding.wid)
+            ? prev
+            : [...prev, wedding]
+    )
   }
 
   return (
     <div className='mx-auto max-w-[440px]'>
-      <NavWindow avatarUrl={avatar_url}>
+      <NavWindow title='Undangan' avatarUrl={avatar_url}>
         <MyWeddingAddNewSheet uid={user.id} onAddedNew={gotoDetailPage} />
       </NavWindow>
       {weddings && weddings.length >= 5 && (

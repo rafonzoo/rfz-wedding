@@ -7,10 +7,9 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { deleteWeddingQuery, updateStatusWeddingQuery } from '@wedding/query'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { usePayment, useUtilities } from '@/tools/hook'
-import { exact } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useUtilities, useWeddingDetail, useWeddingPayment } from '@/tools/hook'
 import { useLocaleRouter } from '@/locale/config'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
@@ -29,17 +28,17 @@ const Alert = dynamic(() => import('@/components/Notification/Alert'), {
   ssr: false,
 })
 
-const SheetDropdown: RF = () => {
+const SheetSticky: RF = () => {
   const [open, onOpenChange] = useState(false)
   const [openPayment, setOpenPayment] = useState(false)
   const [sheetTitle, setSheetTitle] = useState('Pembelian')
   const [showAlert, setShowAlert] = useState(false)
   const queryClient = useQueryClient()
   const router = useLocaleRouter()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const status = detail.status
   const { getSignal } = useUtilities()
-  const { isPaymentComplete } = usePayment()
+  const { isPaymentComplete } = useWeddingPayment()
   const isDraft = status === 'draft'
   const isNew = !detail.payment.length
   const wid = useParams().wid as string
@@ -60,16 +59,13 @@ const SheetDropdown: RF = () => {
       })
     },
     onSuccess: (status) => {
-      onOpenChange(false)
-      setShowAlert(false)
-
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, status })
       )
 
       queryClient.setQueryData<Wedding[] | undefined>(
-        Queries.weddingGetAll,
+        QueryWedding.weddingGetAll,
         (prev) => {
           return !prev
             ? [{ ...detail, status }]
@@ -86,6 +82,10 @@ const SheetDropdown: RF = () => {
 
       toast.error(t('error.general.failedToSave'))
     },
+    onSettled: () => {
+      onOpenChange(false)
+      setShowAlert(false)
+    },
   })
 
   const { mutate: deleteWedding, isLoading: isDeleting } = useMutation<
@@ -98,7 +98,7 @@ const SheetDropdown: RF = () => {
     },
     onSuccess: (deletedWid) => {
       queryClient.setQueryData<Wedding[] | undefined>(
-        Queries.weddingGetAll,
+        QueryWedding.weddingGetAll,
         (prev) => {
           return !prev ? [] : prev.filter((item) => item.wid !== deletedWid)
         }
@@ -188,10 +188,10 @@ const SheetDropdown: RF = () => {
           className: tw('origin-bottom-left'),
         }}
         trigger={{
-          onClick: isLoading ? void 0 : () => onOpenChange((prev) => !prev),
+          onClick: isLoading ? void 0 : () => onOpenChange(true),
           disabled: isLoading,
           className: tw(
-            'inline-flex -ml-3 space-x-2 h-14 items-center rounded-full pl-4 pr-6 text-center font-semibold -tracking-base text-white backdrop-blur-lg bg-black/70 border border-zinc-800'
+            'inline-flex space-x-2 h-14 items-center rounded-full pl-4 pr-6 text-center font-semibold -tracking-base text-white backdrop-blur-lg bg-black/70 border border-zinc-800'
           ),
           children: (
             <>
@@ -247,4 +247,4 @@ const SheetDropdown: RF = () => {
   )
 }
 
-export default SheetDropdown
+export default SheetSticky

@@ -7,10 +7,16 @@ import { useQuery, useQueryClient } from 'react-query'
 import { useLocale } from 'next-intl'
 import { IoCloudUploadOutline } from 'react-icons/io5'
 import { weddingGalleriesType } from '@wedding/schema'
+import { uploads } from '@wedding/helpers'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useMountedEffect, useOutlinedClasses } from '@/tools/hook'
-import { blobToUri, compress, exact, qstring, uploads } from '@/tools/helper'
-import { AppConfig, Queries, RouteApi } from '@/tools/config'
+import {
+  useMountedEffect,
+  useOutlinedClasses,
+  useWeddingDetail,
+} from '@/tools/hook'
+import { blobToUri, compress, qstring } from '@/tools/helpers'
+import { RouteApi } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import RangeSlider from '@/components/RangeSlider'
 import Toast from '@/components/Notification/Toast'
@@ -24,7 +30,7 @@ const Alert = dynamic(() => import('@/components/Notification/Alert'), {
   ssr: false,
 })
 
-const MAX_FILE_SIZE = AppConfig.Wedding.MaxFileSize * 1000 // byte
+const MAX_FILE_SIZE = WeddingConfig.MaxFileSize * 1000 // byte
 
 const SUPPORTED_FORMAT = ['image/png', 'image/jpg', 'image/jpeg']
 
@@ -64,15 +70,13 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
   const controller = useRef<SheetGallerySignal[]>([])
   const fileRef = useRef<HTMLInputElement | null>(null)
   const queryClient = useQueryClient()
-  const { name: path, wid } = exact(
-    queryClient.getQueryData<Wedding>(Queries.weddingDetail)
-  )
+  const { name: path, wid } = useWeddingDetail()
 
   const locale = useLocale()
   const outlinedClasses = useOutlinedClasses()
   const isUploadDisabled = uploadNames.length > 0 || isOnRemoval || isModeSelect
   const galleries = useQuery({
-    queryKey: Queries.weddingGalleries,
+    queryKey: QueryWedding.weddingGalleries,
     queryFn: async ({ signal }) => {
       const response = await fetch(
         qstring({ path, locale }, RouteApi.uploads),
@@ -116,7 +120,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
     const target = e.currentTarget
     const files = Array.from(target?.files ?? []).slice(
       0,
-      AppConfig.Wedding.MaxFileItem - (galleries.data?.length ?? 0)
+      WeddingConfig.MaxFileItem - (galleries.data?.length ?? 0)
     )
 
     if (!files || !target || !target.files?.[0]) {
@@ -139,7 +143,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
 
       setUploadNames((prev) => [...prev, file.name])
       queryClient.setQueryData<WeddingGalleries[] | undefined>(
-        Queries.weddingGalleries,
+        QueryWedding.weddingGalleries,
         (prev) => {
           return !prev
             ? prev
@@ -188,7 +192,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
 
         const data = weddingGalleriesType.parse(json.data)
         queryClient.setQueryData<WeddingGalleries[] | undefined>(
-          Queries.weddingGalleries,
+          QueryWedding.weddingGalleries,
           (prev) => {
             if (!prev) return prev
 
@@ -211,7 +215,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
         )
       } catch (e) {
         queryClient.setQueryData<WeddingGalleries[] | undefined>(
-          Queries.weddingGalleries,
+          QueryWedding.weddingGalleries,
           (prev) => prev?.filter((item) => item.name !== file.name)
         )
       } finally {
@@ -255,14 +259,14 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
         }
 
         queryClient.setQueryData<WeddingGalleries[] | undefined>(
-          Queries.weddingGalleries,
+          QueryWedding.weddingGalleries,
           (prev) => {
             return !prev ? prev : prev.filter((prev) => prev.fileId !== id)
           }
         )
 
         queryClient.setQueryData<Wedding | undefined>(
-          Queries.weddingDetail,
+          QueryWedding.weddingDetail,
           (prev) => {
             return !prev
               ? prev
@@ -576,7 +580,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
                 <li className='list-disc'>
                   <p>
                     Maximum file size is{' '}
-                    {(AppConfig.Wedding.MaxFileSize / 1000).toFixed(0)} MB
+                    {(WeddingConfig.MaxFileSize / 1000).toFixed(0)} MB
                   </p>
                 </li>
                 <li className='list-disc'>

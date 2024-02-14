@@ -11,10 +11,10 @@ import { FaFacebook, FaTwitter } from 'react-icons/fa6'
 import { AiFillInstagram } from 'react-icons/ai'
 import { weddingCoupleType, weddingSocialUrls } from '@wedding/schema'
 import { updateWeddingCouplesQuery } from '@wedding/query'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { cleaner, exact, isObjectEqual, keys, omit } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { cleaner, isObjectEqual, keys, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import TextCard from '@wedding/components/Text/Card'
 import Notify from '@/components/Notification/Notify'
@@ -51,7 +51,7 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
   const [partialError, setSocialErrors] = useState<SocialError[]>([])
   const [errorInfo, setErrorInfo] = useState(false)
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const isEditor = useIsEditorOrDev()
   const { abort, cancelDebounce, debounce, getSignal } = useUtilities()
 
@@ -82,7 +82,7 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
       setErrorInfo(false)
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, couple })
       )
     },

@@ -1,16 +1,18 @@
 'use client'
 
 import type { MouseEvent, ReactNode } from 'react'
-import type { Guest, Wedding } from '@wedding/schema'
+import type { Guest } from '@wedding/schema'
 import { useRef, useState } from 'react'
 import { useQueryClient } from 'react-query'
 import { IoCopyOutline, IoLogoInstagram, IoLogoWhatsapp } from 'react-icons/io5'
 import { HiMiniMinusCircle } from 'react-icons/hi2'
 import { GoShare } from 'react-icons/go'
+import { guestAlias } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useUtilities } from '@/tools/hook'
-import { abspath, exact, guestAlias, qstring } from '@/tools/helper'
-import { Queries, Route } from '@/tools/config'
+import { useUtilities, useWeddingDetail } from '@/tools/hook'
+import { abspath, qstring } from '@/tools/helpers'
+import { Route } from '@/tools/config'
 import { LocaleLink } from '@/locale/config'
 import * as clipboard from 'clipboard-polyfill'
 import dynamic from 'next/dynamic'
@@ -73,7 +75,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
 
   const isShareShow = !isModeEdit && editedGuestId === id && isRemainSame
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [couple1, couple2] = detail.couple.map(({ fullName }) => fullName)
   const groupName = guest.group
   const events = !groupName
@@ -195,7 +197,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
                 if (!isModeEdit) return
 
                 queryClient.setQueryData<Guest[] | undefined>(
-                  Queries.weddingGuests,
+                  QueryWedding.weddingGuests,
                   (prev) =>
                     !prev ? prev : prev.filter((item) => item.id !== id)
                 )

@@ -11,16 +11,19 @@ import {
   getAllWeddingGuestQuery,
   updateWeddingGuestQuery,
 } from '@wedding/query'
+import { guestAlias } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { djs, supabaseClient, tw } from '@/tools/lib'
-import { useMountedEffect, usePayment, useUtilities } from '@/tools/hook'
 import {
-  exact,
-  guestAlias,
-  isArrayEqual,
-  isPointerNotSupported,
-} from '@/tools/helper'
+  useIOSVersion,
+  useMountedEffect,
+  useUtilities,
+  useWeddingDetail,
+  useWeddingPayment,
+} from '@/tools/hook'
+import { isArrayEqual } from '@/tools/helpers'
 import { AppError } from '@/tools/error'
-import { ErrorMap, Queries } from '@/tools/config'
+import { ErrorMap } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import SheetGuestList from '@wedding/components/Sheet/Guest/List'
 import SheetGuestAction from '@wedding/components/Sheet/Guest/Action'
@@ -54,8 +57,10 @@ const SheetGuest: RFZ = () => {
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const searchRef = useRef<HTMLInputElement | null>(null)
   const wid = useParams().wid as string
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const toast = new Toast()
+  const iOSVersion = useIOSVersion()
+  const isIOS12 = iOSVersion && iOSVersion.array[0] <= 12
   const t = useTranslations()
   const {
     refetch: getAllGuest,
@@ -63,7 +68,7 @@ const SheetGuest: RFZ = () => {
     isFetched,
     isLoading,
   } = useQuery({
-    queryKey: Queries.weddingGuests,
+    queryKey: QueryWedding.weddingGuests,
     queryFn: () => {
       return getAllWeddingGuestQuery({
         signal: querySignal(),
@@ -73,7 +78,7 @@ const SheetGuest: RFZ = () => {
     onError: () => {
       setIsError(true)
 
-      if (isPointerNotSupported()) {
+      if (isIOS12) {
         return toast.error(t('error.general.failedToFetch'))
       }
 
@@ -81,7 +86,8 @@ const SheetGuest: RFZ = () => {
     },
   })
 
-  const { isRequirePayment, isGuestMaxout, guestTrackCounts } = usePayment()
+  const { isRequirePayment, isGuestMaxout, guestTrackCounts } =
+    useWeddingPayment()
   const { mutate: saveGuest, isLoading: isSaving } = useMutation<
     Guest[],
     unknown,
@@ -99,7 +105,7 @@ const SheetGuest: RFZ = () => {
 
       setPreviousGuests(updatedGuests)
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, guests: updatedGuests })
       )
 
@@ -152,7 +158,7 @@ const SheetGuest: RFZ = () => {
 
             const updatedComments = commentType.array().parse(data.comments)
             queryClient.setQueryData<Wedding | undefined>(
-              Queries.weddingDetail,
+              QueryWedding.weddingDetail,
               (prev) => (!prev ? prev : { ...prev, comments: updatedComments })
             )
           } catch (e) {
@@ -204,7 +210,7 @@ const SheetGuest: RFZ = () => {
   function revert() {
     onCloseAutoFocus()
     queryClient.setQueryData<Guest[] | undefined>(
-      Queries.weddingGuests,
+      QueryWedding.weddingGuests,
       previousGuests
     )
   }
@@ -260,7 +266,7 @@ const SheetGuest: RFZ = () => {
 
       if (guests.data) {
         queryClient.setQueryData<Wedding | undefined>(
-          Queries.weddingDetail,
+          QueryWedding.weddingDetail,
           (prev) => (!prev ? prev : { ...prev, guests: guests.data })
         )
       }

@@ -11,10 +11,10 @@ import {
   deleteWeddingSongQuery,
   updateWeddingDisplayNameQuery,
 } from '@wedding/query'
+import { guestName } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact, guestName } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import LandingMediaPlayer from '@wedding/components/Section/Landing/MediaPlayer'
@@ -32,15 +32,15 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
 })
 
-const SectionLanding: RFZ<Wedding> = (wedding) => {
+const SectionLanding = () => {
   const { abort, cancelDebounce, getSignal, debounce } = useUtilities()
   const isEditor = useIsEditorOrDev()
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [open, onOpenChange] = useState(false)
   const [error, setError] = useState('')
   const [isError, setIsError] = useState(false)
-  const [dname1, dname2] = wedding.displayName.split(' & ')
+  const [dname1, dname2] = detail.displayName.split(' & ')
   const [name1, setName1] = useState(dname1)
   const [name2, setName2] = useState(dname2)
   const trimmedName1 = name1.trim()
@@ -67,7 +67,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
     },
     onSuccess: () => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) =>
           !prev
             ? prev
@@ -99,12 +99,12 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
       setIsError(false)
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, displayName: newDisplayName })
       )
 
       queryClient.setQueryData<Wedding[] | undefined>(
-        Queries.weddingGetAll,
+        QueryWedding.weddingGetAll,
         (prev) => {
           return !prev
             ? [{ ...detail, displayName: newDisplayName }]
@@ -149,7 +149,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
         return setError('String must contain at least 3 character(s)')
       }
 
-      if (newDisplayName === wedding.displayName) {
+      if (newDisplayName === detail.displayName) {
         return setIsError(false)
       }
 

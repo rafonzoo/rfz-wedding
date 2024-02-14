@@ -20,8 +20,9 @@ import {
   weddingLoadoutType,
   weddingType,
 } from '@wedding/schema'
+import { WeddingConfig } from '@wedding/config'
 import { djs, supabaseClient } from '@/tools/lib'
-import { cleaner, exact, qstring } from '@/tools/helper'
+import { cleaner, exact, qstring } from '@/tools/helpers'
 import { AppError } from '@/tools/error'
 import { AppConfig, ErrorMap, RouteApi, RouteHeader } from '@/tools/config'
 import { DUMMY_INVITATION } from '@/dummy'
@@ -94,7 +95,7 @@ export const addNewWeddingQuery = async ({
 
   if (
     current.filter((c) => c.status === 'draft').length ===
-    AppConfig.Wedding.MaxDraft
+    WeddingConfig.MaxDraft
   ) {
     throw new AppError(ErrorMap.limitError)
   }

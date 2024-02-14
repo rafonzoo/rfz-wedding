@@ -1,20 +1,19 @@
 'use client'
 
 import type { MutableRefObject } from 'react'
-import type { Wedding } from '@wedding/schema'
 import { useRef, useState } from 'react'
-import { useQueryClient } from 'react-query'
 import { FaPause, FaPlay } from 'react-icons/fa6'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useMountedEffect } from '@/tools/hook'
-import { exact } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import {
+  useIsEditorOrDev,
+  useMountedEffect,
+  useWeddingDetail,
+} from '@/tools/hook'
 import dynamic from 'next/dynamic'
 
-const SheetDropdown = dynamic(
-  () => import('@wedding/components/Section/Counter/Dropdown'),
-  { ssr: false }
-)
+const SheetSticky = dynamic(() => import('@wedding/components/Sheet/Sticky'), {
+  ssr: false,
+})
 
 const SectionSticky: RF<{
   sectionRef: MutableRefObject<HTMLElement | null>
@@ -23,8 +22,7 @@ const SectionSticky: RF<{
   const [isEnded, setIsEnded] = useState(true)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fixedRef = useRef<HTMLDivElement | null>(null)
-  const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const isEditor = useIsEditorOrDev()
   const { music } = detail
 
@@ -65,13 +63,10 @@ const SectionSticky: RF<{
   return (
     <div
       ref={fixedRef}
-      className={tw(
-        'fixed bottom-0 z-[60] flex max-w-[440px] px-6 py-3',
-        !detail.payment.length && 'left-1/2 w-full -translate-x-1/2'
-      )}
+      className='fixed bottom-0 z-[60] flex max-w-[440px] px-3 py-3'
     >
       {isEditor ? (
-        <SheetDropdown />
+        <SheetSticky />
       ) : (
         music && (
           <>

@@ -5,8 +5,9 @@ import { type ChangeEvent, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useLocale, useTranslations } from 'next-intl'
 import { uploadWeddingSongQuery } from '@wedding/query'
-import { blobToUri, cleaner, exact } from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
+import { useWeddingDetail } from '@/tools/hook'
+import { blobToUri, cleaner } from '@/tools/helpers'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
 import FieldText from '@/components/FormField/Text'
@@ -21,9 +22,9 @@ const LandingMediaPlayer: RF<LandingMediaPlayerProps> = ({ isRemoving }) => {
   const locale = useLocale()
   const toast = new Toast()
   const t = useTranslations()
-  const maxSizeInMega = AppConfig.Wedding.MaxFileSize * 1000
-  const maxSizeText = `${AppConfig.Wedding.MaxFileSize}`.charAt(0) + ' MB'
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const maxSizeInMega = WeddingConfig.MaxFileSize * 1000
+  const maxSizeText = `${WeddingConfig.MaxFileSize}`.charAt(0) + ' MB'
+  const detail = useWeddingDetail()
   const { isLoading, mutate: uploadSong } = useMutation<
     Music,
     unknown,
@@ -34,7 +35,7 @@ const LandingMediaPlayer: RF<LandingMediaPlayerProps> = ({ isRemoving }) => {
     },
     onSuccess: (music) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, music })
       )
     },

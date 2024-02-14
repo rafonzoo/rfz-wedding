@@ -4,8 +4,9 @@ import { default as plugin } from 'tailwindcss/plugin'
 const config: Config = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './tools/**/*.{js,ts,jsx,tsx,mdx}',
-    './**/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './tools/hook.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './features/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
@@ -50,20 +51,25 @@ const config: Config = {
         'sheet-hide': 'sheet-hide 640ms cubic-bezier(.32,.72,0,1) forwards',
         'alert-show': 'alert-show 320ms cubic-bezier(.32,.72,0,1) forwards',
         'alert-hide': 'alert-hide 320ms cubic-bezier(.32,.72,0,1) forwards',
+        'alert-wait': 'alert-wait 0ms cubic-bezier(.32,.72,0,1) 320ms forwards',
         'fade-in': 'fade-in 320ms cubic-bezier(0.4, 0, 0.2, 1) forwards',
         'fade-out': 'fade-out 320ms cubic-bezier(0.4, 0, 0.2, 1) 160ms forwards', // prettier-ignore
         'song-play': 'song-play 20s linear infinite',
       },
       keyframes: {
+        'alert-wait': {
+          '0%': { visibility: 'visible' },
+          '100%': { visibility: 'hidden' },
+        },
+
         'alert-show': {
-          '0%': { opacity: '0', transform: 'translate(-50%, -48%)scale(0.80)' },
-          '100%': { opacity: '1', transform: 'translate(-50%, -50%)scale(1)' },
+          '0%': { opacity: '0', transform: 'scale(0.8)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
         },
 
         'alert-hide': {
-          '0%': { opacity: '1', transform: 'translate(-50%, -50%)scale(1)' },
-          '50%': { opacity: '0' },
-          '100%': { transform: 'translate(-50%, -48%)scale(0.80)' },
+          '0%': { opacity: '1', transform: 'scale(1)' },
+          '100%': { opacity: '0', transform: 'scale(0.8)' },
         },
 
         'sheet-show': {

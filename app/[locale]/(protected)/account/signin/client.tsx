@@ -3,7 +3,7 @@
 import { useMutation } from 'react-query'
 import { useRouter } from 'next/navigation'
 import { signInWithProviderQuery } from '@account/query'
-import { Queries } from '@/tools/config'
+import { QueryAccount } from '@account/config'
 
 const SigninPageClient = () => {
   const router = useRouter()
@@ -12,7 +12,7 @@ const SigninPageClient = () => {
     unknown,
     'google' | 'github' | 'azure'
   >({
-    mutationKey: Queries.accountSignin,
+    mutationKey: QueryAccount.accountSignin,
     mutationFn: (provider) => signInWithProviderQuery(provider),
     onSuccess: (url) => void (url && router.replace(url)),
   })

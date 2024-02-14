@@ -9,10 +9,10 @@ import { ZodError } from 'zod'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { weddingEventType } from '@wedding/schema'
 import { updateWeddingEventTimeQuery } from '@wedding/query'
+import { QueryWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact, isObjectEqual, omit } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { isObjectEqual, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
@@ -50,7 +50,7 @@ const EventTime: RFZ<EventTimeProps> = ({
   const caption = `Pukul ${timeStart} ${localTime} — ${timeEnd} ${localTime}`
   const wid = useParams().wid as string
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [previousLength, setPreviousLength] = useState(detail.events.length)
   const { mutate: updateTime, isLoading } = useMutation<
     WeddingEventTime,
@@ -80,7 +80,7 @@ const EventTime: RFZ<EventTimeProps> = ({
       )
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) =>
           !prev
             ? prev

@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { tw } from '@/tools/lib'
-import { isPointerNotSupported } from '@/tools/helper'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 
 type DropdownProps = {
@@ -26,7 +25,7 @@ const Dropdown: RF<DropdownProps> = ({ root, trigger, content, items }) => {
       }
     }
 
-    if (isOpen && isPointerNotSupported()) {
+    if (isOpen && window.onpointerdown === undefined) {
       document.addEventListener('click', fn)
     }
 

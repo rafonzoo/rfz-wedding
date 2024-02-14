@@ -1,7 +1,6 @@
 'use client'
 
 import type { Comment, Wedding } from '@wedding/schema'
-import type { Session } from '@supabase/auth-helpers-nextjs'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { useParams, useSearchParams } from 'next/navigation'
@@ -12,16 +11,19 @@ import {
   getAllWeddingCommentQuery,
   removeWeddingCommentQuery,
 } from '@wedding/query'
-import { tw } from '@/tools/lib'
-import { useIntersection } from '@/tools/hook'
 import {
   createInitial,
-  exact,
   groupName,
   guestAlias,
   guestName,
-} from '@/tools/helper'
-import { Queries } from '@/tools/config'
+} from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
+import { tw } from '@/tools/lib'
+import {
+  useAccountSession,
+  useIntersection,
+  useWeddingDetail,
+} from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import CommentSurprise from '@wedding/components/Section/Comment/Surprise'
@@ -33,20 +35,17 @@ const Alert = dynamic(() => import('@/components/Notification/Alert'), {
   ssr: false,
 })
 
-const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
-  comments: defaultComment = [],
-  csrfToken,
-}) => {
+const CommentList: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
   const divRef = useRef<HTMLDivElement | null>(null)
   const isIntersection = useIntersection(divRef)
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const guestSlug = useSearchParams().get('to') ?? ''
   const guestFullName = guestAlias(guestSlug)
-  const session = queryClient.getQueryData<Session>(Queries.accountSession)
+  const session = useAccountSession()
   const wid = useParams().wid as string
   const hasSession = !!(session?.user.id === detail.userId && wid)
-  const comments = defaultComment.map((item) => ({
+  const comments = (detail.comments ?? []).map((item) => ({
     ...item,
     alias: decodeURI(item.alias),
     text: decodeURI(item.text),
@@ -56,13 +55,13 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
   const locale = useLocale()
   const myComment = comments.find((item) => item.alias === guestFullName)
   const allComment = useQuery<{ comments: Comment[] }>({
-    queryKey: Queries.weddingComments,
+    queryKey: QueryWedding.weddingComments,
     queryFn: () => {
       return getAllWeddingCommentQuery(locale, detail.name, csrfToken)
     },
     onSuccess: ({ comments }) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, comments })
       )
     },
@@ -94,7 +93,7 @@ const CommentList: RFZ<{ comments?: Comment[]; csrfToken?: string }> = ({
     },
     onSuccess: ({ alias }) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) =>
           !prev
             ? prev

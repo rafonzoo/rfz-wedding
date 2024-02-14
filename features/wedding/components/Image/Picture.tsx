@@ -7,15 +7,16 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { BsPlusLg } from 'react-icons/bs'
 import { updateWeddingGalleryQuery } from '@wedding/query'
+import { retina } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import {
   useIntersection,
   useIsEditorOrDev,
   useOutlinedClasses,
   useUtilities,
+  useWeddingDetail,
 } from '@/tools/hook'
-import { exact, retina } from '@/tools/helper'
-import { Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
 
@@ -36,7 +37,8 @@ const FigureImage: RFZ<{
 }> = ({ index, isCenter, className, children }) => {
   const isEditor = useIsEditorOrDev()
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
+
   const defaultCommentPhoto = detail.galleries.find(
     (item) => item.index === index
   )
@@ -72,7 +74,7 @@ const FigureImage: RFZ<{
     },
     onMutate: () => {
       return queryClient
-        .getQueryData<Wedding>(Queries.weddingDetail)
+        .getQueryData<Wedding>(QueryWedding.weddingDetail)
         ?.galleries.find((item) => item.index === index)
     },
     onError: (e, p, previous) => {
@@ -85,7 +87,7 @@ const FigureImage: RFZ<{
     },
     onSuccess: (galleries) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, galleries })
       )
     },

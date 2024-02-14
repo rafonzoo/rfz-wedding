@@ -11,11 +11,11 @@ import { PiWarningCircleFill } from 'react-icons/pi'
 import { FaChevronRight } from 'react-icons/fa6'
 import { weddingEventAddressType } from '@wedding/schema'
 import { updateWeddingEventDateQuery } from '@wedding/query'
-import { FontFamilyWedding } from '@wedding/config'
+import { placeName } from '@wedding/helpers'
+import { FontFamilyWedding, QueryWedding, WeddingConfig } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact, isObjectEqual, keys, omit, placeName } from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { isObjectEqual, keys, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import Notify from '@/components/Notification/Notify'
@@ -70,15 +70,15 @@ const EventDate: RF<EventDateProps> = ({
 
   const t = useTranslations()
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const dateOrNow = djs(getAddress.date || djs())
   const dateValue = djs(getAddress.date).isValid()
-    ? djs(getAddress.date).tz().format(AppConfig.Wedding.DateFormat)
+    ? djs(getAddress.date).tz().format(WeddingConfig.DateFormat)
     : ''
 
   const isOptionalEvent = !!detail.events.findIndex((event) => event.id === id)
   const displayAddress = formatAddress.map((itm, i) => {
-    const divider = AppConfig.Wedding.NewlineSymbol
+    const divider = WeddingConfig.NewlineSymbol
     const value = getAddress[itm].replace(divider, '\n').trim()
     const isNewLine = getAddress[itm].includes(divider)
     const isShowCaret = i === formatAddress.length - 1
@@ -151,7 +151,7 @@ const EventDate: RF<EventDateProps> = ({
       )
 
       const updatedDetail = queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) =>
           !prev
             ? prev
@@ -169,7 +169,7 @@ const EventDate: RF<EventDateProps> = ({
 
       if (updatedDetail) {
         queryClient.setQueryData<Wedding[] | undefined>(
-          Queries.weddingGetAll,
+          QueryWedding.weddingGetAll,
           (prev) => {
             return !prev
               ? [{ ...detail, events: updatedDetail.events }]
@@ -219,7 +219,7 @@ const EventDate: RF<EventDateProps> = ({
                 (data) => {
                   const timePicked = djs(data)
                   const next3Month = djs().add(
-                    AppConfig.Wedding.MaxMonthRange,
+                    WeddingConfig.MaxMonthRange,
                     'month'
                   )
 
@@ -229,7 +229,7 @@ const EventDate: RF<EventDateProps> = ({
                 },
                 {
                   message: t('error.field.invalidDate', {
-                    maxMonth: AppConfig.Wedding.MaxMonthRange,
+                    maxMonth: WeddingConfig.MaxMonthRange,
                   }),
                 }
               ),
@@ -423,14 +423,11 @@ const EventDate: RF<EventDateProps> = ({
               value={dateValue}
               onChange={(e) => setterValue('date')(e.target.value)}
               errorMessage={errorMessage('date')}
-              min={djs()
-                .add(1, 'day')
-                .tz()
-                .format(AppConfig.Wedding.DateFormat)}
+              min={djs().add(1, 'day').tz().format(WeddingConfig.DateFormat)}
               max={djs()
-                .add(AppConfig.Wedding.MaxMonthRange, 'month')
+                .add(WeddingConfig.MaxMonthRange, 'month')
                 .tz()
-                .format(AppConfig.Wedding.DateFormat)}
+                .format(WeddingConfig.DateFormat)}
             />
           </FieldGroup>
           <FieldGroup title='Alamat' classNames={{ root: 'mt-6' }}>

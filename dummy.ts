@@ -6,7 +6,7 @@ export const DUMMY_NAME = 'laura-john' as const
 export const DUMMY_EVENT = {
   id: 1,
   date: djs().tz().add(3, 'M').toISOString(),
-  eventName: 'Akad',
+  eventName: 'Resepsi',
   timeStart: '11:00',
   timeEnd: '13:00',
   placeName: 'GOR -- Sumantri',

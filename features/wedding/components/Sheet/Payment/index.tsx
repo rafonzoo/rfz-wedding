@@ -1,4 +1,3 @@
-import type { Session } from '@supabase/auth-helpers-nextjs'
 import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
@@ -11,11 +10,17 @@ import {
   paymentType,
 } from '@wedding/schema'
 import { checkoutWeddingQuery, paymentWeddingQuery } from '@wedding/query'
+import { localThousand, midtrans, price } from '@wedding/helpers'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useUtilities } from '@/tools/hook'
-import { exact, localThousand, midtrans, price } from '@/tools/helper'
+import {
+  useAccountSession,
+  useIOSVersion,
+  useUtilities,
+  useWeddingDetail,
+} from '@/tools/hook'
 import { AppError } from '@/tools/error'
-import { AppConfig, ErrorMap, Queries } from '@/tools/config'
+import { ErrorMap } from '@/tools/config'
 import { v4 as uuid } from 'uuid'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
@@ -33,6 +38,10 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
 })
 
+const Alert = dynamic(() => import('@/components/Notification/Alert'), {
+  ssr: false,
+})
+
 const SheetPayment: RFZ<SheetPaymentProps> = ({
   children,
   title,
@@ -47,8 +56,9 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
   const [guestLength, setGuestLength] = useState(0)
   const [guestToggle, setGuestToggle] = useState(scope === 'guest')
   const [additionalGuest, setAdditionalGuest] = useState(0)
+  const [unsupportedPayment, setUnsupportedPayment] = useState(false)
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
 
   // Get the latest payment if they already purchase
   // prettier-ignore
@@ -56,9 +66,11 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     detail.payment[detail.payment.length - 1] ?? null
   ) as Payment | null
 
-  const currentGuest = queryClient.getQueryState<Guest[]>(Queries.weddingGuests)
+  const currentGuest = queryClient.getQueryState<Guest[]>(
+    QueryWedding.weddingGuests
+  )
   const guests = currentGuest?.data
-  const totalGuest = guestLength - AppConfig.Wedding.GuestFree
+  const totalGuest = guestLength - WeddingConfig.GuestFree
   const isReady = !!guests
 
   // prettier-ignore
@@ -68,18 +80,20 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
   // prettier-ignore
   const priceGuest = (
     !payment
-      ? paidGuest * AppConfig.Wedding.PricePerGuest
-      : additionalGuest * AppConfig.Wedding.PricePerGuest
+      ? paidGuest * WeddingConfig.PricePerGuest
+      : additionalGuest * WeddingConfig.PricePerGuest
   )
 
-  const priceForever = activeTime * AppConfig.Wedding.PriceForever
-  const priceWedding = !payment ? AppConfig.Wedding.Price : 0
+  const priceForever = activeTime * WeddingConfig.PriceForever
+  const priceWedding = !payment ? WeddingConfig.Price : 0
   const priceActive = payment?.foreverActive ? 0 : priceForever
-  const priceTax = AppConfig.Wedding.PriceTax
+  const priceTax = WeddingConfig.PriceTax
   const priceTotal = priceWedding + priceActive + priceGuest
   const locale = useLocale()
   const wid = useParams().wid as string
   const toast = new Toast()
+  const iOSVersion = useIOSVersion()
+  const isIOS12 = iOSVersion && iOSVersion.array[0] <= 12
   const t = useTranslations()
   const priceTag = [20, 50, 100, 200, 400, 700].map((len, i, a) => ({
     text: i === a.length - 1 ? 'Max' : `${len}`,
@@ -91,17 +105,17 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     .reduce((acc, val) => acc + val, 0)
 
   // prettier-ignore
-  const guestLeft = AppConfig.Wedding.GuestMax - (
-    AppConfig.Wedding.GuestFree + sumOfAdditionalGuest
+  const guestLeft = WeddingConfig.GuestMax - (
+    WeddingConfig.GuestFree + sumOfAdditionalGuest
   )
 
   // prettier-ignore
   const isOverguest = (
-    AppConfig.Wedding.GuestFree + sumOfAdditionalGuest >=
-    AppConfig.Wedding.GuestMax
+    WeddingConfig.GuestFree + sumOfAdditionalGuest >=
+    WeddingConfig.GuestMax
   )
 
-  const session = queryClient.getQueryData<Session>(Queries.accountSession)
+  const session = useAccountSession()
   const { getSignal } = useUtilities()
 
   const { isLoading: isLoadingCheckout, mutate: checkout } = useMutation<
@@ -122,7 +136,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
       toast.success(t('success.invitation.payment'))
       setTimeout(() => {
         queryClient.setQueryData<Wedding | undefined>(
-          Queries.weddingDetail,
+          QueryWedding.weddingDetail,
           (prev) => (!prev ? prev : { ...prev, status: 'live', payment })
         )
       }, 640)
@@ -151,6 +165,8 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
       })
     },
     onSuccess: ({ token }, payload) => {
+      ;(setIsOpen ?? onOpenChange)(false)
+
       if (!('snap' in window)) {
         const script = document.createElement('script')
         script.type = 'text/javascript'
@@ -167,6 +183,10 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
   })
 
   function onCallback(token: string, payload: Omit<Payment, 'transaction'>) {
+    window.onerror = (ev, source) => {
+      console.log(ev, source)
+    }
+
     // @ts-expect-error No type
     window.snap.pay(token, {
       onSuccess: (result: unknown) => {
@@ -193,7 +213,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     if (guests) {
       setGuestLength(guests.length)
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, guests })
       )
     }
@@ -205,12 +225,12 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
 
     try {
       const data = await queryClient.fetchQuery<Guest[]>({
-        queryKey: Queries.weddingGuests,
+        queryKey: QueryWedding.weddingGuests,
       })
 
       setGuestLength(data.length)
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, guests: data })
       )
     } catch (e) {
@@ -231,210 +251,240 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
   }
 
   function isDisabled(len: number, isLast: boolean) {
-    const maxoutLen = AppConfig.Wedding.GuestFree + sumOfAdditionalGuest
+    const maxoutLen = WeddingConfig.GuestFree + sumOfAdditionalGuest
 
     return (
       totalGuest >= len ||
-      (!isLast ? maxoutLen + len >= AppConfig.Wedding.GuestMax : isOverguest)
+      (!isLast ? maxoutLen + len >= WeddingConfig.GuestMax : isOverguest)
     )
   }
 
   return (
-    <BottomSheet
-      option={{ useOverlay: true }}
-      root={{ open: isOpen ?? open, onOpenChange: setIsOpen ?? onOpenChange }}
-      header={{
-        title: title ?? 'Checkout',
-        prepend: isReady && (
-          <button onClick={() => setGuestToggle((prev) => !prev)}>
-            {!guestToggle ? 'Tamu' : 'Periode'}
-          </button>
-        ),
-      }}
-      footer={{
-        useClose: true,
-        wrapper: isReady ? { className: tw('!flex space-x-4') } : void 0,
-        append: isReady && (
-          <button
-            className='mx-auto inline-flex flex-grow items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:[.dark_&]:bg-zinc-700 disabled:[.dark_&]:text-zinc-600'
-            disabled={isLoading || isLoadingCheckout || !priceTotal}
-            onClick={
-              isLoading || isLoadingCheckout || !priceTotal
-                ? void 0
-                : onCheckout
-            }
-          >
-            {isLoading || isLoadingCheckout ? <Spinner /> : 'Bayar'}
-          </button>
-        ),
-      }}
-      content={{
-        onOpenAutoFocus: () => {
-          setGuestToggle(scope === 'guest')
+    <>
+      <BottomSheet
+        option={{ useOverlay: true }}
+        root={{ open: isOpen ?? open, onOpenChange: setIsOpen ?? onOpenChange }}
+        header={{
+          title: title ?? 'Checkout',
+          prepend: isReady && (
+            <button onClick={() => setGuestToggle((prev) => !prev)}>
+              {!guestToggle ? 'Tamu' : 'Periode'}
+            </button>
+          ),
+        }}
+        footer={{
+          useClose: true,
+          wrapper: isReady ? { className: tw('!flex space-x-4') } : void 0,
+          append: isReady && (
+            <button
+              className='mx-auto inline-flex flex-grow items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:[.dark_&]:bg-zinc-700 disabled:[.dark_&]:text-zinc-600'
+              disabled={isLoading || isLoadingCheckout || !priceTotal}
+              onClick={
+                isLoading || isLoadingCheckout || !priceTotal
+                  ? void 0
+                  : !isIOS12
+                    ? onCheckout
+                    : () => setUnsupportedPayment(true)
+              }
+            >
+              {isLoading || isLoadingCheckout ? <Spinner /> : 'Bayar'}
+            </button>
+          ),
+        }}
+        content={{
+          onOpenAutoFocus: () => {
+            setGuestToggle(scope === 'guest')
 
-          if (payment) {
-            return setActiveTime(
-              scope === 'period' ? 1 : Number(payment.foreverActive)
-            )
-          }
-
-          setActiveTime(0)
-        },
-        onAnimationEnd: () => (isOpen ?? open) && onOpenAutoFocus(),
-        onCloseAutoFocus: () => {
-          setActiveTime(0)
-          setGuestToggle(false)
-          setAdditionalGuest(0)
-        },
-      }}
-      trigger={
-        typeof children === 'undefined'
-          ? void 0
-          : {
-              asChild: true,
-              children,
+            if (payment) {
+              return setActiveTime(
+                scope === 'period' ? 1 : Number(payment.foreverActive)
+              )
             }
-      }
-    >
-      <div className='min-h-[381px]'>
-        {!guests ? (
-          <div className='flex min-h-[inherit] items-center justify-center'>
-            {isError && !isFetching ? (
-              <div className='text-center text-sm tracking-normal'>
-                <p>Oops, something went wrong..</p>
-                <button
-                  className='text-blue-600 [.dark_&]:text-blue-400'
-                  onClick={onRefetchGuest}
-                >
-                  Try again
-                </button>
-              </div>
-            ) : (
-              <Spinner />
-            )}
-          </div>
-        ) : (
-          <div className='space-y-6'>
-            <FieldGroup title={!guestToggle ? 'Masa aktif' : 'Tambah tamu'}>
-              {!guestToggle ? (
-                <div className='space-y-4'>
-                  <div
-                    tabIndex={guestToggle ? -1 : 0}
-                    onClick={
-                      guestToggle || payment?.foreverActive
-                        ? void 0
-                        : () => setActiveTime(0)
-                    }
-                    className={tw(
-                      'flex cursor-pointer select-none items-center justify-between rounded-md border border-zinc-300 px-3 py-3 transition-shadow [.dark_&]:border-zinc-700',
-                      payment?.foreverActive && 'opacity-40',
-                      activeTime === 0 && 'border-blue-600 shadow-focus'
-                    )}
+
+            setActiveTime(0)
+          },
+          onAnimationEnd: () => (isOpen ?? open) && onOpenAutoFocus(),
+          onCloseAutoFocus: () => {
+            setActiveTime(0)
+            setGuestToggle(false)
+            setAdditionalGuest(0)
+          },
+        }}
+        trigger={
+          typeof children === 'undefined'
+            ? void 0
+            : {
+                asChild: true,
+                children,
+              }
+        }
+      >
+        <div className='min-h-[381px]'>
+          {!guests ? (
+            <div className='flex min-h-[inherit] items-center justify-center'>
+              {isError && !isFetching ? (
+                <div className='text-center text-sm tracking-normal'>
+                  <p>Oops, something went wrong..</p>
+                  <button
+                    className='text-blue-600 [.dark_&]:text-blue-400'
+                    onClick={onRefetchGuest}
                   >
-                    <div className='flex flex-col'>
-                      <p>1 tahun</p>
-                      <p className='text-xs tracking-base text-zinc-600 [.dark_&]:text-zinc-300'>
-                        Masa aktif 1 tahun
-                      </p>
-                    </div>
-                    <div>Free</div>
-                  </div>
-                  <div
-                    tabIndex={guestToggle ? -1 : 0}
-                    onClick={
-                      guestToggle || payment?.foreverActive
-                        ? void 0
-                        : () => setActiveTime(1)
-                    }
-                    className={tw(
-                      'flex cursor-pointer select-none items-center justify-between rounded-md border border-zinc-300 px-3 py-3 transition-shadow [.dark_&]:border-zinc-700',
-                      payment?.foreverActive && 'opacity-40',
-                      activeTime === 1 && 'border-blue-600 shadow-focus'
-                    )}
-                  >
-                    <div className='flex flex-col'>
-                      <p>Forever</p>
-                      <p className='text-xs tracking-base text-zinc-600 [.dark_&]:text-zinc-300'>
-                        Masa aktif tidak terbatas
-                      </p>
-                    </div>
-                    <div>
-                      {localThousand(AppConfig.Wedding.PriceForever, locale)}
-                    </div>
-                  </div>
+                    Try again
+                  </button>
                 </div>
               ) : (
-                <div className='min-h-[148px]'>
-                  <ul className='grid grid-cols-2 gap-3'>
-                    {priceTag.map(({ text, len }, i, a) => (
-                      <li key={i}>
-                        <button
-                          onClick={() => {
-                            if (isDisabled(len, i === a.length - 1)) {
-                              return
-                            }
-
-                            setAdditionalGuest((prev) => {
-                              const isLast = i === a.length - 1
-
-                              if (isLast ? prev === guestLeft : prev === len) {
-                                return 0
+                <Spinner />
+              )}
+            </div>
+          ) : (
+            <div className='space-y-6'>
+              <FieldGroup title={!guestToggle ? 'Masa aktif' : 'Tambah tamu'}>
+                {!guestToggle ? (
+                  <div className='space-y-4'>
+                    <div
+                      tabIndex={guestToggle ? -1 : 0}
+                      onClick={
+                        guestToggle || payment?.foreverActive
+                          ? void 0
+                          : () => setActiveTime(0)
+                      }
+                      className={tw(
+                        'flex cursor-pointer select-none items-center justify-between rounded-md border border-zinc-300 px-3 py-3 transition-shadow [.dark_&]:border-zinc-700',
+                        payment?.foreverActive && 'opacity-40',
+                        activeTime === 0 && 'border-blue-600 shadow-focus'
+                      )}
+                    >
+                      <div className='flex flex-col'>
+                        <p>1 tahun</p>
+                        <p className='text-xs tracking-base text-zinc-600 [.dark_&]:text-zinc-300'>
+                          Masa aktif 1 tahun
+                        </p>
+                      </div>
+                      <div>Free</div>
+                    </div>
+                    <div
+                      tabIndex={guestToggle ? -1 : 0}
+                      onClick={
+                        guestToggle || payment?.foreverActive
+                          ? void 0
+                          : () => setActiveTime(1)
+                      }
+                      className={tw(
+                        'flex cursor-pointer select-none items-center justify-between rounded-md border border-zinc-300 px-3 py-3 transition-shadow [.dark_&]:border-zinc-700',
+                        payment?.foreverActive && 'opacity-40',
+                        activeTime === 1 && 'border-blue-600 shadow-focus'
+                      )}
+                    >
+                      <div className='flex flex-col'>
+                        <p>Forever</p>
+                        <p className='text-xs tracking-base text-zinc-600 [.dark_&]:text-zinc-300'>
+                          Masa aktif tidak terbatas
+                        </p>
+                      </div>
+                      <div>
+                        {localThousand(WeddingConfig.PriceForever, locale)}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className='min-h-[148px]'>
+                    <ul className='grid grid-cols-2 gap-3'>
+                      {priceTag.map(({ text, len }, i, a) => (
+                        <li key={i}>
+                          <button
+                            onClick={() => {
+                              if (isDisabled(len, i === a.length - 1)) {
+                                return
                               }
 
-                              return isLast ? guestLeft : len
-                            })
-                          }}
-                          tabIndex={
-                            guestToggle && !isDisabled(len, i === a.length - 1)
-                              ? 0
-                              : -1
-                          }
-                          className={tw(
-                            'h-[41.33333px] w-full rounded-md border border-zinc-300 transition-shadow [.dark_&]:border-zinc-700',
-                            (i < a.length - 1 ? additionalGuest === len : additionalGuest === guestLeft) && 'border-blue-600 shadow-focus', // prettier-ignore
-                            isDisabled(len, i === a.length - 1) && 'cursor-default opacity-40' // prettier-ignore
-                          )}
-                        >
-                          {text}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </FieldGroup>
-            <FieldGroup title='Detil harga'>
-              <div className='text-sm tracking-normal'>
-                <p className='flex justify-between text-zinc-600 [.dark_&]:text-zinc-300'>
-                  <span className=''>Masa aktif:</span>
-                  <span>{price(priceActive, locale)}</span>
-                </p>
-                <p className='flex justify-between text-zinc-600 [.dark_&]:text-zinc-300'>
-                  <span className=''>Tamu ({paidGuest}):</span>
-                  <span>{price(priceGuest, locale)}</span>
-                </p>
-                <p className='flex justify-between text-zinc-600 [.dark_&]:text-zinc-300'>
-                  <span>Undangan:</span>
-                  <span>{price(priceWedding, locale)}</span>
-                </p>
-                <hr className='my-2 border-zinc-300 [.dark_&]:border-zinc-700' />
-                <p className='flex justify-between'>
-                  <span className='flex space-x-1'>
-                    <span className='font-semibold'>Total:</span>
-                    <span className='text-zinc-600 [.dark_&]:text-zinc-300'>
-                      {priceTotal ? `(+Tax ${localThousand(priceTax)})` : ''}
+                              setAdditionalGuest((prev) => {
+                                const isLast = i === a.length - 1
+
+                                if (
+                                  isLast ? prev === guestLeft : prev === len
+                                ) {
+                                  return 0
+                                }
+
+                                return isLast ? guestLeft : len
+                              })
+                            }}
+                            tabIndex={
+                              guestToggle &&
+                              !isDisabled(len, i === a.length - 1)
+                                ? 0
+                                : -1
+                            }
+                            className={tw(
+                              'h-[41.33333px] w-full rounded-md border border-zinc-300 transition-shadow [.dark_&]:border-zinc-700',
+                              (i < a.length - 1 ? additionalGuest === len : additionalGuest === guestLeft) && 'border-blue-600 shadow-focus', // prettier-ignore
+                              isDisabled(len, i === a.length - 1) && 'cursor-default opacity-40' // prettier-ignore
+                            )}
+                          >
+                            {text}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </FieldGroup>
+              <FieldGroup title='Detil harga'>
+                <div className='text-sm tracking-normal'>
+                  <p className='flex justify-between text-zinc-600 [.dark_&]:text-zinc-300'>
+                    <span className=''>Masa aktif:</span>
+                    <span>{price(priceActive, locale)}</span>
+                  </p>
+                  <p className='flex justify-between text-zinc-600 [.dark_&]:text-zinc-300'>
+                    <span className=''>Tamu ({paidGuest}):</span>
+                    <span>{price(priceGuest, locale)}</span>
+                  </p>
+                  <p className='flex justify-between text-zinc-600 [.dark_&]:text-zinc-300'>
+                    <span>Undangan:</span>
+                    <span>{price(priceWedding, locale)}</span>
+                  </p>
+                  <hr className='my-2 border-zinc-300 [.dark_&]:border-zinc-700' />
+                  <p className='flex justify-between'>
+                    <span className='flex space-x-1'>
+                      <span className='font-semibold'>Total:</span>
+                      <span className='text-zinc-600 [.dark_&]:text-zinc-300'>
+                        {priceTotal ? `(+Tax ${localThousand(priceTax)})` : ''}
+                      </span>
                     </span>
+                    <span className='font-semibold'>
+                      {price(priceTotal ? priceTotal + priceTax : 0, locale)}
+                    </span>
+                  </p>
+                </div>
+              </FieldGroup>
+            </div>
+          )}
+        </div>
+      </BottomSheet>
+      <Alert
+        root={{
+          open: unsupportedPayment,
+          onOpenChange: setUnsupportedPayment,
+        }}
+        title={{ children: 'Perangkat tidak mendukung' }}
+        cancel={{ children: 'Batal', className: tw('hidden') }}
+        action={{ children: 'OK' }}
+        description={{
+          children: (
+            <>
+              We are apologize. Perangkat Anda saat ini tidak mendukung sistem
+              pembayaran kami. Gunakan perangkat lain dulu ya! {':)'}
+              {typeof window !== 'undefined' &&
+                process.env.NEXT_PUBLIC_SITE_ENV !== 'production' && (
+                  <span className='mt-3 block rounded-lg bg-zinc-100 p-3 font-mono text-xs text-black'>
+                    {window.navigator.userAgent}
                   </span>
-                  <span className='font-semibold'>
-                    {price(priceTotal ? priceTotal + priceTax : 0, locale)}
-                  </span>
-                </p>
-              </div>
-            </FieldGroup>
-          </div>
-        )}
-      </div>
-    </BottomSheet>
+                )}
+            </>
+          ),
+        }}
+      />
+    </>
   )
 }
 

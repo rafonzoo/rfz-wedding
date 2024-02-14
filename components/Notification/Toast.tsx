@@ -1,5 +1,5 @@
 import { tw } from '@/tools/lib'
-import { delay } from '@/tools/helper'
+import { delay } from '@/tools/helpers'
 import { AppConfig } from '@/tools/config'
 
 class Toast {

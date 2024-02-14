@@ -1,5 +1,4 @@
 import type { Comment, Wedding } from '@wedding/schema'
-import type { Session } from '@supabase/auth-helpers-nextjs'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams, useSearchParams } from 'next/navigation'
@@ -8,16 +7,20 @@ import { IoArrowForwardCircle } from 'react-icons/io5'
 import { BiChevronDown } from 'react-icons/bi'
 import { commentType } from '@wedding/schema'
 import { addNewWeddingCommentQuery } from '@wedding/query'
+import { createInitial, guestAlias, guestName } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev } from '@/tools/hook'
-import { createInitial, exact, guestAlias, guestName } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import {
+  useAccountSession,
+  useIsEditorOrDev,
+  useWeddingDetail,
+} from '@/tools/hook'
 import Toast from '@/components/Notification/Toast'
 
 const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const session = queryClient.getQueryData<Session>(Queries.accountSession)
+  const detail = useWeddingDetail()
+  const session = useAccountSession()
   const hasSession = session?.user.id === detail.userId
   const cid = useSearchParams().get('cid')
   const commentId = cid ? decodeURI(cid) : null
@@ -61,7 +64,7 @@ const CommentInput: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
       setComment('')
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) =>
           !prev
             ? prev
