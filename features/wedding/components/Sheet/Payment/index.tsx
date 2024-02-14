@@ -173,6 +173,9 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
         script.dataset.clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? '' // prettier-ignore
         script.src = midtrans('/snap/snap.js')
         script.onload = () => onCallback(token, payload)
+        script.onerror = (ev, source) => {
+          console.log(ev, source)
+        }
 
         document.head.append(script)
         return
@@ -192,10 +195,6 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
         checkout([...detail.payment, { ...payload, transaction }])
       },
     })
-
-    window.onerror = (ev, source) => {
-      console.log(ev, source)
-    }
   }
 
   function onCheckout() {
