@@ -63,9 +63,9 @@ export const POST = async (request: NextRequest) => {
     const csrfToken = cookies().get(RouteCookie.csrf)?.value
     const tokenHeader = request.headers.get(RouteHeader.csrf)
 
-    // if (!tokenHeader || csrfToken !== tokenHeader) {
-    //   throw new AppError(ErrorMap.forbiddenError, 'Forbidden.')
-    // }
+    if (!tokenHeader || csrfToken !== tokenHeader) {
+      throw new AppError(ErrorMap.forbiddenError, 'Forbidden.')
+    }
 
     const comment = commentType
       .merge(z.object({ token: z.string() }))
