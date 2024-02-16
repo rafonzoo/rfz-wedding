@@ -26,7 +26,7 @@ export const RoutePublicAuth = [
 export const RouteProtected = [
   Route.account,
   Route.accountOption,
-  Route.wedding,
+  Route.weddingList,
   Route.weddingEditor,
 ] as const
 
@@ -38,6 +38,7 @@ export enum RouteApi {
 }
 
 export enum RouteHeader {
+  path = 'X-URL-Path',
   csrf = 'X-CSRF-Token',
 }
 

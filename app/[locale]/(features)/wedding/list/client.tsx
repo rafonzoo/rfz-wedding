@@ -17,7 +17,6 @@ import { ErrorMap, Route } from '@/tools/config'
 import { useLocaleRouter } from '@/locale/config'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
-import NavWindow from '@/components/NavWindow'
 import Spinner from '@/components/Loading/Spinner'
 import FieldText from '@/components/FormField/Text'
 import FieldSearch from '@/components/FormField/Search'
@@ -136,7 +135,7 @@ const MyWeddingAddNewSheet: RF<{
           <button
             aria-label='Add new invitation'
             className={tw(
-              'relative flex h-6 w-6 items-center justify-center text-xl transition-transform duration-300',
+              'absolute right-3 top-3 flex h-6 w-6 items-center justify-center text-xl transition-transform duration-300',
               'text-blue-600 data-[state=closed]:rotate-0 data-[state=open]:rotate-90'
             )}
           >
@@ -307,17 +306,12 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
     initialData: myWedding,
   })
 
-  const usermeta = user.user_metadata
-  const avatar_url: string | undefined = usermeta.avatar_url ?? usermeta.picture
   const [withFilter] = useState<keyof typeof items>('createdAt')
   const allWedding = weddings ?? myWedding
   const items = {
-    createdAt: allWedding.sort((a, b) =>
-      djs(a.createdAt)
-        .tz()
-        .toISOString()
-        .localeCompare(djs(b.createdAt).tz().toISOString())
-    ),
+    createdAt: allWedding.sort((a, b) => {
+      return djs(b.createdAt).tz().isAfter(djs(a.createdAt).tz()) ? 1 : -1
+    }),
   }
 
   function gotoDetailPage(wedding: Wedding) {
@@ -345,10 +339,8 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
   }
 
   return (
-    <div className='mx-auto max-w-[440px]'>
-      <NavWindow title='Undangan' avatarUrl={avatar_url}>
-        <MyWeddingAddNewSheet uid={user.id} onAddedNew={gotoDetailPage} />
-      </NavWindow>
+    <main>
+      <MyWeddingAddNewSheet uid={user.id} onAddedNew={gotoDetailPage} />
       {weddings && weddings.length >= 5 && (
         <div className='border-b border-zinc-200 px-4 py-1'>
           <FieldSearch placeholder='Pencarian...' />
@@ -365,7 +357,7 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
           />
         ))}
       </ul>
-    </div>
+    </main>
   )
 }
 

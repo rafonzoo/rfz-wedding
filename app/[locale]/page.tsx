@@ -12,7 +12,7 @@ const Homepage = async () => {
           </LocaleLink>
         </p>
         <p>
-          <LocaleLink prefetch={false} href={Route.wedding}>
+          <LocaleLink prefetch={false} href={Route.weddingList}>
             Undanganku
           </LocaleLink>
         </p>

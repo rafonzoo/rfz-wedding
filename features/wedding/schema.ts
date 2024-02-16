@@ -147,11 +147,11 @@ export const musicType = z.object({
 
 export type PaymentTransaction = Infer<typeof paymentTransactionType>
 export const paymentTransactionType = z.object({
-  order_id: z.string().optional(),
-  payment_type: z.string().optional(),
-  status_code: z.string().optional(),
-  transaction_id: z.string().optional(),
-  transaction_time: z.string().optional(),
+  order_id: z.string(),
+  payment_type: z.string(),
+  status_code: z.string(),
+  transaction_id: z.string(),
+  transaction_time: z.string(),
 })
 
 export type PaymentToken = Infer<typeof paymentTokenResponseType>

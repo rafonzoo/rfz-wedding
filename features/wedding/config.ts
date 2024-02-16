@@ -1,7 +1,8 @@
 export enum RouteWedding {
-  wedding = '/wedding',
-  weddingPublic = '/[name]',
-  weddingEditor = '/wedding/[wid]',
+  weddingList = '/wedding/list',
+  weddingPurchase = '/wedding/purchase',
+  weddingEditor = '/wedding/editor/[wid]',
+  weddingCouple = '/wedding/couple/[name]',
 }
 
 export enum QueryWedding {

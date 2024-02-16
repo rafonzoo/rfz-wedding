@@ -17,18 +17,23 @@ export default {
     id: '/akun/masuk',
   },
 
-  [Route.wedding]: {
-    en: Route.wedding,
-    id: '/undangan',
+  [Route.weddingList]: {
+    en: Route.weddingList,
+    id: '/undangan/koleksi',
+  },
+
+  [Route.weddingPurchase]: {
+    en: Route.weddingPurchase,
+    id: '/undangan/transaksi',
   },
 
   [Route.weddingEditor]: {
     en: Route.weddingEditor,
-    id: '/undanganku/[wid]',
+    id: '/undangan/naskah/[wid]',
   },
 
-  [Route.weddingPublic]: {
-    en: Route.weddingPublic,
-    id: '/[name]',
+  [Route.weddingCouple]: {
+    en: Route.weddingCouple,
+    id: '/undangan/pasangan/[name]',
   },
 } satisfies Pathnames<typeof locales>

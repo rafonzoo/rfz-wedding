@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { deleteWeddingQuery, updateStatusWeddingQuery } from '@wedding/query'
-import { QueryWedding } from '@wedding/config'
+import { QueryWedding, RouteWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import { useUtilities, useWeddingDetail, useWeddingPayment } from '@/tools/hook'
 import { useLocaleRouter } from '@/locale/config'
@@ -105,7 +105,7 @@ const SheetSticky: RF = () => {
       )
 
       toast.success(t('success.invitation.delete'))
-      router.refresh()
+      router.replace(RouteWedding.weddingList)
     },
     onError: (e) => {
       if ((e as Error)?.message.includes('AbortError')) {

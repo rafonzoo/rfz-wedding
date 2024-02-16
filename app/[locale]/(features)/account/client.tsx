@@ -3,8 +3,18 @@
 import { useMutation, useQueryClient } from 'react-query'
 import { QueryWedding } from '@wedding/config'
 import { QueryAccount } from '@account/config'
-import { supabaseClient } from '@/tools/lib'
+import { supabaseClient, tw } from '@/tools/lib'
 import { useLocaleRouter } from '@/locale/config'
+import dynamic from 'next/dynamic'
+
+const Alert = dynamic(() => import('@/components/Notification/Alert'), {
+  ssr: false,
+  loading: () => (
+    <button className='flex h-11 w-full items-center px-3 text-red-500'>
+      Keluar
+    </button>
+  ),
+})
 
 const AccountPageClient = () => {
   const queryClient = useQueryClient()
@@ -24,9 +34,30 @@ const AccountPageClient = () => {
   })
 
   return (
-    <div>
-      <button onClick={() => signout()}>Logout</button>
-    </div>
+    <main>
+      <div>
+        <Alert
+          title={{ children: 'Keluar dari akun?' }}
+          description={{
+            children: 'Anda akan keluar dari sesi ini. Lanjutkan?',
+          }}
+          cancel={{ children: 'Batal' }}
+          action={{
+            children: 'Logout',
+            className: tw('bg-red-600'),
+            onClick: () => signout(),
+          }}
+          trigger={{
+            asChild: true,
+            children: (
+              <button className='flex h-11 w-full items-center px-3 text-red-500'>
+                Keluar
+              </button>
+            ),
+          }}
+        />
+      </div>
+    </main>
   )
 }
 

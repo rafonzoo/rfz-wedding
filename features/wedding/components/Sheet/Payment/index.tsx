@@ -16,6 +16,7 @@ import { tw } from '@/tools/lib'
 import {
   useAccountSession,
   useIOSVersion,
+  useMountedEffect,
   useUtilities,
   useWeddingDetail,
 } from '@/tools/hook'
@@ -134,14 +135,24 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
       ;(setIsOpen ?? onOpenChange)(false)
 
       toast.success(t('success.invitation.payment'))
-      setTimeout(() => {
-        queryClient.setQueryData<Wedding | undefined>(
-          QueryWedding.weddingDetail,
-          (prev) => (!prev ? prev : { ...prev, status: 'live', payment })
-        )
-      }, 640)
+      queryClient.setQueryData<Wedding | undefined>(
+        QueryWedding.weddingDetail,
+        (prev) => (!prev ? prev : { ...prev, status: 'live', payment })
+      )
+
+      queryClient.setQueryData<Wedding[] | undefined>(
+        QueryWedding.weddingGetAll,
+        (prev) => {
+          return !prev
+            ? [{ ...detail, status: 'live', payment }]
+            : prev.map((item) =>
+                item.wid === wid ? { ...item, status: 'live', payment } : item
+              )
+        }
+      )
     },
   })
+
   const { isLoading, mutate: requestPayment } = useMutation<
     PaymentToken,
     unknown,
@@ -170,6 +181,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
       if (!('snap' in window)) {
         const script = document.createElement('script')
         script.type = 'text/javascript'
+        script.id = 'snap-module'
         script.dataset.clientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ?? '' // prettier-ignore
         script.src = midtrans('/snap/snap.js')
         script.onload = () => onCallback(token, payload)
@@ -214,6 +226,17 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
       )
     }
   }, [guests, queryClient])
+
+  useMountedEffect(() => {
+    return () => {
+      if ('snap' in window) {
+        delete window.snap
+
+        document.getElementById('snap-midtrans')?.remove()
+        document.getElementById('snap-module')?.remove()
+      }
+    }
+  })
 
   async function onRefetchGuest() {
     setIsFetching(true)

@@ -8,7 +8,7 @@ const SigninPage = async () => {
   const { data: auth, error: authError } = await supabase.auth.getSession()
 
   if (auth.session && !authError) {
-    return localeRedirect(Route.wedding)
+    return localeRedirect(Route.weddingList)
   }
 
   return <SigninPageClient />

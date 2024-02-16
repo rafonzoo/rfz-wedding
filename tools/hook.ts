@@ -3,15 +3,47 @@
 import type { MutableRefObject } from 'react'
 import type { Guest, Payment, Wedding } from '@wedding/schema'
 import type { Session } from '@supabase/auth-helpers-nextjs'
+import type { Dictionary } from '@/tools/config'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
+import { useLocale } from 'next-intl'
+import { RiContactsLine, RiExchangeDollarFill } from 'react-icons/ri'
+import { LuMailOpen } from 'react-icons/lu'
 import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { QueryAccount } from '@account/config'
 import { tw } from '@/tools/lib'
 import { exact, iOSVersion, isObjectEqual } from '@/tools/helpers'
-import { AppConfig } from '@/tools/config'
+import { AppConfig, DefaultLocale, Route } from '@/tools/config'
+import { default as pathnames } from '@/locale/route'
 import { useLocalePathname } from '@/locale/config'
+
+export const useWeddingNavigator = () => {
+  const locale = useLocale() as `${Dictionary}`
+  const localePath = locale === DefaultLocale ? '' : `/${locale}`
+  const items = [
+    {
+      title: 'Undangan',
+      pathname: localePath + pathnames[Route.weddingList][locale],
+      Icon: LuMailOpen,
+      className: void 0,
+    },
+    {
+      title: 'Transaksi',
+      pathname: localePath + pathnames[Route.weddingPurchase][locale],
+      Icon: RiExchangeDollarFill,
+      className: tw('!text-2xl'),
+    },
+    {
+      title: 'Akunku',
+      pathname: localePath + pathnames[Route.account][locale],
+      Icon: RiContactsLine,
+      className: void 0,
+    },
+  ] as const
+
+  return items
+}
 
 export const useWeddingPayment = () => {
   const queryClient = useQueryClient()

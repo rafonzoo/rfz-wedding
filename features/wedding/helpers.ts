@@ -1,4 +1,6 @@
+import type { Payment } from '@wedding/schema'
 import { ASSETS_PATH, UPLOADS_PATH, WeddingConfig } from '@wedding/config'
+import { djs } from '@/tools/lib'
 
 export function midtrans(path: string) {
   const envKey = process.env.NEXT_PUBLIC_SITE_ENV as keyof typeof env
@@ -167,4 +169,38 @@ export function trimBy(symbol: string, text: string) {
   }
 
   return result
+}
+
+export function formatTimeTransaction(
+  transaction: (Payment & { wid: string; name: string })[]
+) {
+  transaction = transaction.map((item) => {
+    if (!item.transaction.transaction_time) return item
+
+    const [date, time] = item.transaction.transaction_time.split(' ')
+    const [hours, minutes, seconds] = time.split(':')
+    const formattedDateTime = djs(date)
+      .add(+hours, 'h')
+      .add(+minutes, 'm')
+      .add(+seconds, 's')
+      .tz()
+
+    return {
+      ...item,
+      transaction: {
+        ...item.transaction,
+        transaction_time: formattedDateTime.toISOString(),
+      },
+    }
+  })
+
+  transaction = transaction.sort((a, b) =>
+    djs(b.transaction.transaction_time)
+      .tz()
+      .isAfter(djs(a.transaction.transaction_time).tz())
+      ? 1
+      : -1
+  )
+
+  return transaction
 }

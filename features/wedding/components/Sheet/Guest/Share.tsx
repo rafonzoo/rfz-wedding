@@ -4,15 +4,17 @@ import type { MouseEvent, ReactNode } from 'react'
 import type { Guest } from '@wedding/schema'
 import { useRef, useState } from 'react'
 import { useQueryClient } from 'react-query'
+import { useLocale } from 'next-intl'
 import { IoCopyOutline, IoLogoInstagram, IoLogoWhatsapp } from 'react-icons/io5'
 import { HiMiniMinusCircle } from 'react-icons/hi2'
 import { GoShare } from 'react-icons/go'
 import { guestAlias } from '@wedding/helpers'
-import { QueryWedding } from '@wedding/config'
+import { QueryWedding, RouteWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
 import { useUtilities, useWeddingDetail } from '@/tools/hook'
 import { abspath, qstring } from '@/tools/helpers'
 import { Route } from '@/tools/config'
+import { default as pathnames } from '@/locale/route'
 import { LocaleLink } from '@/locale/config'
 import * as clipboard from 'clipboard-polyfill'
 import dynamic from 'next/dynamic'
@@ -91,12 +93,18 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
         return !event.opensTo || (eventGroup && lowerGroup.includes(eventGroup))
       })
 
+  const locale = useLocale()
   const url = qstring(
     {
       to: guest.slug,
       cid: guest.token,
     },
-    abspath(`/${detail.name}`)
+    abspath(
+      pathnames[RouteWedding.weddingCouple][locale as 'id'].replace(
+        '[name]',
+        detail.name
+      )
+    )
   )
 
   const isEditable = guest.id > 1
@@ -316,9 +324,9 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
                       link={
                         <LocaleLink
                           target='_blank'
-                          className='text-blue-600 [.dark_&]:text-blue-400'
+                          className='break-words text-blue-600 [.dark_&]:text-blue-400'
                           href={{
-                            pathname: Route.weddingPublic,
+                            pathname: Route.weddingCouple,
                             params: { name: detail.name },
                             search: qstring({ to: slug, cid: token }),
                           }}

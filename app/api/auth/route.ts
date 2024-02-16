@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
     const supabase = supabaseRouteServer()
     await supabase.auth.exchangeCodeForSession(code)
 
-    return NextResponse.redirect(abspath(Route.wedding))
+    return NextResponse.redirect(abspath(Route.weddingList))
   }
 
   return NextResponse.redirect(
