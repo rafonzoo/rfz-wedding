@@ -6,11 +6,17 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { tw } from '@/tools/lib'
 import { locales } from '@/locale/config'
+// @ts-expect-error No type for polyfill
+import replaceAll from 'string.prototype.replaceall'
 import { QueryProvider } from '@/components/Provider'
 import './style.css'
 
 // Track missmatch due to invariant time.
 // process.env.TZ = 'America/Denver'
+
+if (typeof window !== 'undefined' && !String.prototype.replaceAll) {
+  String.prototype.replaceAll = replaceAll
+}
 
 const inter = Inter({
   subsets: ['latin'],
