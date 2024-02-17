@@ -22,7 +22,7 @@ import {
 } from '@wedding/schema'
 import { WeddingConfig } from '@wedding/config'
 import { djs, supabaseClient } from '@/tools/lib'
-import { cleaner, exact, qstring } from '@/tools/helpers'
+import { exact, qstring } from '@/tools/helpers'
 import { AppError } from '@/tools/error'
 import { AppConfig, ErrorMap, RouteApi, RouteHeader } from '@/tools/config'
 import { DUMMY_INVITATION } from '@/dummy'
@@ -31,7 +31,7 @@ import { DUMMY_INVITATION } from '@/dummy'
 export const WEDDING_ROW = AppConfig.Column[process.env.NEXT_PUBLIC_SITE_ENV as 'development']
 
 // prettier-ignore
-export const WEDDING_COLUMN = 'wid,userId,status,name,displayName,createdAt,updatedAt,stories,music,couple,loadout,galleries,events,surprise,payment' as const
+export const WEDDING_COLUMN = 'wid,userId,status,name,displayName,createdAt,updatedAt,stories,music,couple,loadout,galleries,events,surprise,payment,comments' as const
 
 export const deleteWeddingQuery = async ({
   path,
@@ -156,7 +156,7 @@ export const detailWeddingQuery = async (
     return null
   }
 
-  return weddingType.parse({ ...detail, guests: [], comments: [] })
+  return weddingType.parse({ ...detail, guests: [] })
 }
 
 export const updateWeddingLoadoutQuery = async ({
@@ -260,27 +260,6 @@ export const addNewWeddingCommentQuery = async (
 
   if (response.ok) {
     return commentType.parse(json.data)
-  }
-
-  throw new Error(json.message)
-}
-
-export const getAllWeddingCommentQuery = async (
-  locale: string,
-  name: string,
-  token?: string
-) => {
-  const response = await fetch(qstring({ name, locale }, RouteApi.comment), {
-    headers: cleaner({ [RouteHeader.csrf]: token ?? '' }),
-  })
-
-  const json = (await response.json()) as {
-    data: unknown
-    message?: string
-  }
-
-  if (response.ok) {
-    return { comments: commentType.array().parse(json.data) }
   }
 
   throw new Error(json.message)

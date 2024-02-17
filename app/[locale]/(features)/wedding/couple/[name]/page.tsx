@@ -2,9 +2,9 @@ import type { ResolvingMetadata } from 'next'
 import { weddingType } from '@wedding/schema'
 import { WEDDING_COLUMN, WEDDING_ROW } from '@wedding/query'
 import { WeddingConfig } from '@wedding/config'
-import { getCookie, supabaseService } from '@/tools/server'
-import { djs } from '@/tools/lib'
-import { Route, RouteCookie } from '@/tools/config'
+import { supabaseService } from '@/tools/server'
+import { djs, tokenize } from '@/tools/lib'
+import { Route } from '@/tools/config'
 import { localeRedirect } from '@/locale/config'
 import WeddingPageClient from './client'
 
@@ -75,7 +75,7 @@ export const generateMetadata = async (
         },
       }
 
-      return { ...parent, ...metadata }
+      return { ...metadata }
     }
   } catch (e) {}
 
@@ -88,7 +88,7 @@ const WeddingPage = async ({
 }: Param<{ name: string }, { to?: string }>) => {
   const supabase = supabaseService()
   const slug = searchParams.to
-  const csrfToken = getCookie(RouteCookie.csrf)?.value
+  const csrfToken = tokenize.value
   const { data } = await supabase.auth.getSession()
   const { data: wedding, error } = await supabase
     .from(WEDDING_ROW)

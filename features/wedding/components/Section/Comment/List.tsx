@@ -1,16 +1,13 @@
 'use client'
 
 import type { Comment, Wedding } from '@wedding/schema'
-import { useEffect, useRef, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from 'react-query'
+import { useRef, useState } from 'react'
+import { useMutation, useQueryClient } from 'react-query'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useLocale } from 'next-intl'
 import { IoChevronDownCircleOutline } from 'react-icons/io5'
 import { FaCircleMinus } from 'react-icons/fa6'
-import {
-  getAllWeddingCommentQuery,
-  removeWeddingCommentQuery,
-} from '@wedding/query'
+import { removeWeddingCommentQuery } from '@wedding/query'
 import {
   createInitial,
   groupName,
@@ -29,7 +26,6 @@ import Text from '@wedding/components/Text'
 import CommentSurprise from '@wedding/components/Section/Comment/Surprise'
 import CommentInput from '@wedding/components/Section/Comment/Input'
 import Toast from '@/components/Notification/Toast'
-import Spinner from '@/components/Loading/Spinner'
 
 const Alert = dynamic(() => import('@/components/Notification/Alert'), {
   ssr: false,
@@ -54,22 +50,6 @@ const CommentList: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
   const toast = new Toast()
   const locale = useLocale()
   const myComment = comments.find((item) => item.alias === guestFullName)
-  const allComment = useQuery<{ comments: Comment[] }>({
-    queryKey: QueryWedding.weddingComments,
-    queryFn: () => {
-      return getAllWeddingCommentQuery(locale, detail.name, csrfToken)
-    },
-    onSuccess: ({ comments }) => {
-      queryClient.setQueryData<Wedding | undefined>(
-        QueryWedding.weddingDetail,
-        (prev) => (!prev ? prev : { ...prev, comments })
-      )
-    },
-    onError: (e) => {
-      toast.error((e as Error)?.message)
-    },
-  })
-
   const [page, setPage] = useState(1)
   const first = comments[0] as Comment | undefined
   const last = myComment ?? comments[comments.length - 1]
@@ -112,31 +92,15 @@ const CommentList: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
     },
   })
 
-  useEffect(() => {
-    if (isIntersection && !allComment.isFetched) {
-      allComment.refetch()
-    }
-  }, [allComment, isIntersection])
+  // useEffect(() => {
+  //   if (isIntersection && !allComment.isFetched) {
+  //     allComment.refetch()
+  //   }
+  // }, [allComment, isIntersection])
 
   return (
     <div ref={divRef}>
-      {!allComment.data ? (
-        <div className='flex h-[276px] w-full flex-col items-center justify-center space-y-1 text-center text-sm tracking-normal'>
-          {!allComment.isError ? (
-            <Spinner />
-          ) : (
-            <>
-              <p>Oops, something went wrong..</p>
-              <button
-                className='text-blue-600 [.dark_&]:text-blue-400'
-                onClick={() => allComment.refetch()}
-              >
-                Try again
-              </button>
-            </>
-          )}
-        </div>
-      ) : (
+      {
         <div className='relative z-[1]'>
           <Text family='cinzel' className='text-xl'>
             {comments.length + ' ucapan'}
@@ -259,7 +223,7 @@ const CommentList: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
           <CommentInput csrfToken={csrfToken} />
           <CommentSurprise />
         </div>
-      )}
+      }
     </div>
   )
 }
