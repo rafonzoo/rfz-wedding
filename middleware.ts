@@ -1,5 +1,6 @@
 import { type NextRequest } from 'next/server'
 import { default as createMiddleware } from 'next-intl/middleware'
+import { isLocal } from '@/tools/helpers'
 import {
   RouteCookie,
   RouteHeader,
@@ -23,8 +24,8 @@ export const middleware = async (req: NextRequest) => {
 
   const token = uuid()
   response.cookies.set(RouteCookie.csrf, token, {
-    sameSite: 'lax',
-    secure: process.env.NEXT_PUBLIC_SITE_ENV !== 'development',
+    sameSite: 'strict',
+    secure: !isLocal(),
     httpOnly: true,
     path: '/',
   })
