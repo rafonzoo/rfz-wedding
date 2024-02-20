@@ -12,7 +12,6 @@ import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
-import Notify from '@/components/Notification/Notify'
 import markdownConfig from '@/components/Markdown/config'
 import Spinner from '@/components/Loading/Spinner'
 import FieldTextArea from '@/components/FormField/TextArea'
@@ -99,11 +98,7 @@ const SectionCoupleStories: RFZ = () => {
             }}
             footer={{
               useClose: true,
-              useBorder: !viewParsed
-                ? !!detail.stories && isError && !isLoading
-                  ? void 0
-                  : false
-                : void 0,
+              useBorder: !viewParsed ? void 0 : false,
             }}
             option={{ useOverlay: true }}
             content={{ className: tw('h-full') }}
@@ -150,15 +145,6 @@ const SectionCoupleStories: RFZ = () => {
               ),
             }}
           >
-            {isError && (
-              <div className='px-6 pt-6'>
-                <Notify
-                  severity='error'
-                  title='Failed to save a changes.'
-                  description='Please tap "Save" above to keep your data up to date.'
-                />
-              </div>
-            )}
             {viewParsed ? (
               <div className='h-[inherit] px-6 pb-1 pt-6'>
                 <div className='markdown h-[inherit]'>

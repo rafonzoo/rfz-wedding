@@ -3,7 +3,6 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { z } from 'zod'
 import { default as ZodID } from 'zod-i18n-map/locales/id/zod.json'
 import { zodI18nMap } from 'zod-i18n-map'
-import { v4 as uuid } from 'uuid'
 import i18next from 'i18next'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -53,5 +52,3 @@ export const zodClient = () => {
   z.setErrorMap(zodI18nMap)
   return z
 }
-
-export const tokenize = { value: uuid() }

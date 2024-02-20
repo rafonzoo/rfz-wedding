@@ -74,7 +74,7 @@ const EventsAction: RF<EventsActionProps> = ({
         onClick={isFirstIndex ? void 0 : onClick}
         className={tw(
           'flex h-full w-full items-center justify-center rounded-full bg-blue-600 text-xl text-white',
-          isFirstIndex && 'opacity-40'
+          isFirstIndex && 'opacity-50'
         )}
       >
         <MdModeEdit />

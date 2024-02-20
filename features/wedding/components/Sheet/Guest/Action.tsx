@@ -331,18 +331,16 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
           }
           infoMessage={
             <span>
-              {/* Writing guest within {'"("'} and {'")"'} at the beginning will
-              create a guest group.{' '} */}
               Menulis nama tamu didalam {'"("'} dan {'")"'} diawal kolom akan
               membuat grup tamu.{' '}
-              <a
+              {/* <a
                 className='text-blue-600 [.dark_&]:text-blue-400'
                 href='#'
                 tabIndex={isShow ? 0 : -1}
                 onClick={isShow ? (e) => e.preventDefault() : void 0}
               >
                 Pelajari lebih lanjut
-              </a>
+              </a> */}
             </span>
           }
         >

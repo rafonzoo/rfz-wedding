@@ -125,7 +125,7 @@ const SheetSticky: RF = () => {
       className: 'group',
       children: (
         <span className={tw('inline-flex w-full items-center justify-between')}>
-          <span className='block group-disabled:opacity-40'>
+          <span className='block group-disabled:opacity-50'>
             {isDraft ? publishText : 'Jadikan sebagai draft'}
           </span>
           {isLoading && (
@@ -166,7 +166,7 @@ const SheetSticky: RF = () => {
           {
             disabled: isLoadingOrComplete,
             children: 'Tambahan',
-            className: tw('disabled:opacity-40'),
+            className: tw('disabled:opacity-50'),
             onClick: isLoadingOrComplete
               ? void 0
               : () => {
@@ -185,7 +185,7 @@ const SheetSticky: RF = () => {
           side: 'top',
           align: 'start',
           sideOffset: 12,
-          className: tw('origin-bottom-left'),
+          className: tw('origin-bottom-left min-w-[272px]'),
         }}
         trigger={{
           onClick: isLoading ? void 0 : () => onOpenChange(true),

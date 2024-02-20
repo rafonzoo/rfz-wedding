@@ -16,6 +16,7 @@ import { abspath } from '@/tools/helpers'
 import { ErrorMap, Route } from '@/tools/config'
 import { useLocaleRouter } from '@/locale/config'
 import dynamic from 'next/dynamic'
+import EmptyState from '@wedding/components/Empty'
 import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
 import FieldText from '@/components/FormField/Text'
@@ -135,7 +136,7 @@ const MyWeddingAddNewSheet: RF<{
           <button
             aria-label='Add new invitation'
             className={tw(
-              'absolute right-3 top-3 flex h-6 w-6 items-center justify-center text-xl transition-transform duration-300',
+              'absolute -top-[72px] right-3 flex h-6 w-6 items-center justify-center text-xl transition-transform duration-300',
               'text-blue-600 data-[state=closed]:rotate-0 data-[state=open]:rotate-90'
             )}
           >
@@ -314,6 +315,8 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
     }),
   }
 
+  const draftLength = allWedding.filter((item) => !item.payment.length).length
+
   function gotoDetailPage(wedding: Wedding) {
     if (prevDetail && prevDetail.wid !== wedding.wid) {
       queryClient.setQueryData(QueryWedding.weddingDetail, wedding)
@@ -339,24 +342,34 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
   }
 
   return (
-    <main>
-      <MyWeddingAddNewSheet uid={user.id} onAddedNew={gotoDetailPage} />
+    <main className='relative mx-auto max-w-[440px]'>
+      {draftLength < 3 && (
+        <MyWeddingAddNewSheet uid={user.id} onAddedNew={gotoDetailPage} />
+      )}
       {weddings && weddings.length >= 5 && (
         <div className='border-b border-zinc-200 px-4 py-1'>
           <FieldSearch placeholder='Pencarian...' />
         </div>
       )}
-      <ul>
-        {items[withFilter].map((wedding, index, array) => (
-          <MyWeddingItems
-            key={index}
-            wedding={wedding}
-            index={index}
-            length={array.length}
-            onClick={() => gotoDetailPage(wedding)}
-          />
-        ))}
-      </ul>
+      {!allWedding.length ? (
+        <EmptyState>
+          Undangan yang sudah dibuat
+          <br />
+          akan tampil disini.
+        </EmptyState>
+      ) : (
+        <ul>
+          {items[withFilter].map((wedding, index, array) => (
+            <MyWeddingItems
+              key={index}
+              wedding={wedding}
+              index={index}
+              length={array.length}
+              onClick={() => gotoDetailPage(wedding)}
+            />
+          ))}
+        </ul>
+      )}
     </main>
   )
 }

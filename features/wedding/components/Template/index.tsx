@@ -10,20 +10,16 @@ import SectionComment from '@wedding/components/Section/Comment'
 /**
  * Server Component
  */
-const WeddingTemplate: RFZ<Wedding & { csrfToken?: string }> = ({
-  csrfToken,
-  loadout,
-}) => {
+const WeddingTemplate: RFZ<Wedding> = ({ loadout }) => {
   return (
-    // prettier-ignore
-    <div className={tw({ 'dark': loadout.background === 'black' })}>
+    <div className={tw({ dark: loadout.background === 'black' })}>
       <main className='mx-auto max-w-[440px]'>
         <div className='transition-colors duration-200 ease-out [.dark_&]:bg-black [.dark_&]:text-white'>
           <SectionLanding />
           <SectionCouple />
           <SectionEvents />
           <SectionGalleries />
-          <SectionComment csrfToken={csrfToken} />
+          <SectionComment />
           <SectionCounter />
         </div>
       </main>

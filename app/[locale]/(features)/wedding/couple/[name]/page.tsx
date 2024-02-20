@@ -3,7 +3,7 @@ import { weddingType } from '@wedding/schema'
 import { WEDDING_COLUMN, WEDDING_ROW } from '@wedding/query'
 import { WeddingConfig } from '@wedding/config'
 import { supabaseService } from '@/tools/server'
-import { djs, tokenize } from '@/tools/lib'
+import { djs } from '@/tools/lib'
 import { Route } from '@/tools/config'
 import { localeRedirect } from '@/locale/config'
 import WeddingPageClient from './client'
@@ -53,7 +53,6 @@ export const generateMetadata = async (
         ...coreMeta,
         metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? ''),
         alternates: {
-          canonical: '/',
           languages: {
             'id-ID': '/',
             'en-US': '/en',
@@ -88,7 +87,6 @@ const WeddingPage = async ({
 }: Param<{ name: string }, { to?: string }>) => {
   const supabase = supabaseService()
   const slug = searchParams.to
-  const csrfToken = tokenize.value
   const { data } = await supabase.auth.getSession()
   const { data: wedding, error } = await supabase
     .from(WEDDING_ROW)
@@ -105,7 +103,6 @@ const WeddingPage = async ({
     <WeddingPageClient
       wedding={weddingType.parse(wedding)}
       session={data.session ?? void 0}
-      csrfToken={csrfToken}
     />
   )
 }

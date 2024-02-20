@@ -16,7 +16,6 @@ import {
   useOutlinedClasses,
   useUtilities,
   useWeddingDetail,
-  useWeddingGetAll,
 } from '@/tools/hook'
 import { debounceOnOlderDevice, exact, keys } from '@/tools/helpers'
 import { useTranslations } from 'use-intl'
@@ -32,19 +31,16 @@ type SheetLoadoutPayload = WeddingLoadout & {
 }
 
 const SheetLoadout: RF = () => {
-  const [openSheet, setOpenSheet] = useState(false)
   const queryClient = useQueryClient()
   const detail = useWeddingDetail()
-  const [{ theme, foreground, background }, setLoadout] = useState(
-    detail.loadout
-  )
-
+  const [openSheet, setOpenSheet] = useState(false)
+  const [loadout, setLoadout] = useState(detail.loadout)
+  const [prevDetail, setPrevDetail] = useState(detail)
+  const { theme, foreground, background } = loadout
   const ulRef = useRef<HTMLUListElement | null>(null)
   const isEditor = useIsEditorOrDev()
   const outlined = useOutlinedClasses()
-  const myWedding = useWeddingGetAll()
-  const [prevDetail, setPrevDetail] = useState(detail)
-  const [previousList, setPreviousList] = useState(myWedding)
+  const supportedTheme = ['autumn', 'tropical'] as const
   const { abort, getSignal } = useUtilities()
   const wid = useParams().wid as string
   const toast = new Toast()
@@ -66,15 +62,6 @@ const SheetLoadout: RF = () => {
     },
     onSuccess: (loadout) => {
       setPrevDetail((prev) => ({ ...prev, loadout }))
-      setPreviousList((prev) =>
-        !prev
-          ? prev
-          : [
-              ...prev.map((item) =>
-                prevDetail.wid === item.wid ? { ...item, loadout } : item
-              ),
-            ]
-      )
     },
     onError: (e) => {
       if ((e as Error).message.includes('AbortError')) {
@@ -82,13 +69,6 @@ const SheetLoadout: RF = () => {
       }
 
       toast.error(t('error.general.failedToSave'))
-
-      if (previousList) {
-        queryClient.setQueryData<Wedding[] | undefined>(
-          QueryWedding.weddingGetAll,
-          previousList
-        )
-      }
 
       queryClient.setQueryData<Wedding | undefined>(
         QueryWedding.weddingDetail,
@@ -184,13 +164,7 @@ const SheetLoadout: RF = () => {
           ),
         }}
         content={{
-          onCloseAutoFocus: () => {
-            setLoadout({
-              theme: detail.loadout.theme,
-              background: detail.loadout.background,
-              foreground: detail.loadout.foreground,
-            })
-          },
+          onCloseAutoFocus: () => setLoadout(detail.loadout),
           onOpenAutoFocus: () => {
             function goCenter() {
               const button = ulRef.current?.querySelector<HTMLElement>(
@@ -202,6 +176,7 @@ const SheetLoadout: RF = () => {
             }
 
             debounceOnOlderDevice(goCenter)
+            setLoadout(detail.loadout)
           },
         }}
       >
@@ -221,6 +196,25 @@ const SheetLoadout: RF = () => {
             </div>
           </div>
         </div>
+        <ul className='flex items-center justify-center py-4 text-center'>
+          {supportedTheme.map((th, index) => (
+            <li key={index}>
+              <button
+                className={tw(
+                  'flex h-8 items-center rounded-full px-4 text-sm tracking-normal',
+                  th === theme ? 'bg-zinc-100 font-semibold' : 'text-zinc-400'
+                )}
+                onClick={() => {
+                  if (th !== theme) {
+                    setLoadout((prev) => ({ ...prev, theme: th }))
+                  }
+                }}
+              >
+                {th.charAt(0).toUpperCase() + th.slice(1)}
+              </button>
+            </li>
+          ))}
+        </ul>
         <div className='pb-8'>
           <div className='h-px w-full bg-zinc-200 [.dark_&]:bg-zinc-700' />
           <ul ref={ulRef} className='mt-4 flex space-x-4 overflow-x-auto p-2'>

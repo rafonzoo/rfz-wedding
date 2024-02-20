@@ -135,8 +135,8 @@ export type Comment = Infer<typeof commentType>
 export const commentType = z.object({
   alias: z.string().min(3),
   text: z.string().min(3),
-  token: guestType.shape.token,
-  isComing: z.enum(['tbd', 'yes', 'no']),
+  token: guestType.shape.token.optional(),
+  isComing: z.enum(['tbd', 'yes', 'no']).optional(),
 })
 
 export type Music = Infer<typeof musicType>
@@ -175,7 +175,7 @@ export const weddingType = z.object({
   wid: z.string().uuid(),
   userId: z.string().uuid(),
   guests: guestType.array().optional(),
-  comments: commentType.array().optional(),
+  comments: commentType.array(),
   displayName: z.string(),
   status: z.enum(invitationStatusType),
   name: z.string().min(7).max(21),

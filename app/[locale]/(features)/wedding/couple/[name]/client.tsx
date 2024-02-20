@@ -16,8 +16,7 @@ import WeddingTemplate from '@wedding/components/Template'
 const WeddingPageClient: RFZ<{
   wedding: Wedding
   session?: Session
-  csrfToken?: string
-}> = ({ wedding, session, csrfToken }) => {
+}> = ({ wedding, session }) => {
   const router = useLocaleRouter()
   const detail = useQuery({
     initialData: wedding,
@@ -32,7 +31,7 @@ const WeddingPageClient: RFZ<{
     queryFn: () => authorizationQuery(supabaseClient()),
   })
 
-  return <WeddingTemplate {...exact(detail.data)} csrfToken={csrfToken} />
+  return <WeddingTemplate {...exact(detail.data)} />
 }
 
 export default WeddingPageClient

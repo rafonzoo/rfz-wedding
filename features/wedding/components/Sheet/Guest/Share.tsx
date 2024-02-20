@@ -181,7 +181,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
       key={id}
       className={tw(
         'relative overflow-hidden border-zinc-300 pl-6 pr-11 [.dark_&]:border-zinc-700',
-        editedGuestId === id && 'bg-zinc-100'
+        editedGuestId === id && 'bg-zinc-100 [.dark_&]:bg-zinc-700'
       )}
     >
       <div className='relative translate-z-0'>
@@ -215,7 +215,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
             </button>
           )}
           <p
-            className={tw('w-full translate-z-0', !isEditable && 'opacity-40')}
+            className={tw('w-full translate-z-0', !isEditable && 'opacity-50')}
           >
             {guestAlias(slug)}
           </p>

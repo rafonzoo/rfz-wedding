@@ -11,7 +11,6 @@ import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
-import Notify from '@/components/Notification/Notify'
 import markdownConfig from '@/components/Markdown/config'
 import Spinner from '@/components/Loading/Spinner'
 import FieldTextArea from '@/components/FormField/TextArea'
@@ -102,11 +101,7 @@ const CommentSurprise: RF = () => {
         option={{ useOverlay: true }}
         footer={{
           useClose: true,
-          useBorder: !viewParsed
-            ? !!detail.surprise && isError && !isLoading
-              ? void 0
-              : false
-            : void 0,
+          useBorder: !viewParsed ? void 0 : false,
         }}
         content={{ className: tw('h-full') }}
         wrapper={{ className: tw('h-full') }}
@@ -147,15 +142,6 @@ const CommentSurprise: RF = () => {
           ),
         }}
       >
-        {isEditor && isError && (
-          <div className='px-6 pt-6'>
-            <Notify
-              severity='error'
-              title='Failed to save a changes.'
-              description='Please tap "Save" above to keep your data up to date.'
-            />
-          </div>
-        )}
         {isPublic ? (
           <div className='markdown h-[inherit] p-6'>
             <Markdown {...markdownConfig}>{surprise}</Markdown>

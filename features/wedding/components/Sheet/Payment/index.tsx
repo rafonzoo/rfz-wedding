@@ -278,6 +278,22 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     )
   }
 
+  const PaymentButton = (
+    <button
+      className='mx-auto inline-flex flex-grow items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:[.dark_&]:bg-zinc-700 disabled:[.dark_&]:text-zinc-600'
+      disabled={isLoading || isLoadingCheckout || !priceTotal}
+      // onClick={
+      //   isLoading || isLoadingCheckout || !priceTotal
+      //     ? void 0
+      //     : !isIOS12
+      //       ? onCheckout
+      //       : () => setUnsupportedPayment(true)
+      // }
+    >
+      {isLoading || isLoadingCheckout ? <Spinner /> : 'Bayar'}
+    </button>
+  )
+
   return (
     <>
       <BottomSheet
@@ -295,19 +311,43 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
           useClose: true,
           wrapper: isReady ? { className: tw('!flex space-x-4') } : void 0,
           append: isReady && (
-            <button
-              className='mx-auto inline-flex flex-grow items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:[.dark_&]:bg-zinc-700 disabled:[.dark_&]:text-zinc-600'
-              disabled={isLoading || isLoadingCheckout || !priceTotal}
-              onClick={
-                isLoading || isLoadingCheckout || !priceTotal
-                  ? void 0
-                  : !isIOS12
-                    ? onCheckout
-                    : () => setUnsupportedPayment(true)
-              }
-            >
-              {isLoading || isLoadingCheckout ? <Spinner /> : 'Bayar'}
-            </button>
+            <>
+              {isIOS12 ? (
+                PaymentButton
+              ) : (
+                <Alert
+                  trigger={{ asChild: true, children: PaymentButton }}
+                  title={{ children: 'Konfirmasi pembayaran' }}
+                  cancel={{ children: 'Batal' }}
+                  action={{
+                    children: 'OK',
+                    onClick:
+                      isLoading || isLoadingCheckout || !priceTotal
+                        ? void 0
+                        : !isIOS12
+                          ? onCheckout
+                          : () => setUnsupportedPayment(true),
+                  }}
+                  description={{
+                    children:
+                      'Pastikan jumlah harga dan item yang Anda pesan sesuai harga yang tertera.',
+                  }}
+                />
+              )}
+            </>
+            // <button
+            //   className='mx-auto inline-flex flex-grow items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:[.dark_&]:bg-zinc-700 disabled:[.dark_&]:text-zinc-600'
+            //   disabled={isLoading || isLoadingCheckout || !priceTotal}
+            //   onClick={
+            //     isLoading || isLoadingCheckout || !priceTotal
+            //       ? void 0
+            //       : !isIOS12
+            //         ? onCheckout
+            //         : () => setUnsupportedPayment(true)
+            //   }
+            // >
+            //   {isLoading || isLoadingCheckout ? <Spinner /> : 'Bayar'}
+            // </button>
           ),
         }}
         content={{
@@ -369,7 +409,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
                       }
                       className={tw(
                         'flex cursor-pointer select-none items-center justify-between rounded-md border border-zinc-300 px-3 py-3 transition-shadow [.dark_&]:border-zinc-700',
-                        payment?.foreverActive && 'opacity-40',
+                        payment?.foreverActive && 'opacity-50',
                         activeTime === 0 && 'border-blue-600 shadow-focus'
                       )}
                     >
@@ -390,7 +430,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
                       }
                       className={tw(
                         'flex cursor-pointer select-none items-center justify-between rounded-md border border-zinc-300 px-3 py-3 transition-shadow [.dark_&]:border-zinc-700',
-                        payment?.foreverActive && 'opacity-40',
+                        payment?.foreverActive && 'opacity-50',
                         activeTime === 1 && 'border-blue-600 shadow-focus'
                       )}
                     >
@@ -437,7 +477,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
                             className={tw(
                               'h-[41.33333px] w-full rounded-md border border-zinc-300 transition-shadow [.dark_&]:border-zinc-700',
                               (i < a.length - 1 ? additionalGuest === len : additionalGuest === guestLeft) && 'border-blue-600 shadow-focus', // prettier-ignore
-                              isDisabled(len, i === a.length - 1) && 'cursor-default opacity-40' // prettier-ignore
+                              isDisabled(len, i === a.length - 1) && 'cursor-default opacity-50' // prettier-ignore
                             )}
                           >
                             {text}

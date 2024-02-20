@@ -14,7 +14,6 @@ import { djs, tw } from '@/tools/lib'
 import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
 import { isObjectEqual, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
-import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
 import FieldText from '@/components/FormField/Text'
 import FieldGroup from '@/components/FormField/Group'
@@ -267,7 +266,6 @@ const EventTime: RFZ<EventTimeProps> = ({
             root={{ open, onOpenChange }}
             header={{
               title: 'Edit acara',
-              useBorder: hasError,
               append: (
                 <>
                   {isLoading && <Spinner />}
@@ -283,15 +281,6 @@ const EventTime: RFZ<EventTimeProps> = ({
               ),
             }}
           >
-            {hasError && (
-              <div className='px-6 py-6'>
-                <Notify
-                  severity='error'
-                  title='Failed to save a changes.'
-                  description='Please tap "Save" above to keep your data up to date.'
-                />
-              </div>
-            )}
             <FieldGroup title='Nama/Waktu'>
               <FieldText
                 required

@@ -14,10 +14,9 @@ import { updateWeddingCouplesQuery } from '@wedding/query'
 import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
-import { cleaner, isObjectEqual, keys, omit } from '@/tools/helpers'
+import { cleaner, isLocal, isObjectEqual, keys, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import TextCard from '@wedding/components/Text/Card'
-import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
 import FieldText from '@/components/FormField/Text'
 import FieldGroup from '@/components/FormField/Group'
@@ -294,7 +293,6 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
             root={{ open: isOpen, onOpenChange: setIsOpen }}
             header={{
               title: 'Mempelai',
-              useBorder: errorInfo,
               prepend: (requiredError.length > 0 ||
                 partialError.length > 0) && (
                 <button
@@ -331,15 +329,6 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
             option={{ useOverlay: true }}
             footer={{ useClose: true }}
           >
-            {errorInfo && (
-              <div className='px-6 py-6'>
-                <Notify
-                  severity='error'
-                  title='Failed to save a changes.'
-                  description='Please tap "Save" above to keep your data up to date.'
-                />
-              </div>
-            )}
             <div className='space-y-6 pb-1'>
               <FieldGroup title='Display info'>
                 <FieldText
@@ -408,7 +397,7 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
                       tabIndex={0}
                       aria-label={social}
                       onClick={(e) =>
-                        isEditor
+                        isLocal()
                           ? e.preventDefault()
                           : window.open(socialUrl[social])
                       }

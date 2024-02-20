@@ -30,13 +30,9 @@ const config: Config = {
         error: '0 0 0px 4px #ffb4b4',
         outlined: '0 0 0 4px rgb(133 133 133 / 40%)',
       },
-      colors: {
-        fall: '#000',
-        unity: '#000',
-        rainbow: '#000',
-      },
       screens: {
         sm: { max: '360px' },
+        mn: { min: '440px' },
       },
       transitionTimingFunction: {
         panel: 'cubic-bezier(.32,.72,0,1)',

@@ -20,14 +20,14 @@ export const DUMMY_EVENT = {
 
 export const DUMMY_GUEST = {
   id: 1,
-  name: 'GGRFZ Team',
-  slug: 'GGRFZ-Team',
+  name: 'RFZ Team',
+  slug: 'RFZ-Team',
   token: '123456',
 }
 
 export const DUMMY_COMMENT = {
   text: 'Thank you for letting us share in this joyful day! May the joy of your new home be filled with laughter, smiles, kisses, hugs, respect understanding and faithfulness. Happy wedding!',
-  alias: 'GGRFZ Team',
+  alias: 'RFZ Team',
   token: '123456',
   isComing: 'no' as const,
 }

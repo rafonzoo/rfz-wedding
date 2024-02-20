@@ -1,5 +1,6 @@
 {
   "def": {
+    "comment": "komentar",
     "song": "lagu",
     "photo": "foto",
     "guest": "tamu"
@@ -21,6 +22,7 @@
       "failedToUpload": "Gagal mengunggah {name}",
       "failedToLoad": "Gagal memuat {name}",
       "failedToRemove": "Gagal menghapus {name}",
+      "failedToSend": "Gagal mengirim {name}",
       "failedToFetch": "Gagal menerima data"
     }
   },

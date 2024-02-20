@@ -11,14 +11,21 @@ import { updateWeddingEventQuery } from '@wedding/query'
 import { groupName, guestAlias } from '@wedding/helpers'
 import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useUtilities, useWeddingDetail } from '@/tools/hook'
+import { useMountedEffect, useUtilities, useWeddingDetail } from '@/tools/hook'
 import { DUMMY_EVENT } from '@/dummy'
 import dynamic from 'next/dynamic'
 import Event from '@wedding/components/Section/Events/Event'
-import EventsAction from '@wedding/components/Section/Events/Action'
 import ImageTheme from '@wedding/components/Image/Theme'
 import ImageCallout from '@wedding/components/Image/Callout'
 import Spinner from '@/components/Loading/Spinner'
+
+const EventsAction = dynamic(
+  () => import('@wedding/components/Section/Events/Action'),
+  {
+    ssr: false,
+    loading: () => <div className='ml-5 h-10 w-10' />,
+  }
+)
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -27,6 +34,7 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
 const SectionEvents = () => {
   const [activeIndex, setActiveIndex] = useState(0)
   const [open, onOpenChange] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState<'add' | 'delete' | null>(null)
   const { abort, getSignal } = useUtilities()
   const isPublic = !!useParams().name
@@ -166,6 +174,10 @@ const SectionEvents = () => {
   const isDisabledPrevious = !activeIndex
   const isDisabledNext = activeIndex === events.length - 1
 
+  useMountedEffect(() => {
+    setTimeout(() => setIsMounted(true), 3_000)
+  })
+
   return (
     <section className='relative overflow-hidden'>
       <div className='relative'>
@@ -211,14 +223,18 @@ const SectionEvents = () => {
                 dateErrorRef={dateErrorRef}
                 timeErrorRef={timeErrorRef}
               >
-                <EventsAction
-                  {...event}
-                  isActive={activeIndex === index}
-                  onClick={() => onOpenChange(true)}
-                  isFirstIndex={
-                    !index && events.length === WeddingConfig.MaxEvent
-                  }
-                />
+                {isMounted ? (
+                  <EventsAction
+                    {...event}
+                    isActive={activeIndex === index}
+                    onClick={() => onOpenChange(true)}
+                    isFirstIndex={
+                      !index && events.length === WeddingConfig.MaxEvent
+                    }
+                  />
+                ) : (
+                  <div className='ml-5 h-10 w-10' />
+                )}
               </Event>
             ))}
           </ul>

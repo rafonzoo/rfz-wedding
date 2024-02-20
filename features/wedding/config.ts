@@ -1,6 +1,7 @@
 export enum RouteWedding {
+  wedding = '/wedding',
   weddingList = '/wedding/list',
-  weddingPurchase = '/wedding/purchase',
+  weddingHistory = '/wedding/history',
   weddingEditor = '/wedding/editor/[wid]',
   weddingCouple = '/wedding/couple/[name]',
 }
@@ -18,10 +19,16 @@ export enum FontFamilyWedding {
   poiret = 'poiret',
 }
 
+export const RouteNavigationWedding = [
+  RouteWedding.weddingList,
+  RouteWedding.weddingHistory,
+] as const
+
 export const WeddingConfig = {
   DateFormat: 'YYYY-MM-DD',
   NewlineSymbol: '--',
   ImageryStartIndex: 100,
+  MaxCollapsedComment: 10,
   MaxMonthRange: 3,
   MaxEvent: 4,
   MaxDraft: 3,

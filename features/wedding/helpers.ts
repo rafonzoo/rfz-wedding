@@ -51,9 +51,9 @@ export function swatches(key: keyof typeof colorClasses) {
     orange: 'bg-orange-500',
     cyan: 'bg-cyan-500',
     fuchsia: 'bg-fuchsia-500',
-    rainbow: 'bg-rainbow',
-    unity: 'bg-unity',
-    fall: 'bg-fall',
+    fall: 'bg-[conic-gradient(from_90deg,#e35859,#fba869,#ad5052,#e35859)]', // prettier-ignore
+    unity: 'bg-[conic-gradient(from_90deg,red,yellow,green,red)]', // prettier-ignore
+    rainbow: 'bg-[conic-gradient(from_90deg,violet,indigo,blue,green,yellow,orange,red,violet)]', // prettier-ignore
   }
 
   return colorClasses[key]

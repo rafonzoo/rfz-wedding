@@ -6,7 +6,7 @@ import ImageCallout from '@wedding/components/Image/Callout'
 
 const COMMENT_PICTURE_INDEX = 201
 
-const SectionComment: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
+const SectionComment: RFZ = () => {
   return (
     <section className='relative'>
       <div className='absolute right-0 top-0 z-[1]'>
@@ -23,7 +23,7 @@ const SectionComment: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
           <ImageCallout model='bird' />
         </div>
         <FigureImage index={COMMENT_PICTURE_INDEX} className='z-[1]' isCenter />
-        <CommentList csrfToken={csrfToken} />
+        <CommentList />
       </div>
     </section>
   )

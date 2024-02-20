@@ -34,23 +34,27 @@ const Dropdown: RF<DropdownProps> = ({ root, trigger, content, items }) => {
 
   return (
     <DropdownMenu.Root {...root}>
-      <DropdownMenu.Trigger {...trigger} />
+      {trigger && <DropdownMenu.Trigger {...trigger} />}
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           {...content}
           loop={content?.loop ?? true}
           className={tw(
-            'relative z-[999] -ml-px flex scale-0 flex-col divide-y overflow-hidden rounded-xl border border-zinc-300 bg-white opacity-0 [.dark_&]:border-zinc-700 [.dark_&]:bg-zinc-800',
+            'relative z-[999] -ml-px flex scale-0 flex-col divide-y overflow-hidden rounded-lg border border-zinc-300 bg-white opacity-0 [.dark_&]:border-zinc-700 [.dark_&]:bg-zinc-800',
             'data-[state=closed]:animate-dropdown-hide data-[state=open]:animate-dropdown-show', // prettier-ignore
+            !content?.className?.includes('min-w-') && 'min-w-[172px]',
             content?.className
           )}
         >
           {items?.map((item, i) => (
-            <DropdownMenu.Item key={i}>
+            <DropdownMenu.Item
+              key={i}
+              className='border-zinc-300 outline-none focus-visible:bg-zinc-100 [.dark_&]:border-zinc-700 [.dark_&]:focus-visible:border-zinc-700'
+            >
               <button
                 {...item}
                 className={tw(
-                  'inline-flex h-11 min-w-[272px] items-center border-zinc-300 px-4 hover:bg-zinc-100 [.dark_&]:border-zinc-700 [.dark_&]:hover:bg-zinc-700',
+                  'inline-flex h-11 w-full items-center border-zinc-300 px-4 hover:bg-zinc-100 [.dark_&]:border-zinc-700 [.dark_&]:hover:bg-zinc-700',
                   item.className
                 )}
               />

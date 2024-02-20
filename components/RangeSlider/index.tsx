@@ -28,7 +28,7 @@ const RangeSlider: RF<RangeSliderProps> = ({ root, track, range, thumb }) => {
           {...range}
           className={tw(
             'absolute h-full rounded-full bg-blue-400 [.dark_&]:bg-blue-500',
-            root?.disabled && 'opacity-40',
+            root?.disabled && 'opacity-50',
             range?.className
           )}
         />

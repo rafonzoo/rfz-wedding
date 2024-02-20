@@ -17,14 +17,19 @@ export default {
     id: '/akun/masuk',
   },
 
+  [Route.wedding]: {
+    en: Route.wedding,
+    id: '/undangan',
+  },
+
   [Route.weddingList]: {
     en: Route.weddingList,
     id: '/undangan/koleksi',
   },
 
-  [Route.weddingPurchase]: {
-    en: Route.weddingPurchase,
-    id: '/undangan/transaksi',
+  [Route.weddingHistory]: {
+    en: Route.weddingHistory,
+    id: '/undangan/riwayat',
   },
 
   [Route.weddingEditor]: {

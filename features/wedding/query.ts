@@ -1,5 +1,4 @@
 import type {
-  Comment,
   Guest,
   Payment,
   PaymentToken,
@@ -24,7 +23,7 @@ import { WeddingConfig } from '@wedding/config'
 import { djs, supabaseClient } from '@/tools/lib'
 import { exact, qstring } from '@/tools/helpers'
 import { AppError } from '@/tools/error'
-import { AppConfig, ErrorMap, RouteApi, RouteHeader } from '@/tools/config'
+import { AppConfig, ErrorMap, RouteApi } from '@/tools/config'
 import { DUMMY_INVITATION } from '@/dummy'
 
 // prettier-ignore
@@ -117,7 +116,7 @@ export const addNewWeddingQuery = async ({
     )
   }
 
-  return weddingType.parse({ ...newWedding, guests: [], comments: [] })
+  return weddingType.parse({ ...newWedding, guests: [] })
 }
 
 export const getAllWeddingQuery = async (
@@ -241,52 +240,46 @@ export const updateWeddingCouplesQuery = async ({
   return weddingType.shape.couple.parse(data.couple)
 }
 
-export const addNewWeddingCommentQuery = async (
-  locale: string,
-  name: string,
-  comment: Comment & { token: string },
-  csrfToken?: string
-) => {
-  const response = await fetch(qstring({ name, locale }, RouteApi.comment), {
-    method: 'POST',
-    headers: { [RouteHeader.csrf]: csrfToken ?? '' },
-    body: JSON.stringify(comment),
-  })
+export const deleteWeddingCommentQuery = async ({
+  wid,
+  alias,
+  index: deletedIndex,
+}: {
+  wid: string
+  alias: string
+  index?: number
+}) => {
+  const supabase = supabaseClient()
+  const { data: prevData, error: prevDataError } = await supabase
+    .from(WEDDING_ROW)
+    .select('comments')
+    .eq('wid', wid)
+    .single()
 
-  const json = (await response.json()) as {
-    data: unknown
-    message?: string
+  if (prevDataError) {
+    throw new AppError(ErrorMap.internalError, prevDataError?.message)
   }
 
-  if (response.ok) {
-    return commentType.parse(json.data)
+  const previousComment = commentType.array().parse(prevData.comments)
+  const { error } = await supabase
+    .from(WEDDING_ROW)
+    .update({
+      updatedAt: djs().toISOString(),
+      comments: deletedIndex
+        ? [...previousComment.filter((e, index) => index !== deletedIndex)]
+        : [
+            ...previousComment.filter(
+              (item) => decodeURI(item.alias) !== alias
+            ),
+          ],
+    })
+    .eq('wid', wid)
+
+  if (error) {
+    throw new AppError(ErrorMap.internalError, error?.message)
   }
 
-  throw new Error(json.message)
-}
-
-export const removeWeddingCommentQuery = async (
-  locale: string,
-  wid: string,
-  { alias }: { alias: string }
-) => {
-  const response = await fetch(qstring({ wid, locale }, RouteApi.comment), {
-    method: 'PATCH',
-    body: JSON.stringify({ alias }),
-  })
-
-  const json = (await response.json()) as {
-    data: unknown
-    message?: string
-  }
-
-  if (response.ok) {
-    return commentType
-      .omit({ text: true, isComing: true, token: true })
-      .parse(json.data)
-  }
-
-  throw new Error(json.message)
+  return { alias, index: deletedIndex }
 }
 
 export const updateWeddingEventDateQuery = async ({

@@ -18,16 +18,11 @@ export const Route = {
   ...RouteWedding,
 } as const
 
-export const RoutePublicAuth = [
-  Route.accountSignin,
-  Route.accountSignup,
-] as const
-
-export const RouteProtected = [
+export const RouteNavigation = [
+  Route.home,
+  Route.wedding,
   Route.account,
-  Route.accountOption,
-  Route.weddingList,
-  Route.weddingEditor,
+  Route.accountSignin,
 ] as const
 
 export enum RouteApi {
@@ -39,11 +34,6 @@ export enum RouteApi {
 
 export enum RouteHeader {
   path = 'X-URL-Path',
-  csrf = 'X-CSRF-Token',
-}
-
-export enum RouteCookie {
-  csrf = 'csrfToken',
 }
 
 export enum ErrorMap {
@@ -79,6 +69,6 @@ export const AppConfig = {
   },
   Timeout: {
     Toast: 5_000,
-    Debounce: 1_000,
+    Debounce: 2_000,
   },
 } as const

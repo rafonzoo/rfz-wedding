@@ -11,6 +11,7 @@ import { uploads } from '@wedding/helpers'
 import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import {
+  useIOSVersion,
   useMountedEffect,
   useOutlinedClasses,
   useWeddingDetail,
@@ -71,7 +72,8 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
   const fileRef = useRef<HTMLInputElement | null>(null)
   const queryClient = useQueryClient()
   const { name: path, wid } = useWeddingDetail()
-
+  const iOSVersion = useIOSVersion()
+  const isIOS12 = iOSVersion && iOSVersion.array[0] <= 12
   const locale = useLocale()
   const outlinedClasses = useOutlinedClasses()
   const isUploadDisabled = uploadNames.length > 0 || isOnRemoval || isModeSelect
@@ -161,7 +163,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
       let quality = 8
       let blob = await compress(quality, file)
 
-      while (quality > 1 && blob.size > 1500 * 1000) {
+      while (quality > 1 && blob.size > 1024 * 1000) {
         blob = await compress(quality--, file)
       }
 
@@ -543,8 +545,9 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
         )}
         <div className='mx-6 mt-4'>
           <div className='flex min-h-20 items-center rounded-lg bg-zinc-100 px-3 py-3 text-xs tracking-wide text-zinc-600 [.dark_&]:bg-zinc-700 [.dark_&]:text-zinc-300'>
-            {galleries.data &&
+            {!isIOS12 &&
             !galleries.isLoading &&
+            galleries.data &&
             selectedId &&
             coordinate ? (
               <div className='w-full'>
@@ -553,7 +556,7 @@ const SheetGallery: RFZ<SheetGalleryProps> = ({
                     <span
                       className={tw(
                         'block min-w-16',
-                        (!allowedAxis.includes(axis) || isInAction) && 'opacity-40' // prettier-ignore
+                        (!allowedAxis.includes(axis) || isInAction) && 'opacity-50' // prettier-ignore
                       )}
                     >
                       {axis === 'x' ? 'Horizontal' : 'Vertical'}

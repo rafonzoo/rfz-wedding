@@ -7,6 +7,7 @@ import { getMessages } from 'next-intl/server'
 import { tw } from '@/tools/lib'
 import { locales } from '@/locale/config'
 import { QueryProvider } from '@/components/Provider'
+import Header from './header'
 import './style.css'
 
 // Track missmatch due to invariant time.
@@ -42,7 +43,10 @@ const RootLayout = async ({
         )}
       >
         <NextIntlClientProvider messages={messages}>
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <Header />
+            {children}
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>

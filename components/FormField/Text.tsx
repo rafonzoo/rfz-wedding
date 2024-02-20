@@ -131,7 +131,7 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
           placeholder={props.placeholder ?? 'Placeholder'}
           className={tw(
             'peer inline-flex w-full appearance-none rounded-md border px-3 pb-3 pt-8 -tracking-base outline-none transition-shadow',
-            'disabled:opacity-40 [&:not(:disabled)]:opacity-100',
+            'disabled:opacity-50 [&:not(:disabled)]:opacity-100',
             'border-zinc-300 bg-white [.dark_&]:border-zinc-700 [.dark_&]:bg-transparent',
             props.placeholder && 'placeholder:text-base placeholder:text-zinc-500 [.dark_&]:placeholder:text-zinc-400', // prettier-ignore
             !props.placeholder && 'placeholder:text-transparent',
@@ -161,7 +161,7 @@ const FieldText = forwardRef<HTMLInputElement, InputProps>(
           {...labelProps}
           className={tw(
             'pointer-events-none absolute left-3 top-3 text-xs tracking-wide',
-            !errorMessage && 'text-zinc-500 peer-focus:!text-blue-600 peer-focus:[.dark_&]:!text-blue-400 [.dark_&]:text-zinc-400', // prettier-ignore
+            !errorMessage && 'text-zinc-500 peer-focus:!text-blue-600 [.dark_&]:peer-focus:!text-blue-400 [.dark_&]:text-zinc-400', // prettier-ignore
             errorMessage && '!text-red-500',
             labelProps?.className
           )}

@@ -1,42 +1,26 @@
 'use client'
 
-import { useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { tw } from '@/tools/lib'
-import { useRouterEffect, useWeddingNavigator } from '@/tools/hook'
+import { useWeddingNavigator } from '@/tools/hook'
+import { useLocalePathname } from '@/locale/config'
 
 type LayoutFooterProps = {
-  defaultPath: string | null
   defaultHidden: boolean
 }
 
-const LayoutFooter: RF<LayoutFooterProps> = ({
-  defaultHidden,
-  defaultPath,
-}) => {
+const LayoutFooter: RF<LayoutFooterProps> = ({ defaultHidden }) => {
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = useLocalePathname()
   const items = useWeddingNavigator()
-  const [isHidden, setIsHidden] = useState(
-    items.findIndex((item) => item.pathname === defaultPath) === -1
-  )
-  const [activeIndex, setActiveIndex] = useState(
-    items.findIndex((item) => item.pathname === defaultPath)
-  )
+  const activeIndex = items.findIndex((item) => item.pathname === pathname)
 
-  useRouterEffect(() => {
-    const title = items.findIndex((item) => item.pathname === pathname)
-
-    setActiveIndex(items.findIndex((item) => item.pathname === pathname))
-    setIsHidden(title === -1)
-  })
-
-  if (defaultHidden) {
+  if (defaultHidden || activeIndex === -1) {
     return null
   }
 
   return (
-    <div className={tw('fixed bottom-0 left-0 right-0', isHidden && 'hidden')}>
+    <footer className={tw('fixed bottom-0 left-0 right-0')}>
       <div className='mx-auto flex h-[72px] max-w-[440px] flex-col bg-zinc-100 [.dark_&]:bg-zinc-900'>
         <hr className='border-zinc-300 [.dark_&]:border-zinc-700' />
         <ul className='flex h-full w-full items-center'>
@@ -77,7 +61,7 @@ const LayoutFooter: RF<LayoutFooterProps> = ({
           )}
         </ul>
       </div>
-    </div>
+    </footer>
   )
 }
 

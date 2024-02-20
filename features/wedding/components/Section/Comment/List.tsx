@@ -1,26 +1,21 @@
 'use client'
 
-import type { Comment, Wedding } from '@wedding/schema'
-import { useRef, useState } from 'react'
+import type { Wedding } from '@wedding/schema'
+import { useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams, useSearchParams } from 'next/navigation'
-import { useLocale } from 'next-intl'
 import { IoChevronDownCircleOutline } from 'react-icons/io5'
 import { FaCircleMinus } from 'react-icons/fa6'
-import { removeWeddingCommentQuery } from '@wedding/query'
+import { deleteWeddingCommentQuery } from '@wedding/query'
 import {
   createInitial,
   groupName,
   guestAlias,
   guestName,
 } from '@wedding/helpers'
-import { QueryWedding } from '@wedding/config'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import {
-  useAccountSession,
-  useIntersection,
-  useWeddingDetail,
-} from '@/tools/hook'
+import { useAccountSession, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import CommentSurprise from '@wedding/components/Section/Comment/Surprise'
@@ -31,47 +26,58 @@ const Alert = dynamic(() => import('@/components/Notification/Alert'), {
   ssr: false,
 })
 
-const CommentList: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
-  const divRef = useRef<HTMLDivElement | null>(null)
-  const isIntersection = useIntersection(divRef)
+const CommentList: RF = () => {
+  const [page, setPage] = useState(0)
   const queryClient = useQueryClient()
   const detail = useWeddingDetail()
   const guestSlug = useSearchParams().get('to') ?? ''
   const guestFullName = guestAlias(guestSlug)
   const session = useAccountSession()
   const wid = useParams().wid as string
-  const hasSession = !!(session?.user.id === detail.userId && wid)
-  const comments = (detail.comments ?? []).map((item) => ({
+  const hasSession = session && session.user.id === detail.userId
+  const comments = detail.comments.map((item) => ({
     ...item,
     alias: decodeURI(item.alias),
     text: decodeURI(item.text),
   }))
 
   const toast = new Toast()
-  const locale = useLocale()
-  const myComment = comments.find((item) => item.alias === guestFullName)
-  const [page, setPage] = useState(1)
-  const first = comments[0] as Comment | undefined
-  const last = myComment ?? comments[comments.length - 1]
+  // In guest perspective and if author replies them, the view seems absurd. Disabled for now.
+  //
+  // const first = comments[0] as Comment | undefined
+  // const myComment = comments.find((item) => item.alias === guestFullName)
+  // const last = myComment ?? comments[comments.length - 1]
+
+  // This will filter the guest comment and make them last as above code is implemented.
+  //
+  // !wid
+  //   ? n.alias !== first?.alias && n.alias !== last.alias
+  //   : index > 0 && index < array.length - 1
   const theComments = [
-    ...(first ? [first] : []),
+    ...comments.slice(0, 1),
     ...comments
-      .filter(
-        (item) => item.alias !== first?.alias && item.alias !== last.alias
-      )
-      .slice(0, page),
-    ...(comments.length > 1 ? [last] : []),
+      .filter((n, index, array) => index > 0 && index < array.length - 1)
+      .slice(0, !page ? 1 : page * WeddingConfig.MaxCollapsedComment + 1),
+    ...(comments.length > 1 ? comments.slice(-1) : []),
   ]
 
   const {
     isLoading,
     mutate: removeComment,
     variables: removedComment,
-  } = useMutation<{ alias: string }, unknown, { alias: string }>({
-    mutationFn: ({ alias }) => {
-      return removeWeddingCommentQuery(locale, wid, { alias })
+  } = useMutation<
+    { alias: string; index?: number },
+    unknown,
+    { alias: string; index?: number }
+  >({
+    mutationFn: ({ alias, index }) => {
+      return deleteWeddingCommentQuery({
+        wid,
+        alias,
+        index,
+      })
     },
-    onSuccess: ({ alias }) => {
+    onSuccess: ({ alias, index: deletedIndex }) => {
       queryClient.setQueryData<Wedding | undefined>(
         QueryWedding.weddingDetail,
         (prev) =>
@@ -81,8 +87,10 @@ const CommentList: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
                 ...prev,
                 comments: !prev.comments
                   ? prev.comments
-                  : prev.comments.filter(
-                      (item) => decodeURI(item.alias) !== decodeURI(alias)
+                  : prev.comments.filter((item, index) =>
+                      deletedIndex
+                        ? index !== deletedIndex
+                        : decodeURI(item.alias) !== decodeURI(alias)
                     ),
               }
       )
@@ -92,138 +100,150 @@ const CommentList: RFZ<{ csrfToken?: string }> = ({ csrfToken }) => {
     },
   })
 
-  // useEffect(() => {
-  //   if (isIntersection && !allComment.isFetched) {
-  //     allComment.refetch()
-  //   }
-  // }, [allComment, isIntersection])
+  function isRemoving(currentAlias: string, currentIndex: number) {
+    if (!removedComment) {
+      return false
+    }
+
+    const { alias, index } = removedComment
+    return isLoading && index ? index === currentIndex : alias === currentAlias
+  }
 
   return (
-    <div ref={divRef}>
-      {
-        <div className='relative z-[1]'>
-          <Text family='cinzel' className='text-xl'>
-            {comments.length + ' ucapan'}
-          </Text>
-          <ul
-            className={tw(
-              'relative mt-3 space-y-4',
-              comments.length > 0 && 'pb-6'
-            )}
-          >
-            {theComments.map(({ alias, text, isComing }, idx, array) => (
-              <li className='relative z-[1]' key={idx}>
-                {comments.length > 3 &&
-                  idx === array.length - 1 &&
-                  page < comments.length - 1 && (
-                    <div className='mb-4 ml-14 flex items-center justify-center space-x-1 bg-[url(/assets/bg/dotted-light.png)] bg-no-repeat [.dark_&]:bg-[url(/assets/bg/dotted-dark.png)]'>
-                      <button
-                        className='flex items-center bg-white pl-4 pr-3 tracking-normal text-blue-600 transition-colors duration-200 ease-out [.dark_&]:bg-black [.dark_&]:text-blue-400'
-                        onClick={() => {
-                          if (page < comments.length - 1) {
-                            setPage((prev) => prev + 3)
-                          }
-                        }}
-                      >
-                        Load more
-                        <span className='ml-1 block text-xl text-blue-600 [.dark_&]:text-blue-400'>
-                          <IoChevronDownCircleOutline />
-                        </span>
-                      </button>
-                      {/* <button
-                  onClick={() => {
-                    if (page >= 2) {
-                      setPage((prev) => prev - 1)
-                    }
-                  }}
-                >
-                  collapse
-                </button> */}
-                    </div>
-                  )}
-                <div
-                  className={tw(
-                    'relative flex w-full space-x-3',
-                    isLoading && removedComment?.alias === alias && 'animate-[pulse_500ms_ease-in-out_infinite]' // prettier-ignore
-                  )}
-                >
-                  <div className='relative flex h-11 w-11 min-w-11 items-center justify-center rounded-lg bg-zinc-100 [.dark_&]:bg-zinc-800'>
-                    <p className='text-sm tracking-normal text-zinc-500 [.dark_&]:text-zinc-400'>
-                      {createInitial(alias)}
-                    </p>
+    <div>
+      <div className='relative z-[1]'>
+        <Text family='cinzel' className='text-xl'>
+          {comments.length + ' ucapan'}
+        </Text>
+        <ul
+          className={tw(
+            'after:absolute after:bottom-0 after:left-[21px] after:h-full after:w-px after:bg-zinc-300 after:content-[""] after:[.dark_&]:bg-zinc-600',
+            'relative mt-3 space-y-4',
+            comments.length > 0 && 'pb-6'
+          )}
+        >
+          {theComments.map(({ alias, text, token, isComing }, index, array) => (
+            <li className='relative z-[1]' key={index}>
+              {comments.length > 3 &&
+                index === array.length - 1 &&
+                array.length < comments.length && (
+                  <div className='mb-4 ml-14 flex items-center justify-center space-x-1 bg-[url(/assets/bg/dotted-light.png)] bg-no-repeat [.dark_&]:bg-[url(/assets/bg/dotted-dark.png)]'>
+                    <button
+                      className='flex items-center bg-white pl-4 pr-3 tracking-normal text-blue-600 transition-colors duration-200 ease-out [.dark_&]:bg-black [.dark_&]:text-blue-400'
+                      onClick={() => {
+                        if (page < comments.length - 1) {
+                          setPage((prev) => prev + 1)
+                        }
+                      }}
+                    >
+                      Load more
+                      <span className='ml-1 block text-xl text-blue-600 [.dark_&]:text-blue-400'>
+                        <IoChevronDownCircleOutline />
+                      </span>
+                    </button>
+                    {/* <button
+                      onClick={() => {
+                        if (page >= 1) {
+                          setPage((prev) => prev - 1)
+                        }
+                      }}
+                    >
+                      collapse
+                    </button> */}
+                  </div>
+                )}
+              <div
+                className={tw(
+                  'relative flex w-full space-x-3',
+                  isLoading && isRemoving(alias, index) && 'animate-[pulse_500ms_ease-in-out_infinite]' // prettier-ignore
+                )}
+              >
+                <div className='relative flex h-11 w-11 min-w-11 items-center justify-center rounded-lg bg-zinc-100 [.dark_&]:bg-zinc-800'>
+                  <p className='text-sm tracking-wider text-zinc-600 [.dark_&]:text-zinc-400'>
+                    {createInitial(alias)}
+                  </p>
+                  {(isComing || !token) && (
                     <span
                       className={tw(
-                        'absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full',
+                        'absolute -right-1 -top-1 h-3 w-3 rounded-full',
                         {
                           'bg-amber-500': isComing === 'tbd',
                           'bg-red-500': isComing === 'no',
                           'bg-green-600': isComing === 'yes',
+                          'bg-blue-500': !token,
                         }
                       )}
                     />
-                  </div>
-                  <div className='relative flex flex-grow flex-col space-y-1.5 overflow-hidden rounded-lg bg-zinc-100 p-4 [.dark_&]:bg-zinc-800'>
-                    <p className='flex space-x-1.5'>
-                      <strong className='block leading-5'>
-                        {guestName(alias)}
-                      </strong>
-                      {alias === guestFullName && (
-                        <span className='block text-sm tracking-normal text-zinc-500'>
-                          (Anda)
-                        </span>
-                      )}
-                    </p>
-                    <p>{decodeURI(text)}</p>
-                    {groupName(alias) && (
-                      <span className='block text-sm leading-5 tracking-normal text-zinc-500'>
-                        {groupName(alias)}
+                  )}
+                </div>
+                <div className='relative flex flex-grow flex-col space-y-1.5 overflow-hidden rounded-lg bg-zinc-100 p-4 [.dark_&]:bg-zinc-800'>
+                  <p className='flex space-x-1.5'>
+                    <strong className='flex items-center leading-5'>
+                      {guestName(alias)}
+                    </strong>
+                    {((alias === guestFullName && token) || !token) && (
+                      <span className='block text-sm tracking-normal text-zinc-500'>
+                        ({token || !!wid ? 'Anda' : 'Owner'})
                       </span>
                     )}
-                  </div>
-                  {hasSession &&
-                    !(isLoading && removedComment?.alias === alias) &&
-                    alias !== 'GGRFZ Team' && (
-                      <Alert
-                        trigger={{
-                          asChild: true,
-                          children: (
-                            <button
-                              aria-label='Remove comment'
-                              disabled={isLoading && removedComment?.alias === alias } // prettier-ignore
-                              className={tw(
-                                'absolute -right-4 -top-4 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-red-600',
-                                isLoading && removedComment?.alias === alias && 'opacity-50' // prettier-ignore
-                              )}
-                            >
-                              <FaCircleMinus />
-                            </button>
-                          ),
-                        }}
-                        title={{ children: 'Hapus komentar' }}
-                        description={{
-                          children:
-                            'Tamu Anda nantinya tetap bisa berkomentar walaupun Anda pernah menghapusnya. Tetap lanjutkan?',
-                        }}
-                        cancel={{ children: 'Batal' }}
-                        action={{
-                          children: 'OK',
-                          onClick: () => removeComment({ alias }),
-                        }}
-                      />
-                    )}
+                  </p>
+                  <p>{decodeURI(text)}</p>
+                  {groupName(alias) && (
+                    <span className='block text-sm leading-5 tracking-normal text-zinc-500'>
+                      {groupName(alias)}
+                    </span>
+                  )}
                 </div>
-              </li>
-            ))}
-            {/* Left Border */}
-            {comments.length > 0 && (
-              <span className='absolute bottom-0 left-[21px] h-full w-px bg-zinc-300 [.dark_&]:bg-zinc-600' />
-            )}
-          </ul>
-          {/* User Comment */}
-          <CommentInput csrfToken={csrfToken} />
-          <CommentSurprise />
-        </div>
-      }
+                {hasSession && !!wid && alias !== 'RFZ Team' && (
+                  <Alert
+                    trigger={{
+                      asChild: true,
+                      children: (
+                        <button
+                          aria-label='Remove comment'
+                          disabled={isLoading && isRemoving(alias, index)}
+                          className={tw(
+                            'absolute -right-4 -top-4 flex h-10 w-10 items-center justify-center rounded-full text-2xl text-red-600',
+                            isLoading && isRemoving(alias, index) && 'opacity-50' // prettier-ignore
+                          )}
+                        >
+                          <FaCircleMinus />
+                        </button>
+                      ),
+                    }}
+                    title={{ children: 'Hapus komentar' }}
+                    description={{
+                      children: token
+                        ? 'Tamu Anda nantinya tetap bisa berkomentar walaupun Anda pernah menghapusnya. Tetap lanjutkan?'
+                        : 'Anda yakin untuk menghapus komentar Anda?',
+                    }}
+                    cancel={{ children: 'Tidak' }}
+                    action={{
+                      children: 'Ya',
+                      className: tw('bg-red-600'),
+                      onClick: () => {
+                        const selectedAuthorIndex = comments.findIndex(
+                          (comment) => !comment.token && comment.text === text
+                        )
+
+                        const authorIndex =
+                          selectedAuthorIndex === -1
+                            ? void 0
+                            : selectedAuthorIndex
+
+                        removeComment({ alias, index: authorIndex })
+                      },
+                    }}
+                  />
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {/* User Comment */}
+        <CommentInput />
+        <CommentSurprise />
+      </div>
     </div>
   )
 }

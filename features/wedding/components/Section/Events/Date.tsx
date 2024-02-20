@@ -18,7 +18,6 @@ import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
 import { isObjectEqual, keys, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
-import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
 import FieldTextArea from '@/components/FormField/TextArea'
 import FieldText from '@/components/FormField/Text'
@@ -367,7 +366,6 @@ const EventDate: RF<EventDateProps> = ({
         <BottomSheet
           header={{
             title: 'Edit acara',
-            useBorder: hasError,
             append: (
               <>
                 {isLoading && <Spinner />}
@@ -406,15 +404,6 @@ const EventDate: RF<EventDateProps> = ({
           }}
           footer={{ useClose: true }}
         >
-          {hasError && (
-            <div className='px-6 py-6'>
-              <Notify
-                severity='error'
-                title='Failed to save a changes.'
-                description='Please tap "Save" above to keep your data up to date.'
-              />
-            </div>
-          )}
           <FieldGroup title='Waktu'>
             <FieldText
               label='Tanggal'
@@ -473,15 +462,8 @@ const EventDate: RF<EventDateProps> = ({
                 name='opensTo'
                 infoMessage={
                   <>
-                    Hanya tampil ke grup tamu yang mengandung nama grup diatas.
+                    Hanya tampil kepada tamu yang mengandung nama grup diatas.
                     Dipisahkan oleh koma.{' '}
-                    <a
-                      href='#'
-                      className='text-blue-600 [.dark_&]:text-blue-400'
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      Learn more
-                    </a>
                   </>
                 }
                 value={getAddress.opensTo}

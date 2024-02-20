@@ -19,7 +19,6 @@ import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import LandingMediaPlayer from '@wedding/components/Section/Landing/MediaPlayer'
 import SectionLandingBackground from '@wedding/components/Section/Landing/Background'
-import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
 import FieldText from '@/components/FormField/Text'
 import FieldGroup from '@/components/FormField/Group'
@@ -190,7 +189,6 @@ const SectionLanding = () => {
                   root={{ open, onOpenChange }}
                   header={{
                     title: 'Utama',
-                    useBorder: isError,
                     append: (
                       <>
                         {updateLoading && <Spinner />}
@@ -240,15 +238,6 @@ const SectionLanding = () => {
                     ),
                   }}
                 >
-                  {isError && (
-                    <div className='px-6 py-6'>
-                      <Notify
-                        severity='error'
-                        title='Failed to save a changes.'
-                        description='Please tap "Save" above to keep your data up to date.'
-                      />
-                    </div>
-                  )}
                   <FieldGroup title='Info'>
                     <div className='flex space-x-4'>
                       <FieldText

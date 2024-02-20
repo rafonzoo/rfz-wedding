@@ -8,6 +8,7 @@ import { formatTimeTransaction, price } from '@wedding/helpers'
 import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { djs } from '@/tools/lib'
 import { useMountedEffect } from '@/tools/hook'
+import EmptyState from '@wedding/components/Empty'
 
 const TransactionItem: RF<Payment & { wid: string; name: string }> = ({
   name,
@@ -109,14 +110,24 @@ const TransactionPageClient: RF<{
       .flat() ?? initialTransaction
   )
 
+  const theTransaction = transactions ?? initialTransaction
+
   return (
-    <div>
-      <ul className='divide-y pb-[72px]'>
-        {(transactions ?? initialTransaction).map((transaction, key) => (
-          <TransactionItem key={key} {...transaction} />
-        ))}
-      </ul>
-    </div>
+    <main className='mx-auto max-w-[440px]'>
+      {!theTransaction.length ? (
+        <EmptyState>
+          Transaksi yang sudah dilakukan
+          <br />
+          akan tampil disini.
+        </EmptyState>
+      ) : (
+        <ul className='divide-y pb-[72px]'>
+          {theTransaction.map((transaction, key) => (
+            <TransactionItem key={key} {...transaction} />
+          ))}
+        </ul>
+      )}
+    </main>
   )
 }
 

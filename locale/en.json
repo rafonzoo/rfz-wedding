@@ -1,5 +1,6 @@
 {
   "def": {
+    "comment": "comment",
     "song": "song",
     "photo": "photo",
     "guest": "guest"
@@ -21,6 +22,7 @@
       "failedToUpload": "Failed to upload {name}",
       "failedToLoad": "Failed to load {name}",
       "failedToRemove": "Failed to remove {name}",
+      "failedToSend": "Failed to send {name}",
       "failedToFetch": "Failed to fetch data"
     }
   },

@@ -41,7 +41,7 @@ const SectionClock = () => {
         isIntersecting && 'opacity-100'
       )}
     >
-      <div className='flex min-w-[43.918918918918919%] flex-col text-right text-[min(135px,max(98px,30.769230769230769vw))] font-black'>
+      <div className='flex min-w-[51%] flex-col text-right text-[min(135px,max(98px,30.769230769230769vw))] font-black'>
         {countdown.split(':').map((item, index) => (
           <div key={index} className='flex justify-end'>
             <Text
@@ -61,7 +61,7 @@ const SectionClock = () => {
           </div>
         ))}
       </div>
-      <div className='flex flex-col justify-end pb-2 text-[min(54px,max(39px,12.307692307692308vw))]'>
+      <div className='flex flex-col justify-end pb-0.5 text-[min(54px,max(39px,12.307692307692308vw))]'>
         <Text family={FontFamilyWedding.cinzel}>{isPassed ? 'til' : 'to'}</Text>
         <Text family={FontFamilyWedding.cinzel}>the</Text>
         <Text family={FontFamilyWedding.cinzel}>
@@ -94,9 +94,9 @@ const SectionCounter = () => {
         <div className='relative z-[2] flex h-full items-center pl-6'>
           <SectionClock />
         </div>
-        <div className='absolute bottom-6 left-[min(178px,max(129px,40.512820512820513vw))] z-[2] text-xs tracking-base text-zinc-500'>
-          Copyright © 2023 Rafa R. <br />
-          All right reserved.
+        <div className='absolute bottom-6 left-[min(178px,max(129px,40.512820512820513vw))] right-4 z-[2] flex flex-col text-xs tracking-base text-zinc-500'>
+          <span>Copyright © 2023 Rafa R.</span>
+          <span>All right reserved.</span>
         </div>
       </section>
     </>

@@ -46,18 +46,21 @@ const Alert: RF<AlertProps> = ({
         >
           <div
             className={tw(
-              'mx-auto w-full max-w-[408px] rounded-lg bg-white p-4 text-black',
+              'mx-auto w-full max-w-[392px] rounded-lg bg-white p-4 text-black [.dark_&]:bg-zinc-900',
               '[[data-state=closed]_&]:animate-alert-hide [[data-state=open]_&]:animate-alert-show'
             )}
           >
             <AlertDialog.Title
               {...title}
-              className={tw('font-semibold', title?.className)}
+              className={tw(
+                'font-semibold [.dark_&]:text-white',
+                title?.className
+              )}
             />
             <AlertDialog.Description
               {...description}
               className={tw(
-                'mt-3 text-sm tracking-normal text-zinc-500',
+                'mt-3 text-sm tracking-normal text-zinc-500 [.dark_&]:text-zinc-400',
                 description?.className
               )}
             />
@@ -65,7 +68,7 @@ const Alert: RF<AlertProps> = ({
               <AlertDialog.Cancel
                 {...cancel}
                 className={tw(
-                  'inline-flex h-11 min-w-[88px] appearance-none items-center justify-center rounded-lg bg-zinc-200 px-4',
+                  'inline-flex h-11 min-w-[88px] appearance-none items-center justify-center rounded-lg bg-zinc-200 px-4 [.dark_&]:bg-zinc-800 [.dark_&]:text-white',
                   cancel?.className
                 )}
               />
