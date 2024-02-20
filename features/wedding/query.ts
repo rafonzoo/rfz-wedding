@@ -132,12 +132,7 @@ export const getAllWeddingQuery = async (
     return null
   }
 
-  const currentArray = current.map((item) => ({
-    ...item,
-    guests: [],
-    comments: [],
-  }))
-
+  const currentArray = current.map((item) => ({ ...item, guests: [] }))
   return weddingType.array().parse(currentArray)
 }
 
