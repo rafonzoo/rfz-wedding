@@ -9,7 +9,7 @@ import { BsGift } from 'react-icons/bs'
 import { updateWeddingSurpriseQuery } from '@wedding/query'
 import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import markdownConfig from '@/components/Markdown/config'
 import Spinner from '@/components/Loading/Spinner'
@@ -27,7 +27,7 @@ const Markdown = dynamic(() => import('@/components/Markdown'), {
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
   loading: () => (
-    <button className='mx-auto flex h-14 items-center justify-center rounded-xl bg-blue-200 px-6 font-semibold text-blue-700'>
+    <button className='mx-auto flex h-14 items-center justify-center rounded-xl bg-blue-200/80 px-6 font-semibold text-blue-700 backdrop-blur-lg'>
       Suprise
       <span className='ml-2 block text-xl'>
         <BsGift />
@@ -37,7 +37,7 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
 })
 
 const CommentSurprise: RF = () => {
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const isPublic = !isEditor
   const queryClient = useQueryClient()
   const detail = useWeddingDetail()
@@ -133,7 +133,7 @@ const CommentSurprise: RF = () => {
         trigger={{
           asChild: true,
           children: (
-            <button className='mx-auto flex h-14 items-center justify-center rounded-xl bg-blue-200 px-6 font-semibold text-blue-700'>
+            <button className='mx-auto flex h-14 items-center justify-center rounded-xl bg-blue-200/80 px-6 font-semibold text-blue-700 backdrop-blur-lg'>
               Suprise
               <span className='ml-2 block text-xl'>
                 <BsGift />

@@ -12,7 +12,7 @@ import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import {
   useIntersection,
-  useIsEditorOrDev,
+  useIsEditor,
   useOutlinedClasses,
   useUtilities,
   useWeddingDetail,
@@ -35,7 +35,7 @@ const FigureImage: RFZ<{
   className?: string
   isCenter?: boolean
 }> = ({ index, isCenter, className, children }) => {
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const queryClient = useQueryClient()
   const detail = useWeddingDetail()
 

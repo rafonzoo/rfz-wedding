@@ -8,11 +8,10 @@ import { useTranslations } from 'next-intl'
 import { ZodError } from 'zod'
 import { type Wedding, weddingType } from '@wedding/schema'
 import { addNewWeddingQuery, getAllWeddingQuery } from '@wedding/query'
-import { retina, sanitizeValue, trimBy } from '@wedding/helpers'
+import { isPassed, retina, sanitizeValue, trimBy } from '@wedding/helpers'
 import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { djs, supabaseClient, tw } from '@/tools/lib'
 import { useIntersection, useUtilities, useWeddingDetail } from '@/tools/hook'
-import { abspath } from '@/tools/helpers'
 import { ErrorMap, Route } from '@/tools/config'
 import { useLocaleRouter } from '@/locale/config'
 import dynamic from 'next/dynamic'
@@ -163,13 +162,9 @@ const MyWeddingAddNewSheet: RF<{
           blacklist={/.,/g}
           label='Nama pasangan'
           name='username'
-          className='lowercase'
+          className='break-words lowercase'
           defaultValue={coupleName.replace(/-/g, ' ')}
-          infoMessage={
-            coupleName
-              ? `${abspath(`/${coupleName}`)}`
-              : `Kolom ini hanya untuk pencarian. Nama pengantin dapat diubah setelahnya.`
-          }
+          infoMessage='Kolom ini hanya untuk pencarian. Nama pengantin dapat diubah setelahnya.'
           onChange={onChange}
           errorMessage={errorName}
         />
@@ -185,25 +180,18 @@ const MyWeddingItems: RF<{
   onClick: () => void
 }> = ({ index, length, wedding, onClick }) => {
   const refLi = useRef<HTMLLIElement | null>(null)
-  const [open, onOpenChange] = useState(false)
-  const [highlight, setHighlight] = useState(false)
   const isIntersecting = useIntersection(refLi)
   const heroImage = wedding.galleries.find(
     (photo) => photo.index === WeddingConfig.ImageryStartIndex
   )
 
+  const passed = isPassed(wedding.events)
   const imageUrl = heroImage?.fileName
     ? retina(heroImage.fileName, 'w', 'ar-1-1')
     : void 0
 
   return (
-    <li
-      ref={refLi}
-      className={tw(
-        'relative overflow-hidden',
-        highlight && 'z-[999] bg-zinc-100 [.dark_&]:bg-zinc-900'
-      )}
-    >
+    <li ref={refLi} className='relative overflow-hidden'>
       <button
         onClick={onClick}
         className={tw(
@@ -235,11 +223,12 @@ const MyWeddingItems: RF<{
                 <span
                   className={tw(
                     'block text-xs font-semibold tracking-base',
-                    wedding.status !== 'live' && 'text-[color:rgb(190_90_0)]', // prettier-ignore
-                    wedding.status === 'live' && 'text-green-600'
+                    !passed && wedding.status !== 'live' && 'text-[color:rgb(190_90_0)]', // prettier-ignore
+                    !passed && wedding.status === 'live' && 'text-green-600', // prettier-ignore
+                    passed && 'text-cyan-600'
                   )}
                 >
-                  {wedding.status.toUpperCase()}
+                  {passed ? 'PASSED' : wedding.status.toUpperCase()}
                 </span>
                 <span className='flex space-x-1 truncate text-xs tracking-base text-zinc-500 [.dark_&]:text-zinc-400'>
                   <span className='block'>·</span>
@@ -260,36 +249,6 @@ const MyWeddingItems: RF<{
           </span>
         </span>
       </button>
-      <BottomSheet
-        option={{ isTransparent: true, useOverlay: true }}
-        footer={{ useClose: true }}
-        root={{ open, onOpenChange }}
-        content={{ onCloseAutoFocus: () => setHighlight(false) }}
-      >
-        <div className='px-6'>
-          <Alert
-            title={{ children: 'Hapus undangan?' }}
-            description={{
-              children:
-                'Undangan yang sudah dihapus tidak dapat dikembalikan. Lanjutkan?',
-            }}
-            cancel={{ children: 'Batal' }}
-            action={{
-              children: 'Hapus',
-              className: tw('bg-red-600'),
-              onClick: () => onOpenChange(false),
-            }}
-            trigger={{
-              asChild: true,
-              children: (
-                <button className='flex h-14 w-full items-center justify-center rounded-xl bg-red-600 px-3 text-center font-semibold -tracking-base text-white'>
-                  Hapus
-                </button>
-              ),
-            }}
-          />
-        </div>
-      </BottomSheet>
     </li>
   )
 }
@@ -322,7 +281,6 @@ const MyWeddingPageClient: RFZ<{ myWedding: Wedding[]; user: User }> = ({
       queryClient.setQueryData(QueryWedding.weddingDetail, wedding)
       queryClient.resetQueries({ queryKey: QueryWedding.weddingGalleries })
       queryClient.resetQueries({ queryKey: QueryWedding.weddingGuests })
-      queryClient.resetQueries({ queryKey: QueryWedding.weddingComments })
     }
 
     router.push({

@@ -12,7 +12,7 @@ import { assets, swatches } from '@wedding/helpers'
 import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import {
-  useIsEditorOrDev,
+  useIsEditor,
   useOutlinedClasses,
   useUtilities,
   useWeddingDetail,
@@ -38,7 +38,7 @@ const SheetLoadout: RF = () => {
   const [prevDetail, setPrevDetail] = useState(detail)
   const { theme, foreground, background } = loadout
   const ulRef = useRef<HTMLUListElement | null>(null)
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const outlined = useOutlinedClasses()
   const supportedTheme = ['autumn', 'tropical'] as const
   const { abort, getSignal } = useUtilities()

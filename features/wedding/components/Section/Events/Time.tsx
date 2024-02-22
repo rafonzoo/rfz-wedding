@@ -11,7 +11,7 @@ import { weddingEventType } from '@wedding/schema'
 import { updateWeddingEventTimeQuery } from '@wedding/query'
 import { QueryWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import { isObjectEqual, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import Spinner from '@/components/Loading/Spinner'
@@ -45,7 +45,7 @@ const EventTime: RFZ<EventTimeProps> = ({
   const [errors, setErrors] = useState<{ key: string; message: string }[]>([])
   const hasError = !!previousError.current.find((item) => item.id === id)
   const { timeStart, timeEnd, eventName, localTime } = time
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const caption = `Pukul ${timeStart} ${localTime} — ${timeEnd} ${localTime}`
   const wid = useParams().wid as string
   const queryClient = useQueryClient()

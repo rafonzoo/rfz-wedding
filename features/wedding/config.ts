@@ -10,7 +10,6 @@ export enum QueryWedding {
   weddingGetAll = '@@wedding/getAll',
   weddingDetail = '@@wedding/detail',
   weddingGuests = '@@wedding/guests',
-  weddingComments = '@@wedding/comments',
   weddingGalleries = '@@wedding/galleries',
 }
 

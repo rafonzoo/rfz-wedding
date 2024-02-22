@@ -5,6 +5,7 @@ export enum RouteDefault {
   //
   home = '/',
   notFound = '/404',
+  termsOfUse = '/terms-of-use',
 }
 
 export const Queries = {
@@ -20,10 +21,13 @@ export const Route = {
 
 export const RouteNavigation = [
   Route.home,
+  Route.termsOfUse,
   Route.wedding,
   Route.account,
   Route.accountSignin,
 ] as const
+
+export const RouteDarkMode = [Route.home, Route.wedding]
 
 export enum RouteApi {
   auth = '/api/auth',

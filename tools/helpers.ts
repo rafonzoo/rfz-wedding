@@ -240,7 +240,7 @@ export function secondsToHms(second: number) {
     ('0' + (h > 24 ? 24 : h)).slice(-2),
     ('0' + (m > 59 ? 0 : m)).slice(-2),
     ('0' + (s > 59 ? 0 : s)).slice(-2),
-  ]
+  ].map((str) => str.replace(/-/, '0'))
 }
 
 export function keys<T extends object>(obj: T) {

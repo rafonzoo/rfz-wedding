@@ -8,6 +8,7 @@ import { useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { RiContactsLine } from 'react-icons/ri'
 import { LuMailOpen } from 'react-icons/lu'
+import { isPassed } from '@wedding/helpers'
 import {
   QueryWedding,
   RouteNavigationWedding,
@@ -119,11 +120,11 @@ export const useAccountSession = () => {
   return session
 }
 
-export const useIsEditorOrDev = () => {
+export const useIsEditor = () => {
+  const detail = useWeddingDetail()
   const haveId = !!useParams().wid
 
-  // return isLocal()
-  return haveId
+  return haveId && !isPassed(detail.events)
 }
 
 export const useIOSVersion = () => {

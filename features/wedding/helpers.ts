@@ -1,4 +1,4 @@
-import type { Payment } from '@wedding/schema'
+import { type Payment, weddingEventType } from '@wedding/schema'
 import { ASSETS_PATH, UPLOADS_PATH, WeddingConfig } from '@wedding/config'
 import { djs } from '@/tools/lib'
 
@@ -169,6 +169,45 @@ export function trimBy(symbol: string, text: string) {
   }
 
   return result
+}
+
+export function isPassed(ev: unknown) {
+  const events = weddingEventType.array().parse(ev)
+  return events.some((event) =>
+    djs()
+      .tz()
+      .isAfter(
+        djs(event.date)
+          .add(+event.timeStart.split(':')[0], 'h')
+          .add(+event.timeStart.split(':')[1], 'm')
+          .add(1, 'D')
+          .tz(),
+        'h'
+      )
+  )
+}
+
+export function isHardLimit(ev: unknown, payments: Payment[]) {
+  const events = weddingEventType.array().parse(ev)
+  const activeTime = events.some((event) =>
+    // Mapped like
+    // [
+    //   'Sabtu, 22 Februari 2025. 01:00:00',
+    //   'Selasa, 20 Mei 2025. 13:36:52'
+    // ]
+    djs()
+      .tz()
+      .isBefore(
+        djs(event.date)
+          .add(+event.timeStart.split(':')[0], 'h')
+          .add(+event.timeStart.split(':')[1], 'm')
+          .add(1, 'y')
+          .tz(),
+        'h'
+      )
+  )
+
+  return !activeTime && payments.every((payment) => !payment.foreverActive)
 }
 
 export function formatTimeTransaction(

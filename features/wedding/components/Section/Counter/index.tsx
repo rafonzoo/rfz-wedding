@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useParams } from 'next/navigation'
+import { BiSupport } from 'react-icons/bi'
 import { FontFamilyWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
 import { useIntersection, useWeddingDetail } from '@/tools/hook'
@@ -74,6 +76,7 @@ const SectionClock = () => {
 
 const SectionCounter = () => {
   const sectionRef = useRef<HTMLElement | null>(null)
+  const isEditor = !!useParams().wid
 
   return (
     <>
@@ -94,8 +97,19 @@ const SectionCounter = () => {
         <div className='relative z-[2] flex h-full items-center pl-6'>
           <SectionClock />
         </div>
-        <div className='absolute bottom-6 left-[min(178px,max(129px,40.512820512820513vw))] right-4 z-[2] flex flex-col text-xs tracking-base text-zinc-500'>
-          <span>Copyright © 2023 Rafa R.</span>
+        <div className='absolute bottom-6 left-[min(178px,max(129px,40.512820512820513vw))] right-4 z-[2] text-xs tracking-base text-zinc-500'>
+          {isEditor && (
+            <a
+              href='tel:+6281310101010'
+              className='mb-1 inline-flex space-x-1 text-blue-600 [.dark_&]:text-blue-400'
+            >
+              <span className='text-sm'>
+                <BiSupport />
+              </span>
+              <span>Support center</span>
+            </a>
+          )}
+          <span className='block'>Copyright © 2023 by Rafa R.</span>
           <span>All right reserved.</span>
         </div>
       </section>

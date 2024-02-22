@@ -6,11 +6,7 @@ import { useRef } from 'react'
 import { BsPlusLg } from 'react-icons/bs'
 import { retina } from '@wedding/helpers'
 import { tw } from '@/tools/lib'
-import {
-  useIntersection,
-  useIsEditorOrDev,
-  useOutlinedClasses,
-} from '@/tools/hook'
+import { useIntersection, useIsEditor, useOutlinedClasses } from '@/tools/hook'
 
 type GalleriesPhotoProps = {
   index: number
@@ -33,7 +29,7 @@ const GalleriesPhoto: RF<GalleriesPhotoProps> = ({
 }) => {
   const divRef = useRef<HTMLDivElement | null>(null)
   const isIntersecting = useIntersection(divRef, { threshold: 1 })
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const isPublic = !isEditor
   const squareIndex = [1, 2, 3, 7, 8]
   const outlinedClasses = useOutlinedClasses()

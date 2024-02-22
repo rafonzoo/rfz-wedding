@@ -7,6 +7,11 @@ export default {
 
   [Route.notFound]: Route.notFound,
 
+  [Route.termsOfUse]: {
+    en: Route.termsOfUse,
+    id: '/syarat-penggunaan',
+  },
+
   [Route.account]: {
     en: Route.account,
     id: '/akun',

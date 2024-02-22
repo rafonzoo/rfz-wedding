@@ -38,11 +38,12 @@ const ImageTheme: RFZ<ImageThemeProps> = ({ className, size }) => {
     <div className={tw('pt-[100%]', sizeClasses[size], className)}>
       <img
         ref={imageRef}
-        className={tw('absolute left-0 top-0 h-full w-full', {
-          'transition-opacity duration-300': !isEditor,
-          'opacity-90': background === 'black',
-          '!opacity-0': !isIntersecting,
-        })}
+        className={tw(
+          'absolute left-0 top-0 h-full w-full',
+          background === 'black' && (theme === 'autumn' ? 'opacity-80' : 'opacity-90'), // prettier-ignore
+          !isEditor && 'transition-opacity duration-300',
+          !isIntersecting && '!opacity-0'
+        )}
         width={size}
         height={size}
         src={

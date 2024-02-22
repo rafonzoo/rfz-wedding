@@ -14,7 +14,7 @@ import { updateWeddingEventDateQuery } from '@wedding/query'
 import { placeName } from '@wedding/helpers'
 import { FontFamilyWedding, QueryWedding, WeddingConfig } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import { isObjectEqual, keys, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
@@ -57,7 +57,7 @@ const EventDate: RF<EventDateProps> = ({
   const [getErrors, setErrors] = useState<FieldError[]>([])
   const hasError = !!previousError.current.find((item) => item.id === id)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const isPublic = !isEditor
   const isEnabledDetail = isPublic && isActive
 

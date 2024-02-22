@@ -1,9 +1,11 @@
 import type { ResolvingMetadata } from 'next'
-import { weddingType } from '@wedding/schema'
+import { paymentType, weddingType } from '@wedding/schema'
 import { WEDDING_COLUMN, WEDDING_ROW } from '@wedding/query'
+import { isHardLimit } from '@wedding/helpers'
 import { WeddingConfig } from '@wedding/config'
 import { supabaseService } from '@/tools/server'
 import { djs } from '@/tools/lib'
+import { isLocal } from '@/tools/helpers'
 import { Route } from '@/tools/config'
 import { localeRedirect } from '@/locale/config'
 import WeddingPageClient from './client'
@@ -66,8 +68,8 @@ export const generateMetadata = async (
                 images: [
                   {
                     url: coupleImage,
-                    width: 900,
-                    height: 900,
+                    width: 300,
+                    height: 300,
                   },
                 ],
               }),
@@ -96,6 +98,19 @@ const WeddingPage = async ({
     .single()
 
   if (error || !wedding) {
+    return localeRedirect(Route.notFound)
+  }
+
+  const payments = paymentType.array().parse(wedding.payment)
+  const isInvalid = !payments.length && wedding.status !== 'live'
+
+  // Check status by payment and its status
+  if (isInvalid && !isLocal()) {
+    return localeRedirect(Route.notFound)
+  }
+
+  // Check active time
+  if (isHardLimit(wedding.events, payments)) {
     return localeRedirect(Route.notFound)
   }
 

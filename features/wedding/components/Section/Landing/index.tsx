@@ -11,10 +11,10 @@ import {
   deleteWeddingSongQuery,
   updateWeddingDisplayNameQuery,
 } from '@wedding/query'
-import { guestName } from '@wedding/helpers'
+import { guestName, isPassed } from '@wedding/helpers'
 import { QueryWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import LandingMediaPlayer from '@wedding/components/Section/Landing/MediaPlayer'
@@ -33,7 +33,7 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
 
 const SectionLanding = () => {
   const { abort, cancelDebounce, getSignal, debounce } = useUtilities()
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const queryClient = useQueryClient()
   const detail = useWeddingDetail()
   const [open, onOpenChange] = useState(false)
@@ -52,6 +52,7 @@ const SectionLanding = () => {
   const minTextSizeLength = (57 / (displayName.length * 4.384615384615385)) * 57
   const maxTextSizeLength = (79 / (displayName.length * 6.076923076923077)) * 79
   const wid = useParams().wid as string
+  const passed = !!wid && isPassed(detail.events)
 
   const { isLoading: isRemoving, mutate: removeSong } = useMutation<
     null,
@@ -275,7 +276,7 @@ const SectionLanding = () => {
           <div className='mt-6 overflow-hidden text-center text-zinc-300'>
             <p>Undangan kepada yth,</p>
             <p className='min-h-6 truncate'>
-              {isEditor ? <SheetGuest /> : guest}
+              {isEditor ? <SheetGuest /> : passed ? '(Nama tamu)' : guest}
             </p>
           </div>
           <div className='mt-8 flex items-center justify-center space-x-4 text-center'>

@@ -53,7 +53,6 @@ const LayoutHeader: RFZ<LayoutHeaderProps> = ({
       queryClient.resetQueries(QueryWedding.weddingGetAll)
       queryClient.resetQueries(QueryWedding.weddingGalleries)
       queryClient.resetQueries(QueryWedding.weddingGuests)
-      queryClient.resetQueries(QueryWedding.weddingComments)
       router.refresh()
     },
   })

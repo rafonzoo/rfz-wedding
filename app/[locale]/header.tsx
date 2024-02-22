@@ -1,8 +1,8 @@
 'use client'
 
 import { CgMenuGridO } from 'react-icons/cg'
-import { RouteNavigation } from '@/tools/config'
-import { useLocalePathname } from '@/locale/config'
+import { Route, RouteNavigation } from '@/tools/config'
+import { LocaleLink, useLocalePathname } from '@/locale/config'
 import RFZLogo from '@/assets/svg/rfz-logo.svg'
 
 const Header: RF = () => {
@@ -15,11 +15,14 @@ const Header: RF = () => {
   return (
     <header className='h-12'>
       <div className='mx-auto flex h-full max-w-[980px] items-center'>
-        <button className='flex h-12 w-12 items-center justify-center text-3xl'>
+        <LocaleLink
+          href={Route.home}
+          className='flex h-12 w-12 items-center justify-center text-3xl'
+        >
           <span className='-mr-2 block'>
             <RFZLogo />
           </span>
-        </button>
+        </LocaleLink>
         <button
           disabled
           className='ml-auto flex h-12 w-12 items-center justify-center text-3xl disabled:opacity-50'

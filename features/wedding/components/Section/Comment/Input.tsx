@@ -13,11 +13,7 @@ import {
   addGuestCommentActions,
 } from '@wedding/actions'
 import { tw } from '@/tools/lib'
-import {
-  useAccountSession,
-  useIsEditorOrDev,
-  useWeddingDetail,
-} from '@/tools/hook'
+import { useAccountSession, useIsEditor, useWeddingDetail } from '@/tools/hook'
 import Toast from '@/components/Notification/Toast'
 
 const CommentInput: RFZ = () => {
@@ -27,7 +23,7 @@ const CommentInput: RFZ = () => {
   const isOwner = session && session.user.id === detail.userId
   const cid = useSearchParams().get('cid')
   const commentId = cid ? decodeURI(cid) : null
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const formRef = useRef<HTMLFormElement | null>(null)
   const comments = detail.comments.map((item) => ({
     ...item,

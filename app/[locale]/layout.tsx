@@ -1,13 +1,16 @@
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import { Inter } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { tw } from '@/tools/lib'
+import { RouteDarkMode } from '@/tools/config'
 import { locales } from '@/locale/config'
 import { QueryProvider } from '@/components/Provider'
 import Header from './header'
+import Footer from './footer'
 import './style.css'
 
 // Track missmatch due to invariant time.
@@ -33,9 +36,16 @@ const RootLayout = async ({
 }) => {
   if (!locales.includes(props.params.locale)) notFound()
   const messages = await getMessages()
+  const pathname = headers().get('X-URL-PATH') ?? ''
 
   return (
-    <html lang={props.params.locale} className='antialiased'>
+    <html
+      lang={props.params.locale}
+      className={tw(
+        'antialiased',
+        RouteDarkMode.some((path) => path === pathname) && 'dark'
+      )}
+    >
       <body
         className={tw(
           inter.variable,
@@ -46,6 +56,7 @@ const RootLayout = async ({
           <QueryProvider>
             <Header />
             {children}
+            <Footer />
           </QueryProvider>
         </NextIntlClientProvider>
       </body>

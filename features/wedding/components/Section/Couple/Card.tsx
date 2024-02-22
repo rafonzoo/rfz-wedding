@@ -13,7 +13,7 @@ import { weddingCoupleType, weddingSocialUrls } from '@wedding/schema'
 import { updateWeddingCouplesQuery } from '@wedding/query'
 import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import { cleaner, isLocal, isObjectEqual, keys, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import TextCard from '@wedding/components/Text/Card'
@@ -51,7 +51,7 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
   const [errorInfo, setErrorInfo] = useState(false)
   const queryClient = useQueryClient()
   const detail = useWeddingDetail()
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const { abort, cancelDebounce, debounce, getSignal } = useUtilities()
 
   // prettier-ignore

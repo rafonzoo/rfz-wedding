@@ -4,9 +4,9 @@ import type { WeddingEvent } from '@wedding/schema'
 import { useRef } from 'react'
 import { MdModeEdit } from 'react-icons/md'
 import { BsPlusLg } from 'react-icons/bs'
-import { placeName } from '@wedding/helpers'
+import { isPassed, placeName } from '@wedding/helpers'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useWeddingDetail } from '@/tools/hook'
+import { useIsEditor, useWeddingDetail } from '@/tools/hook'
 import dayjs from 'dayjs'
 import { atcb_action } from 'add-to-calendar-button-react'
 
@@ -22,8 +22,9 @@ const EventsAction: RF<EventsActionProps> = ({
   onClick,
   ...event
 }) => {
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const detail = useWeddingDetail()
+  const passed = isPassed(detail.events)
   const isPublic = !isEditor
   const publicButton = useRef<HTMLButtonElement | null>(null)
 
@@ -59,9 +60,10 @@ const EventsAction: RF<EventsActionProps> = ({
   return isPublic ? (
     <button
       ref={publicButton}
-      tabIndex={isActive ? 0 : -1}
+      tabIndex={isActive && !passed ? 0 : -1}
+      disabled={!isActive || passed}
       aria-label='Save to calendar'
-      className='ml-5 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-2xl text-white'
+      className='ml-5 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-2xl text-white disabled:opacity-50'
       onClick={saveToCalendar}
     >
       <BsPlusLg />

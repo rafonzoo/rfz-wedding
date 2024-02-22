@@ -4,11 +4,7 @@ import type { MutableRefObject } from 'react'
 import { useRef, useState } from 'react'
 import { FaPause, FaPlay } from 'react-icons/fa6'
 import { tw } from '@/tools/lib'
-import {
-  useIsEditorOrDev,
-  useMountedEffect,
-  useWeddingDetail,
-} from '@/tools/hook'
+import { useIsEditor, useMountedEffect, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 
 const SheetSticky = dynamic(() => import('@wedding/components/Sheet/Sticky'), {
@@ -23,7 +19,7 @@ const SectionSticky: RF<{
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const fixedRef = useRef<HTMLDivElement | null>(null)
   const detail = useWeddingDetail()
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const { music } = detail
 
   useMountedEffect(() => {

@@ -7,7 +7,7 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { updateWeddingGalleryQuery } from '@wedding/query'
 import { QueryWedding } from '@wedding/config'
-import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import TextTitle from '@wedding/components/Text/Title'
 import GalleriesPhoto from '@wedding/components/Section/Galleries/Photo'
@@ -20,7 +20,7 @@ const SheetGallery = dynamic(
 
 const SectionGalleries = () => {
   const [index, setIndex] = useState(-1)
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const isOpen = index > -1
   const queryClient = useQueryClient()
   const detail = useWeddingDetail()
@@ -106,7 +106,7 @@ const SectionGalleries = () => {
   useEffect(() => setPhotos(detail.galleries), [detail.galleries])
 
   return (
-    <section className='min-h-screen bg-black pb-[24.615384615384615%] [.dark_&]:bg-zinc-950'>
+    <section className='min-h-screen bg-black pb-[24.615384615384615%] [.dark_&]:bg-zinc-900'>
       <TextTitle className='text-white'>The Galleries</TextTitle>
       <div className='mx-6 mt-6 flex flex-wrap space-y-4'>
         <GalleriesPhoto

@@ -12,6 +12,15 @@ export const middleware = async (req: NextRequest) => {
     localeDetection: false,
   })(req)
 
+  const locale = response.headers.get('x-middleware-request-x-next-intl-locale')
+  response.headers.set(
+    'X-URL-PATH',
+    response.headers
+      .get('x-middleware-rewrite')
+      ?.replace(process.env.NEXT_PUBLIC_SITE_URL ?? '', '')
+      ?.replace(`/${locale}` ?? '', '') || '/'
+  )
+
   return response
 }
 

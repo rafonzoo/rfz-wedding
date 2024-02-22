@@ -3,7 +3,7 @@
 import type { Wedding, WeddingGallery } from '@wedding/schema'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { BsPlusLg } from 'react-icons/bs'
 import { updateWeddingGalleryQuery } from '@wedding/query'
@@ -12,7 +12,7 @@ import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import {
   useIntersection,
-  useIsEditorOrDev,
+  useIsEditor,
   useUtilities,
   useWeddingDetail,
 } from '@/tools/hook'
@@ -30,7 +30,7 @@ const SheetGallery = dynamic(
 )
 
 const SectionLandingBackground: RFZ = ({ children }) => {
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const queryClient = useQueryClient()
   const detail = useWeddingDetail()
   const index = WeddingConfig.ImageryStartIndex
@@ -49,6 +49,7 @@ const SectionLandingBackground: RFZ = ({ children }) => {
     y: coordinates?.[1] ?? '0',
   }
 
+  const router = useRouter()
   const toast = new Toast()
   const t = useTranslations()
   const backgroundUrl = !background?.fileName
@@ -85,6 +86,8 @@ const SectionLandingBackground: RFZ = ({ children }) => {
       setBackground(previous)
     },
     onSuccess: (galleries) => {
+      router.refresh()
+
       queryClient.setQueryData<Wedding | undefined>(
         QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, galleries })

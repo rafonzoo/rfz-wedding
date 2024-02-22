@@ -10,7 +10,7 @@ import { BsPlusLg } from 'react-icons/bs'
 import { updateWeddingStoriesQuery } from '@wedding/query'
 import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import markdownConfig from '@/components/Markdown/config'
 import Spinner from '@/components/Loading/Spinner'
@@ -38,7 +38,7 @@ const SectionCoupleStories: RFZ = () => {
   const [isError, setIsError] = useState(false)
   const { abort, cancelDebounce, getSignal, debounce } = useUtilities()
   const wid = useParams().wid as string
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const isPublic = !isEditor
   const { isLoading, mutate: updateStories } = useMutation<
     string,
