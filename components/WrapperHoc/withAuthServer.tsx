@@ -6,7 +6,10 @@ import { localeRedirect } from '@/locale/config'
 
 const withAuthServer = <T,>(
   Component: (
-    props: Param<T> & { session: Session }
+    props: Param<T> & {
+      session: Session
+      searchParams: { [x: string]: string | undefined }
+    }
   ) => React.JSX.Element | Promise<React.JSX.Element>
 ) => {
   const AuthComponent = async (props: Param<T>) => {

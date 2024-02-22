@@ -302,7 +302,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           data-is-animating={`${isAnimating}`}
           style={{ zIndex: `${999 + sheetIndex}` }}
           className={tw(
-            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none translate-3d-y-full',
+            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(932px,96%)] outline-none translate-3d-y-full',
             'data-[state=closed]:animate-sheet-hide data-[state=open]:animate-sheet-show',
             content?.className
           )}

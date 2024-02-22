@@ -158,7 +158,7 @@ const SectionLanding = () => {
   }
 
   return (
-    <section className='h-screen max-h-[906px] min-h-[470px] bg-zinc-900'>
+    <section className='h-screen max-h-[932px] min-h-[470px] bg-zinc-900'>
       <SectionLandingBackground>
         <div className='flex flex-col justify-end overflow-hidden px-6 pb-[min(108px,max(79px,24.615384615384615vw))] pt-6'>
           <div className='mx-auto'>

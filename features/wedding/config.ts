@@ -44,3 +44,5 @@ export const WeddingConfig = {
 export const ASSETS_PATH = '/assets'
 
 export const UPLOADS_PATH = '/uploads'
+
+export const OVERVIEW_PATH = '/overview'

@@ -96,11 +96,17 @@ const SheetSticky: RF = () => {
     mutationFn: ({ wid, path }) => {
       return deleteWeddingQuery({ path, wid, signal: getSignal() })
     },
-    onSuccess: async () => {
-      await queryClient.resetQueries({ queryKey: QueryWedding.weddingGetAll })
-
-      toast.success(t('success.invitation.delete'))
-      router.replace(RouteWedding.weddingList)
+    onSuccess: () => {
+      queryClient
+        .resetQueries({ queryKey: QueryWedding.weddingGetAll })
+        .then(() => {
+          toast.success(t('success.invitation.delete'))
+          router.replace({
+            pathname: RouteWedding.weddingEditor,
+            params: { wid },
+            query: { isDeleted: true },
+          })
+        })
     },
     onError: (e) => {
       if ((e as Error)?.message.includes('AbortError')) {

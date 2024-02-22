@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { IoArrowForwardCircle } from 'react-icons/io5'
 import { BiChevronDown } from 'react-icons/bi'
 import { commentType } from '@wedding/schema'
-import { createInitial, guestName } from '@wedding/helpers'
+import { createInitial, guestAlias, guestName } from '@wedding/helpers'
 import { QueryWedding } from '@wedding/config'
 import {
   addAuthorCommentActions,
@@ -106,7 +106,7 @@ const CommentInput: RFZ = () => {
           </p>
         </div>
         <p className='flex h-11 w-full items-center overflow-hidden rounded-lg border border-zinc-300 bg-transparent px-3 text-zinc-500 [.dark_&]:border-zinc-600 [.dark_&]:text-zinc-400'>
-          <span className='truncate'>{alias}</span>
+          <span className='truncate'>{guestAlias(alias)}</span>
         </p>
       </div>
       <div

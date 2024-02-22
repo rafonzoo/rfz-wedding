@@ -1,5 +1,10 @@
 import { type Payment, weddingEventType } from '@wedding/schema'
-import { ASSETS_PATH, UPLOADS_PATH, WeddingConfig } from '@wedding/config'
+import {
+  ASSETS_PATH,
+  OVERVIEW_PATH,
+  UPLOADS_PATH,
+  WeddingConfig,
+} from '@wedding/config'
 import { djs } from '@/tools/lib'
 
 export function midtrans(path: string) {
@@ -30,6 +35,11 @@ export function uploads(path: string) {
   }
 
   return [UPLOADS_PATH, env[envKey], path].join('')
+}
+
+export function overview(path: string) {
+  const url = process.env.NEXT_PUBLIC_IMAGEKIT_URL + OVERVIEW_PATH
+  return [url, path].join('')
 }
 
 export function swatches(key: keyof typeof colorClasses) {
@@ -118,8 +128,8 @@ export function guestName(text: string) {
   return (group ? text.replace(group, '') : text).trim()
 }
 
-export function guestAlias(slug: string) {
-  return slug.replace(/-/g, ' ')
+export function guestAlias(slugOrName: string) {
+  return slugOrName.replace(/-/g, ' ')
 }
 
 export function createInitial(name: string) {

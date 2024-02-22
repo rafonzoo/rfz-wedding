@@ -7,12 +7,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { IoChevronDownCircleOutline } from 'react-icons/io5'
 import { FaCircleMinus } from 'react-icons/fa6'
 import { deleteWeddingCommentQuery } from '@wedding/query'
-import {
-  createInitial,
-  groupName,
-  guestAlias,
-  guestName,
-} from '@wedding/helpers'
+import { createInitial, groupName, guestAlias } from '@wedding/helpers'
 import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import { useAccountSession, useWeddingDetail } from '@/tools/hook'
@@ -179,7 +174,7 @@ const CommentList: RF = () => {
                 <div className='relative flex flex-grow flex-col space-y-1.5 overflow-hidden rounded-lg bg-zinc-100 p-4 [.dark_&]:bg-zinc-800'>
                   <p className='flex space-x-1.5'>
                     <strong className='flex items-center leading-5'>
-                      {guestName(alias)}
+                      {guestAlias(alias)}
                     </strong>
                     {((alias === guestFullName && token) || !token) && (
                       <span className='block text-sm tracking-normal text-zinc-500'>
