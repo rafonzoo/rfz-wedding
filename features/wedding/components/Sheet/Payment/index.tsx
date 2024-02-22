@@ -282,13 +282,13 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
     <button
       className='mx-auto inline-flex flex-grow items-center justify-center overflow-hidden rounded-lg bg-blue-600 font-semibold text-white transition-colors duration-300 disabled:bg-zinc-100 disabled:text-zinc-300 disabled:[.dark_&]:bg-zinc-700 disabled:[.dark_&]:text-zinc-600'
       disabled={isLoading || isLoadingCheckout || !priceTotal}
-      // onClick={
-      //   isLoading || isLoadingCheckout || !priceTotal
-      //     ? void 0
-      //     : !isIOS12
-      //       ? onCheckout
-      //       : () => setUnsupportedPayment(true)
-      // }
+      onClick={
+        isLoading || isLoadingCheckout || !priceTotal
+          ? void 0
+          : !isIOS12
+            ? onCheckout
+            : () => setUnsupportedPayment(true)
+      }
     >
       {isLoading || isLoadingCheckout ? <Spinner /> : 'Bayar'}
     </button>
@@ -324,9 +324,7 @@ const SheetPayment: RFZ<SheetPaymentProps> = ({
                     onClick:
                       isLoading || isLoadingCheckout || !priceTotal
                         ? void 0
-                        : !isIOS12
-                          ? onCheckout
-                          : () => setUnsupportedPayment(true),
+                        : onCheckout,
                   }}
                   description={{
                     children:

@@ -90,7 +90,10 @@ const LayoutHeader: RFZ<LayoutHeaderProps> = ({
               trigger={{
                 asChild: true,
                 children: (
-                  <button className='mr-2 h-8 w-8 overflow-hidden rounded-full bg-zinc-200'>
+                  <button
+                    className='mr-2 h-8 w-8 overflow-hidden rounded-full bg-zinc-200'
+                    onClick={() => onOpenChange(true)}
+                  >
                     <img
                       className='h-8 w-8 rounded-full bg-zinc-100'
                       src={avatarUrl}
