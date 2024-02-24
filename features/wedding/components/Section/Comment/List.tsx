@@ -6,8 +6,14 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams, useSearchParams } from 'next/navigation'
 import { IoChevronDownCircleOutline } from 'react-icons/io5'
 import { FaCircleMinus } from 'react-icons/fa6'
+import { BsFillPatchCheckFill } from 'react-icons/bs'
 import { deleteWeddingCommentQuery } from '@wedding/query'
-import { createInitial, groupName, guestAlias } from '@wedding/helpers'
+import {
+  createInitial,
+  groupName,
+  guestAlias,
+  guestName,
+} from '@wedding/helpers'
 import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import { useAccountSession, useWeddingDetail } from '@/tools/hook'
@@ -32,7 +38,6 @@ const CommentList: RF = () => {
   const hasSession = session && session.user.id === detail.userId
   const comments = detail.comments.map((item) => ({
     ...item,
-    alias: decodeURI(item.alias),
     text: decodeURI(item.text),
   }))
 
@@ -85,7 +90,7 @@ const CommentList: RF = () => {
                   : prev.comments.filter((item, index) =>
                       deletedIndex
                         ? index !== deletedIndex
-                        : decodeURI(item.alias) !== decodeURI(alias)
+                        : item.alias !== alias
                     ),
               }
       )
@@ -102,6 +107,23 @@ const CommentList: RF = () => {
 
     const { alias, index } = removedComment
     return isLoading && index ? index === currentIndex : alias === currentAlias
+  }
+
+  const GuestVerifyName: RF<{ name: string; isOwner: boolean }> = ({
+    name,
+    isOwner,
+  }) => {
+    const splitter = name.split('::')
+    return (
+      <>
+        <span>{(isOwner ? name : guestName(name)).replace('::owner', '')}</span>
+        {!!splitter.length && isOwner && (
+          <span className='text-blue-600'>
+            <BsFillPatchCheckFill />
+          </span>
+        )}
+      </>
+    )
   }
 
   return (
@@ -136,15 +158,6 @@ const CommentList: RF = () => {
                         <IoChevronDownCircleOutline />
                       </span>
                     </button>
-                    {/* <button
-                      onClick={() => {
-                        if (page >= 1) {
-                          setPage((prev) => prev - 1)
-                        }
-                      }}
-                    >
-                      collapse
-                    </button> */}
                   </div>
                 )}
               <div
@@ -173,18 +186,18 @@ const CommentList: RF = () => {
                 </div>
                 <div className='relative flex flex-grow flex-col space-y-1.5 overflow-hidden rounded-lg bg-zinc-100 p-4 [.dark_&]:bg-zinc-800'>
                   <p className='flex space-x-1.5'>
-                    <strong className='flex items-center leading-5'>
-                      {guestAlias(alias)}
+                    <strong className='flex items-center space-x-1 leading-5'>
+                      <GuestVerifyName name={alias} isOwner={!token} />
                     </strong>
-                    {((alias === guestFullName && token) || !token) && (
+                    {(token ? alias === guestFullName : !!wid) && (
                       <span className='block text-sm tracking-normal text-zinc-500'>
-                        ({token || !!wid ? 'Anda' : 'Owner'})
+                        (Anda)
                       </span>
                     )}
                   </p>
-                  <p>{decodeURI(text)}</p>
+                  <p>{text}</p>
                   {groupName(alias) && (
-                    <span className='block text-sm leading-5 tracking-normal text-zinc-500'>
+                    <span className='block text-sm italic leading-5 tracking-normal text-zinc-500'>
                       {groupName(alias)}
                     </span>
                   )}

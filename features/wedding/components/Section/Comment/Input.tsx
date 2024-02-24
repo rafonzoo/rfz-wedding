@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { IoArrowForwardCircle } from 'react-icons/io5'
 import { BiChevronDown } from 'react-icons/bi'
 import { commentType } from '@wedding/schema'
-import { createInitial, guestAlias, guestName } from '@wedding/helpers'
+import { createInitial, guestAlias } from '@wedding/helpers'
 import { QueryWedding } from '@wedding/config'
 import {
   addAuthorCommentActions,
@@ -27,14 +27,13 @@ const CommentInput: RFZ = () => {
   const formRef = useRef<HTMLFormElement | null>(null)
   const comments = detail.comments.map((item) => ({
     ...item,
-    alias: decodeURI(item.alias),
     text: decodeURI(item.text),
   }))
 
-  const paramGuestName = useSearchParams().get('to')
+  const guestSlug = useSearchParams().get('to')
   const alias =
-    !isEditor && paramGuestName
-      ? guestName(paramGuestName)
+    !isEditor && guestSlug
+      ? guestAlias(guestSlug)
       : isOwner
         ? session.user.user_metadata.full_name ||
           session.user.user_metadata.name ||
@@ -46,7 +45,10 @@ const CommentInput: RFZ = () => {
   const t = useTranslations()
   const name = useParams().name as string | undefined
   const wid = useParams().wid as string | undefined
-  const isAlreadyCommented = !!comments.find((item) => item.alias === alias)
+  const isAlreadyCommented = !!comments.find(
+    (item) => guestAlias(item.alias) === alias
+  )
+
   const canComment = isEditor
     ? isOwner
     : (commentId && !isOwner && !isAlreadyCommented) || false
@@ -56,11 +58,12 @@ const CommentInput: RFZ = () => {
   const isDisabled = isLoading || !canComment
 
   async function addNewComment(formData: FormData) {
-    try {
-      const comment = isOwner
-        ? await addAuthorCommentActions(formData)
-        : await addGuestCommentActions(formData)
+    const comment = isOwner
+      ? await addAuthorCommentActions(formData)
+      : await addGuestCommentActions(formData)
 
+    setIsLoading(false)
+    if (comment) {
       queryClient.setQueryData<Wedding | undefined>(
         QueryWedding.weddingDetail,
         (prev) =>
@@ -73,7 +76,8 @@ const CommentInput: RFZ = () => {
       )
 
       formRef.current?.reset()
-    } catch (e) {
+      setShowSubmit(false)
+    } else {
       queryClient.setQueryData<Wedding | undefined>(
         QueryWedding.weddingDetail,
         (prev) =>
@@ -87,9 +91,6 @@ const CommentInput: RFZ = () => {
 
       toast.error(t('error.general.failedToSend', { name: t('def.comment') }))
     }
-
-    setIsLoading(false)
-    setShowSubmit(false)
   }
 
   return (
@@ -106,7 +107,7 @@ const CommentInput: RFZ = () => {
           </p>
         </div>
         <p className='flex h-11 w-full items-center overflow-hidden rounded-lg border border-zinc-300 bg-transparent px-3 text-zinc-500 [.dark_&]:border-zinc-600 [.dark_&]:text-zinc-400'>
-          <span className='truncate'>{guestAlias(alias)}</span>
+          <span className='truncate'>{alias}</span>
         </p>
       </div>
       <div
@@ -149,12 +150,16 @@ const CommentInput: RFZ = () => {
             <>
               <input type='hidden' name='name' value={name} />
               <input type='hidden' name='cid' value={commentId ?? ''} />
-              <input type='hidden' name='to' value={encodeURI(alias)} />
+              <input type='hidden' name='to' value={alias} />
             </>
           ) : (
             <>
               <input type='hidden' name='wid' value={wid} />
-              <input type='hidden' name='authorName' value={alias} />
+              <input
+                type='hidden'
+                name='authorName'
+                value={alias + '::owner'}
+              />
             </>
           )}
           <div className='relative flex min-h-[49px] items-center justify-between py-2 pl-4 pr-2'>

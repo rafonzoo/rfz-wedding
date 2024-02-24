@@ -264,3 +264,7 @@ export function blobToUri(blob: Blob) {
     reader.readAsDataURL(blob)
   })
 }
+
+export function sanitizeFormdata(value: unknown) {
+  return encodeURI((value ?? '') as string)
+}
