@@ -23,8 +23,8 @@ const inter = Inter({
 })
 
 const metadata: Metadata = {
-  title: 'RFZ Wedding App',
-  description: 'The best app to create your wedding invitation.',
+  title: 'RFZ',
+  description: 'Digital Software Solution',
 }
 
 const RootLayout = async ({
@@ -46,6 +46,9 @@ const RootLayout = async ({
         RouteDarkMode.some((path) => path === pathname) && 'dark'
       )}
     >
+      <head>
+        <link rel='icon' type='image/png' href='/icon.png' sizes='any' />
+      </head>
       <body
         className={tw(
           inter.variable,

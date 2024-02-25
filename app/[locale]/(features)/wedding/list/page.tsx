@@ -15,4 +15,8 @@ const MyWeddingPage = withAuthServer(async ({ session }) => {
   )
 })
 
+export const metadata = {
+  title: 'Undangan · Dasbor · RFZ',
+}
+
 export default MyWeddingPage

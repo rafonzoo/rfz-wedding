@@ -30,4 +30,8 @@ const TransactionPage = withAuthServer(async ({ session }) => {
   )
 })
 
+export const metadata = {
+  title: 'Undangan · Riwayat · RFZ',
+}
+
 export default TransactionPage

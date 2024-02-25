@@ -9,10 +9,13 @@ const Homepage = () => {
       <section className='flex min-h-[570px] w-full flex-col bg-black pb-4'>
         <div className='mx-auto mt-14 w-full max-w-[980px] text-center'>
           <div className='mx-auto w-[75%] max-w-[320px]'>
-            <p className='text-sm tracking-normal text-white/50'>RFZ Wedding</p>
-            <h2 className='mt-2 text-[32px] font-bold leading-9 tracking-tight text-white'>
+            <h1 className='sr-only'>RFZ Application</h1>
+            <p className='text-sm tracking-normal text-white/50'>
+              Undangan Pernikahan
+            </p>
+            <p className='mt-2 text-[32px] font-bold leading-9 tracking-tight text-white'>
               Klik. Klik. Klik. Bagikan.&nbsp;Done.
-            </h2>
+            </p>
             <p className='mt-2 text-white/80'>
               Membuat undangan tidak pernah&nbsp;semudah&nbsp;ini.
             </p>

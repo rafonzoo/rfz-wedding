@@ -45,7 +45,7 @@ const TermsOfUsePage = () => {
         </h2>
         <p className='mx-6 mt-2'>
           The site is provided on an {'as-is'} and {'as available'} basis, and
-          company and our suppliers expressly disclaim any and all warranties
+          rf-z.com and our suppliers expressly disclaim any and all warranties
           and conditions of any kind, whether express, implied, or statutory,
           including all warranties or conditions of merchantability, fitness for
           a particular purpose, title, quiet enjoyment, accuracy, or
@@ -61,12 +61,12 @@ const TermsOfUsePage = () => {
           Limitation on Liability
         </h2>
         <p className='mx-6 mt-2'>
-          To the maximum extent permitted by law, in no event shall company or
+          To the maximum extent permitted by law, in no event shall rf-z.com or
           our suppliers be liable to you or any third-party for any lost
           profits, lost data, costs of procurement of substitute products, or
           any indirect, consequential, exemplary, incidental, special or
           punitive damages arising from or relating to these terms or your use
-          of, or incapability to use the site even if company has been advised
+          of, or incapability to use the site even if rf-z.com has been advised
           of the possibility of such damages. Access to and use of the site is
           at your own discretion and risk, and you will be solely responsible
           for any damage to your device or computer system, or loss of data
@@ -85,6 +85,10 @@ const TermsOfUsePage = () => {
       <div className='pb-20 lg:pb-[120px]'></div>
     </main>
   )
+}
+
+export const metadata = {
+  title: 'Syarat Penggunaan · RFZ',
 }
 
 export default TermsOfUsePage
