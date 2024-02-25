@@ -4,13 +4,9 @@ import type { MutableRefObject } from 'react'
 import type { WeddingGallery } from '@wedding/schema'
 import { useRef } from 'react'
 import { BsPlusLg } from 'react-icons/bs'
+import { retina } from '@wedding/helpers'
 import { tw } from '@/tools/lib'
-import {
-  useIntersection,
-  useIsEditorOrDev,
-  useOutlinedClasses,
-} from '@/tools/hook'
-import { retina } from '@/tools/helper'
+import { useIntersection, useIsEditor, useOutlinedClasses } from '@/tools/hook'
 
 type GalleriesPhotoProps = {
   index: number
@@ -33,7 +29,7 @@ const GalleriesPhoto: RF<GalleriesPhotoProps> = ({
 }) => {
   const divRef = useRef<HTMLDivElement | null>(null)
   const isIntersecting = useIntersection(divRef, { threshold: 1 })
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const isPublic = !isEditor
   const squareIndex = [1, 2, 3, 7, 8]
   const outlinedClasses = useOutlinedClasses()
@@ -62,10 +58,6 @@ const GalleriesPhoto: RF<GalleriesPhotoProps> = ({
     9: retina(photo?.fileName, 'w', 'ar-16-9', 'fo-auto'),
   }[index]
 
-  // if (currentIndex === index && parentRef) {
-  //   sheetFocus(divRef, { bound: 'center' })
-  // }
-
   return (
     <div
       ref={divRef}
@@ -84,7 +76,7 @@ const GalleriesPhoto: RF<GalleriesPhotoProps> = ({
         className={tw(
           'absolute left-0 top-0 flex h-full w-full items-center justify-center overflow-hidden',
           outlinedClasses(currentIndex === index),
-          (!!photo || !squareIndex.includes(index) || isEditor) && 'rounded-[inherit] bg-zinc-900 dark:bg-zinc-800' // prettier-ignore
+          (!!photo || !squareIndex.includes(index) || isEditor) && 'rounded-[inherit] bg-zinc-900 [.dark_&]:bg-zinc-800' // prettier-ignore
         )}
       >
         {isLoaded && isEditor && !photo && (
@@ -97,7 +89,7 @@ const GalleriesPhoto: RF<GalleriesPhotoProps> = ({
             {Array.from(Array(16).keys()).map((key) => (
               <span
                 key={key}
-                className='flex w-full rounded-full bg-zinc-800 pt-[100%] dark:bg-zinc-700'
+                className='flex w-full rounded-full bg-zinc-800 pt-[100%] [.dark_&]:bg-zinc-700'
               />
             ))}
           </span>

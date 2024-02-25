@@ -1,16 +1,20 @@
 'use client'
 
 import type { MouseEvent, ReactNode } from 'react'
-import type { Guest, Wedding } from '@wedding/schema'
+import type { Guest } from '@wedding/schema'
 import { useRef, useState } from 'react'
 import { useQueryClient } from 'react-query'
+import { useLocale } from 'next-intl'
 import { IoCopyOutline, IoLogoInstagram, IoLogoWhatsapp } from 'react-icons/io5'
 import { HiMiniMinusCircle } from 'react-icons/hi2'
 import { GoShare } from 'react-icons/go'
+import { guestAlias } from '@wedding/helpers'
+import { QueryWedding, RouteWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useUtilities } from '@/tools/hook'
-import { abspath, exact, guestAlias, qstring } from '@/tools/helper'
-import { Queries, Route } from '@/tools/config'
+import { useUtilities, useWeddingDetail } from '@/tools/hook'
+import { abspath, qstring } from '@/tools/helpers'
+import { Route } from '@/tools/config'
+import { default as pathnames } from '@/locale/route'
 import { LocaleLink } from '@/locale/config'
 import * as clipboard from 'clipboard-polyfill'
 import dynamic from 'next/dynamic'
@@ -73,7 +77,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
 
   const isShareShow = !isModeEdit && editedGuestId === id && isRemainSame
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [couple1, couple2] = detail.couple.map(({ fullName }) => fullName)
   const groupName = guest.group
   const events = !groupName
@@ -89,12 +93,18 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
         return !event.opensTo || (eventGroup && lowerGroup.includes(eventGroup))
       })
 
+  const locale = useLocale()
   const url = qstring(
     {
       to: guest.slug,
       cid: guest.token,
     },
-    abspath(`/${detail.name}`)
+    abspath(
+      pathnames[RouteWedding.weddingCouple][locale as 'id'].replace(
+        '[name]',
+        detail.name
+      )
+    )
   )
 
   const isEditable = guest.id > 1
@@ -126,7 +136,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
     }
 
     const text = templateRef.current.textContent
-    const raw = text.replace(
+    let raw = text.replace(
       new RegExp(
         `(${name}|${couple1}|${couple2}|${events.map((ev) => formatDate(ev.date, ev.eventName)).join('|')})`,
         'gm'
@@ -134,6 +144,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
       `${[symbol, symbol].join('$1')}`
     )
 
+    raw = raw.replace(new RegExp(`\\*${name}\\*&`, 'g'), `${name}&`)
     return encode ? encodeURIComponent(raw) : raw
   }
 
@@ -169,15 +180,15 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
     <li
       key={id}
       className={tw(
-        'relative overflow-hidden border-zinc-300 pl-6 pr-11 dark:border-zinc-700',
-        editedGuestId === id && 'bg-zinc-100'
+        'relative overflow-hidden border-zinc-300 pl-6 pr-11 [.dark_&]:border-zinc-700',
+        editedGuestId === id && 'bg-zinc-100 [.dark_&]:bg-zinc-700'
       )}
     >
       <div className='relative translate-z-0'>
         <div
           className={tw(
             'flex min-h-11 w-full items-center overflow-hidden py-2 transition-transform duration-300',
-            !isEditable && '-translate-x-2',
+            !isEditable && '-translate-x-0',
             !isModeEdit && isEditable && '-translate-x-11',
             isModeEdit && isEditable && '-translate-x-6'
           )}
@@ -187,14 +198,14 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
               aria-label='Remove guest'
               tabIndex={isModeEdit ? 0 : -1}
               className={tw(
-                'flex h-full w-11 items-center justify-center text-2xl text-red-500 transition-opacity translate-z-0',
+                'flex h-full min-w-11 items-center justify-center text-2xl text-red-500 transition-opacity translate-z-0',
                 !isModeEdit && 'pointer-events-none opacity-0'
               )}
               onClick={() => {
                 if (!isModeEdit) return
 
                 queryClient.setQueryData<Guest[] | undefined>(
-                  Queries.weddingGuests,
+                  QueryWedding.weddingGuests,
                   (prev) =>
                     !prev ? prev : prev.filter((item) => item.id !== id)
                 )
@@ -204,7 +215,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
             </button>
           )}
           <p
-            className={tw('w-full translate-z-0', !isEditable && 'opacity-40')}
+            className={tw('w-full translate-z-0', !isEditable && 'opacity-50')}
           >
             {guestAlias(slug)}
           </p>
@@ -220,8 +231,8 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
           <button
             aria-label='Select guest'
             tabIndex={isModeEdit ? -1 : 0}
+            className='flex-grow'
             onClick={() => onClick?.(id)}
-            className={tw('flex-grow')}
           />
 
           <BottomSheet
@@ -242,7 +253,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
               append: (
                 <button
                   ref={cancelButtonRef}
-                  className='flex h-14 w-full items-center justify-center rounded-xl bg-zinc-300 px-3 text-center font-semibold -tracking-base dark:bg-zinc-700'
+                  className='flex h-14 w-full items-center justify-center rounded-xl bg-zinc-300 px-3 text-center font-semibold -tracking-base [.dark_&]:bg-zinc-700'
                   onClick={() => setShowActionSheet(false)}
                 >
                   Batal
@@ -266,20 +277,20 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
             }
           >
             <div className='mx-2 flex h-full flex-col justify-end space-y-3'>
-              <div className='flex max-h-full w-full flex-col rounded-2xl bg-white dark:bg-zinc-800'>
+              <div className='flex max-h-full w-full flex-col rounded-2xl bg-white [.dark_&]:bg-zinc-800'>
                 <p className='flex items-center justify-center px-2 py-3 font-semibold'>
                   Bagikan
                 </p>
-                <hr className='border-zinc-300 dark:border-zinc-700' />
+                <hr className='border-zinc-300 [.dark_&]:border-zinc-700' />
                 <div className='p-3'>
                   <p className='flex space-x-1 text-sm tracking-normal'>
-                    <span className='text-zinc-500 dark:text-zinc-400'>
+                    <span className='text-zinc-500 [.dark_&]:text-zinc-400'>
                       ke:
                     </span>
                     <span>{name}</span>
                   </p>
                 </div>
-                <hr className='border-zinc-300 dark:border-zinc-700' />
+                <hr className='border-zinc-300 [.dark_&]:border-zinc-700' />
                 <div className='h-full overflow-auto overflow-touch'>
                   <div
                     ref={templateRef}
@@ -313,9 +324,9 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
                       link={
                         <LocaleLink
                           target='_blank'
-                          className='text-blue-600 dark:text-blue-400'
+                          className='break-words text-blue-600 [.dark_&]:text-blue-400'
                           href={{
-                            pathname: Route.weddingPublic,
+                            pathname: Route.weddingCouple,
                             params: { name: detail.name },
                             search: qstring({ to: slug, cid: token }),
                           }}
@@ -326,7 +337,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
                     />
                   </div>
                 </div>
-                <hr className='border-zinc-300 dark:border-zinc-700' />
+                <hr className='border-zinc-300 [.dark_&]:border-zinc-700' />
                 <div className='mx-4 mb-3 mt-4'>
                   <ul className='flex w-full flex-nowrap space-x-4 overflow-x-auto p-px overflow-touch'>
                     {shareActions.map(({ id, label, icon }, index) => (
@@ -336,7 +347,7 @@ const SheetGuestShare: RF<SheetGuestShareProps> = ({
                       >
                         <div className='relative h-[64px] w-full pt-[100%]'>
                           <button
-                            className='absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center rounded-2xl bg-zinc-100 text-2xl text-blue-500 dark:bg-zinc-700'
+                            className='absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center rounded-2xl bg-zinc-100 text-2xl text-blue-500 [.dark_&]:bg-zinc-700'
                             aria-label='Share'
                             onClick={onClickShare(id, label)}
                           >

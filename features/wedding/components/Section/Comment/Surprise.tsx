@@ -7,15 +7,13 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { BsGift } from 'react-icons/bs'
 import { updateWeddingSurpriseQuery } from '@wedding/query'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
-import Notify from '@/components/Notification/Notify'
 import markdownConfig from '@/components/Markdown/config'
 import Spinner from '@/components/Loading/Spinner'
-import FieldTextArea from '@/components/Field/TextArea'
+import FieldTextArea from '@/components/FormField/TextArea'
 
 const Markdown = dynamic(() => import('@/components/Markdown'), {
   ssr: false,
@@ -29,7 +27,7 @@ const Markdown = dynamic(() => import('@/components/Markdown'), {
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
   loading: () => (
-    <button className='mx-auto flex h-14 items-center justify-center rounded-xl bg-blue-200 px-6 font-semibold text-blue-700'>
+    <button className='mx-auto flex h-14 items-center justify-center rounded-xl bg-blue-200/80 px-6 font-semibold text-blue-700 backdrop-blur-lg'>
       Suprise
       <span className='ml-2 block text-xl'>
         <BsGift />
@@ -39,10 +37,10 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
 })
 
 const CommentSurprise: RF = () => {
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const isPublic = !isEditor
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [viewParsed, setViewParsed] = useState(!!detail.surprise)
   const [surprise, setSurprise] = useState(detail.surprise)
   const [open, onOpenChange] = useState(false)
@@ -65,7 +63,7 @@ const CommentSurprise: RF = () => {
       setIsError(false)
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, surprise: updatedSurprise })
       )
     },
@@ -92,6 +90,10 @@ const CommentSurprise: RF = () => {
     debounce(() => updateSurprise(surprise))
   }
 
+  if (!((isPublic && surprise) || isEditor)) {
+    return null
+  }
+
   return (
     <div className='mt-8'>
       <BottomSheet
@@ -99,11 +101,7 @@ const CommentSurprise: RF = () => {
         option={{ useOverlay: true }}
         footer={{
           useClose: true,
-          useBorder: !viewParsed
-            ? !!detail.surprise && isError && !isLoading
-              ? void 0
-              : false
-            : void 0,
+          useBorder: !viewParsed ? void 0 : false,
         }}
         content={{ className: tw('h-full') }}
         wrapper={{ className: tw('h-full') }}
@@ -112,7 +110,7 @@ const CommentSurprise: RF = () => {
           useBorder: true,
           prepend: isEditor && (
             <button
-              className='text-blue-600 dark:text-blue-400'
+              className='text-blue-600 [.dark_&]:text-blue-400'
               onClick={() => setViewParsed((prev) => !prev)}
             >
               {viewParsed ? 'Edit' : 'Lihat'}
@@ -123,7 +121,7 @@ const CommentSurprise: RF = () => {
               {isLoading && <Spinner />}
               {isError && !isLoading && (
                 <button
-                  className='relative text-blue-600 dark:text-blue-400'
+                  className='relative text-blue-600 [.dark_&]:text-blue-400'
                   onClick={() => updateSurprise(surprise)}
                 >
                   Simpan
@@ -135,7 +133,7 @@ const CommentSurprise: RF = () => {
         trigger={{
           asChild: true,
           children: (
-            <button className='mx-auto flex h-14 items-center justify-center rounded-xl bg-blue-200 px-6 font-semibold text-blue-700'>
+            <button className='mx-auto flex h-14 items-center justify-center rounded-xl bg-blue-200/80 px-6 font-semibold text-blue-700 backdrop-blur-lg'>
               Suprise
               <span className='ml-2 block text-xl'>
                 <BsGift />
@@ -144,15 +142,6 @@ const CommentSurprise: RF = () => {
           ),
         }}
       >
-        {isEditor && isError && (
-          <div className='px-6 pt-6'>
-            <Notify
-              severity='error'
-              title='Failed to save a changes.'
-              description='Please tap "Save" above to keep your data up to date.'
-            />
-          </div>
-        )}
         {isPublic ? (
           <div className='markdown h-[inherit] p-6'>
             <Markdown {...markdownConfig}>{surprise}</Markdown>

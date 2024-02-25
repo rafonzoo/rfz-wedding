@@ -30,7 +30,7 @@ const Notify: RF<NotifyProps> = ({
   icon,
 }) => {
   return (
-    <div className='flex rounded-md bg-zinc-100 dark:bg-zinc-800'>
+    <div className='flex rounded-md bg-zinc-100 [.dark_&]:bg-zinc-800'>
       <span
         className={tw(
           'ml-3 mt-3 flex justify-center text-2xl',
@@ -41,7 +41,9 @@ const Notify: RF<NotifyProps> = ({
       </span>
       <div className='py-3 pl-3 pr-4 text-xs tracking-base'>
         <p className='text-sm font-semibold'>{title}</p>
-        <p className='mt-0.5 text-zinc-600 dark:text-zinc-400'>{description}</p>
+        <p className='mt-0.5 text-zinc-600 [.dark_&]:text-zinc-400'>
+          {description}
+        </p>
       </div>
     </div>
   )

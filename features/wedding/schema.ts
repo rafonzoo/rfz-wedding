@@ -43,11 +43,12 @@ export const weddingGalleryType = z.object({
   index: z.number(),
   fileName: z.string(),
   fileId: z.string(),
+  coordinate: z.string(),
 })
 
 export type WeddingGalleryUpload = Infer<typeof weddingGalleryUploadType>
 export const weddingGalleryUploadType = weddingGalleryType
-  .omit({ fileId: true, index: true })
+  .omit({ fileId: true, index: true, coordinate: true })
   .merge(
     z.object({
       file: z.string(),
@@ -84,9 +85,7 @@ export const weddingEventAddressType = z.object({
   placeName: z.string().min(3).max(28),
   district: z.string().min(3).max(18),
   province: z.string().min(3).max(18),
-  country: z.string().min(3),
   detail: z.string().min(10),
-  mapUrl: z.string(),
   opensTo: z.string(),
 })
 
@@ -130,17 +129,14 @@ export const guestType = z.object({
   name: z.string().min(3).max(60),
   token: z.string().min(6),
   group: z.string().optional(),
-  // events: z.string().optional(),
-  // reaction: z.string().emoji().array().optional(),
-  // reaction: z.string().array().optional(),
-  // avatar: z.string().optional(),
-  // rsvp: rsvpType.optional(),
 })
 
 export type Comment = Infer<typeof commentType>
 export const commentType = z.object({
   alias: z.string().min(3),
   text: z.string().min(3),
+  token: guestType.shape.token.optional(),
+  isComing: z.enum(['tbd', 'yes', 'no']).optional(),
 })
 
 export type Music = Infer<typeof musicType>
@@ -149,13 +145,37 @@ export const musicType = z.object({
   fileId: z.string(),
 })
 
+export type PaymentTransaction = Infer<typeof paymentTransactionType>
+export const paymentTransactionType = z.object({
+  order_id: z.string(),
+  payment_type: z.string(),
+  status_code: z.string(),
+  transaction_id: z.string(),
+  transaction_time: z.string(),
+})
+
+export type PaymentToken = Infer<typeof paymentTokenResponseType>
+export const paymentTokenResponseType = z.object({
+  token: z.string(),
+  redirect_url: z.string().url(),
+})
+
+export type Payment = Infer<typeof paymentType>
+export const paymentType = z.object({
+  id: z.string().uuid(),
+  foreverActive: z.boolean(),
+  additionalGuest: z.number(),
+  amount: z.number(),
+  transaction: paymentTransactionType,
+})
+
 export type WeddingAdd = Partial<Wedding>
 export type Wedding = Infer<typeof weddingType>
 export const weddingType = z.object({
   wid: z.string().uuid(),
   userId: z.string().uuid(),
   guests: guestType.array().optional(),
-  comments: commentType.array().optional(),
+  comments: commentType.array(),
   displayName: z.string(),
   status: z.enum(invitationStatusType),
   name: z.string().min(7).max(21),
@@ -168,4 +188,5 @@ export const weddingType = z.object({
   couple: weddingCoupleType.array(),
   events: weddingEventType.array(),
   surprise: z.string(),
+  payment: paymentType.array(),
 })

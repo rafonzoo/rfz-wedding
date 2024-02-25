@@ -1,6 +1,7 @@
 import type {
-  Comment,
   Guest,
+  Payment,
+  PaymentToken,
   WeddingCouple,
   WeddingEvent,
   WeddingGallery,
@@ -11,23 +12,25 @@ import {
   commentType,
   guestType,
   musicType,
+  paymentType,
   weddingEventAddressType,
   weddingEventTimeType,
   weddingEventType,
   weddingLoadoutType,
   weddingType,
 } from '@wedding/schema'
+import { WeddingConfig } from '@wedding/config'
 import { djs, supabaseClient } from '@/tools/lib'
-import { cleaner, exact, qstring } from '@/tools/helper'
+import { exact, qstring } from '@/tools/helpers'
 import { AppError } from '@/tools/error'
-import { AppConfig, ErrorMap, RouteApi, RouteHeader } from '@/tools/config'
+import { AppConfig, ErrorMap, RouteApi } from '@/tools/config'
 import { DUMMY_INVITATION } from '@/dummy'
 
 // prettier-ignore
 export const WEDDING_ROW = AppConfig.Column[process.env.NEXT_PUBLIC_SITE_ENV as 'development']
 
 // prettier-ignore
-export const WEDDING_COLUMN = 'wid,userId,status,name,displayName,createdAt,updatedAt,stories,music,couple,loadout,galleries,events,surprise' as const
+export const WEDDING_COLUMN = 'wid,userId,status,name,displayName,createdAt,updatedAt,stories,music,couple,loadout,galleries,events,surprise,payment,comments' as const
 
 export const deleteWeddingQuery = async ({
   path,
@@ -91,7 +94,7 @@ export const addNewWeddingQuery = async ({
 
   if (
     current.filter((c) => c.status === 'draft').length ===
-    AppConfig.Wedding.MaxDraft
+    WeddingConfig.MaxDraft
   ) {
     throw new AppError(ErrorMap.limitError)
   }
@@ -113,7 +116,7 @@ export const addNewWeddingQuery = async ({
     )
   }
 
-  return weddingType.parse({ ...newWedding, guests: [], comments: [] })
+  return weddingType.parse({ ...newWedding, guests: [] })
 }
 
 export const getAllWeddingQuery = async (
@@ -129,12 +132,7 @@ export const getAllWeddingQuery = async (
     return null
   }
 
-  const currentArray = current.map((item) => ({
-    ...item,
-    guests: [],
-    comments: [],
-  }))
-
+  const currentArray = current.map((item) => ({ ...item, guests: [] }))
   return weddingType.array().parse(currentArray)
 }
 
@@ -152,7 +150,7 @@ export const detailWeddingQuery = async (
     return null
   }
 
-  return weddingType.parse({ ...detail, guests: [], comments: [] })
+  return weddingType.parse({ ...detail, guests: [] })
 }
 
 export const updateWeddingLoadoutQuery = async ({
@@ -201,7 +199,12 @@ export const updateWeddingGalleryQuery = async ({
     .single()
 
   if (error || !data.galleries) {
-    throw new AppError(ErrorMap.internalError, errorText)
+    const abortError = error?.code === '20'
+
+    throw new AppError(
+      abortError ? ErrorMap.abortError : ErrorMap.internalError,
+      abortError ? void 0 : errorText
+    )
   }
 
   return weddingType.shape.galleries.parse(data.galleries)
@@ -232,71 +235,46 @@ export const updateWeddingCouplesQuery = async ({
   return weddingType.shape.couple.parse(data.couple)
 }
 
-export const addNewWeddingCommentQuery = async (
-  locale: string,
-  name: string,
-  comment: Comment & { token: string },
-  csrfToken?: string
-) => {
-  const response = await fetch(qstring({ name, locale }, RouteApi.comment), {
-    method: 'POST',
-    headers: { [RouteHeader.csrf]: csrfToken ?? '' },
-    body: JSON.stringify(comment),
-  })
+export const deleteWeddingCommentQuery = async ({
+  wid,
+  alias,
+  index: deletedIndex,
+}: {
+  wid: string
+  alias: string
+  index?: number
+}) => {
+  const supabase = supabaseClient()
+  const { data: prevData, error: prevDataError } = await supabase
+    .from(WEDDING_ROW)
+    .select('comments')
+    .eq('wid', wid)
+    .single()
 
-  const json = (await response.json()) as {
-    data: unknown
-    message?: string
+  if (prevDataError) {
+    throw new AppError(ErrorMap.internalError, prevDataError?.message)
   }
 
-  if (response.ok) {
-    return commentType.parse(json.data)
+  const previousComment = commentType.array().parse(prevData.comments)
+  const { error } = await supabase
+    .from(WEDDING_ROW)
+    .update({
+      updatedAt: djs().toISOString(),
+      comments: deletedIndex
+        ? [...previousComment.filter((e, index) => index !== deletedIndex)]
+        : [
+            ...previousComment.filter(
+              (item) => decodeURI(item.alias) !== alias
+            ),
+          ],
+    })
+    .eq('wid', wid)
+
+  if (error) {
+    throw new AppError(ErrorMap.internalError, error?.message)
   }
 
-  throw new Error(json.message)
-}
-
-export const getAllWeddingCommentQuery = async (
-  locale: string,
-  name: string,
-  token?: string
-) => {
-  const response = await fetch(qstring({ name, locale }, RouteApi.comment), {
-    headers: cleaner({ [RouteHeader.csrf]: token ?? '' }),
-  })
-
-  const json = (await response.json()) as {
-    data: unknown
-    message?: string
-  }
-
-  if (response.ok) {
-    return { comments: commentType.array().parse(json.data) }
-  }
-
-  throw new Error(json.message)
-}
-
-export const removeWeddingCommentQuery = async (
-  locale: string,
-  wid: string,
-  { alias }: { alias: string }
-) => {
-  const response = await fetch(qstring({ wid, locale }, RouteApi.comment), {
-    method: 'PATCH',
-    body: JSON.stringify({ alias }),
-  })
-
-  const json = (await response.json()) as {
-    data: unknown
-    message?: string
-  }
-
-  if (response.ok) {
-    return commentType.omit({ text: true }).parse(json.data)
-  }
-
-  throw new Error(json.message)
+  return { alias, index: deletedIndex }
 }
 
 export const updateWeddingEventDateQuery = async ({
@@ -408,7 +386,7 @@ export const getAllWeddingGuestQuery = async ({
   return guestType.array().parse(data.guests)
 }
 
-export const addNewWeddingGuestQuery = async ({
+export const updateWeddingGuestQuery = async ({
   signal,
   wid,
   payload,
@@ -434,13 +412,14 @@ export const addNewWeddingGuestQuery = async ({
 }
 
 export const uploadWeddingSongQuery = async (
+  wid: string,
   locale: string,
   payload: WeddingGalleryUpload
 ) => {
   const response = await fetch(qstring({ locale }, RouteApi.uploads), {
     method: 'POST',
     headers: { 'Content-type': 'application/json' },
-    body: JSON.stringify({ cancelable: false, isAudio: true, ...payload }),
+    body: JSON.stringify({ isAudio: true, wid, ...payload }),
   })
 
   const json = (await response.json()) as { data: unknown }
@@ -543,4 +522,87 @@ export const updateWeddingSurpriseQuery = async ({
   }
 
   return data.surprise
+}
+
+export const validateWeddingQuery = async (wid: string) => {
+  const response = await fetch(qstring({ wid }, RouteApi.transaction))
+
+  if (!response.ok) {
+    throw new AppError(ErrorMap.internalError, response.statusText)
+  }
+
+  const json = (await response.json()) as { data: unknown }
+  return json.data as PaymentToken
+}
+
+export const paymentWeddingQuery = async ({
+  wid,
+  payment,
+  user,
+}: {
+  wid: string
+  payment: Omit<Payment, 'transaction'>
+  user: { email: string; name: string }
+}) => {
+  const response = await fetch(RouteApi.transaction, {
+    method: 'POST',
+    body: JSON.stringify({ payment, wid, user }),
+  })
+
+  if (!response.ok) {
+    throw new AppError(ErrorMap.internalError, response.statusText)
+  }
+
+  const json = (await response.json()) as { data: unknown }
+  return json.data as PaymentToken
+}
+
+export const checkoutWeddingQuery = async ({
+  wid,
+  signal,
+  payment,
+}: {
+  wid: string
+  signal: AbortSignal
+  payment: Payment[]
+}) => {
+  const supabase = supabaseClient()
+  const { data, error } = await supabase
+    .from(WEDDING_ROW)
+    .update({ payment, status: 'live', updatedAt: djs().toISOString() })
+    .abortSignal(signal)
+    .eq('wid', wid)
+    .select('payment')
+    .single()
+
+  if (error || !data) {
+    throw new AppError(ErrorMap.internalError, error?.message)
+  }
+
+  return paymentType.array().parse(data.payment)
+}
+
+export const updateStatusWeddingQuery = async ({
+  wid,
+  signal,
+  status,
+}: {
+  wid: string
+  signal: AbortSignal
+  status: 'live' | 'draft'
+}) => {
+  const supabase = supabaseClient()
+  const { data, error } = await supabase
+    .from(WEDDING_ROW)
+    .update({ status, updatedAt: djs().toISOString() })
+    .abortSignal(signal)
+    .eq('wid', wid)
+    .select('status')
+    .single()
+
+  if (error || !data) {
+    throw new AppError(ErrorMap.internalError, error?.message)
+  }
+
+  return weddingType.shape.status.parse(data.status)
 }

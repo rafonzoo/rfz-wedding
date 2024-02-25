@@ -8,5 +8,5 @@ export enum RouteAccount {
 export enum QueryAccount {
   accountLogout = '@@account/logout',
   accountSignin = '@@account/signin',
-  accountVerify = '@@account/verify',
+  accountSession = '@@account/session',
 }

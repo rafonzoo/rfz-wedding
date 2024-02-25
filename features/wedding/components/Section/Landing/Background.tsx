@@ -3,14 +3,19 @@
 import type { Wedding, WeddingGallery } from '@wedding/schema'
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { BsPlusLg } from 'react-icons/bs'
 import { updateWeddingGalleryQuery } from '@wedding/query'
+import { retina } from '@wedding/helpers'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIntersection, useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact, retina } from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import {
+  useIntersection,
+  useIsEditor,
+  useUtilities,
+  useWeddingDetail,
+} from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
 
@@ -25,18 +30,26 @@ const SheetGallery = dynamic(
 )
 
 const SectionLandingBackground: RFZ = ({ children }) => {
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const index = AppConfig.Wedding.ImageryStartIndex
+  const detail = useWeddingDetail()
+  const index = WeddingConfig.ImageryStartIndex
   const imageRef = useRef(null)
   const { abort, getSignal, debounce } = useUtilities()
-  const isIntersecting = useIntersection(imageRef)
   const [open, onOpenChange] = useState(false)
   const [background, setBackground] = useState(
     detail.galleries.find((item) => item.index === index)
   )
 
+  const [position, setPosition] = useState('')
+  const isIntersecting = useIntersection(imageRef)
+  const coordinates = (position || background?.coordinate)?.split(':')
+  const coordinate = {
+    x: coordinates?.[0] ?? '0',
+    y: coordinates?.[1] ?? '0',
+  }
+
+  const router = useRouter()
   const toast = new Toast()
   const t = useTranslations()
   const backgroundUrl = !background?.fileName
@@ -56,12 +69,12 @@ const SectionLandingBackground: RFZ = ({ children }) => {
         wid,
         signal,
         galleries,
-        errorText: t('error.photo.failedToSave'),
+        errorText: t('error.general.failedToSave'),
       })
     },
     onMutate: () => {
       return queryClient
-        .getQueryData<Wedding>(Queries.weddingDetail)
+        .getQueryData<Wedding>(QueryWedding.weddingDetail)
         ?.galleries.find((item) => item.index === index)
     },
     onError: (e, p, previous) => {
@@ -72,10 +85,23 @@ const SectionLandingBackground: RFZ = ({ children }) => {
       toast.error((e as Error)?.message)
       setBackground(previous)
     },
-    onSuccess: (data) => {
+    onSuccess: (galleries) => {
+      router.refresh()
+
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
-        (prev) => (!prev ? prev : { ...prev, galleries: data })
+        QueryWedding.weddingDetail,
+        (prev) => (!prev ? prev : { ...prev, galleries })
+      )
+
+      queryClient.setQueryData<Wedding[] | undefined>(
+        QueryWedding.weddingGetAll,
+        (prev) => {
+          return !prev
+            ? [{ ...detail, galleries }]
+            : prev.map((item) =>
+                item.wid === wid ? { ...item, galleries } : item
+              )
+        }
       )
     },
   })
@@ -84,6 +110,7 @@ const SectionLandingBackground: RFZ = ({ children }) => {
     setBackground(!file ? void 0 : { ...file, index })
     mutation.isLoading && abort()
 
+    setPosition((prev) => (!file ? '' : prev))
     const payload = !file
       ? detail.galleries.filter((item) => item.index !== index)
       : [
@@ -91,6 +118,23 @@ const SectionLandingBackground: RFZ = ({ children }) => {
           { ...file, index },
         ]
 
+    debounce(() => mutation.mutate(payload))
+  }
+
+  function onValueCommit(coordinate: string) {
+    const prevCoordinates = detail.galleries.find(
+      (item) => item.index === index
+    )?.coordinate
+
+    const payload = detail.galleries.map((gallery) =>
+      gallery.index === index ? { ...gallery, coordinate: coordinate } : gallery
+    )
+
+    if (prevCoordinates === coordinate) {
+      return
+    }
+
+    mutation.isLoading && abort()
     debounce(() => mutation.mutate(payload))
   }
 
@@ -108,12 +152,14 @@ const SectionLandingBackground: RFZ = ({ children }) => {
           <>
             <img
               className='absolute left-0 top-0 h-full w-full rounded-[inherit] object-cover object-center'
+              style={{ objectPosition: `${coordinate.x}% ${coordinate.y}%` }}
               src={backgroundUrl.blur}
               alt={`photo-${background?.fileName}`}
             />
             {isIntersecting && (
               <img
                 className='absolute left-0 top-0 h-full w-full rounded-[inherit] object-cover object-center'
+                style={{ objectPosition: `${coordinate.x}% ${coordinate.y}%` }}
                 src={backgroundUrl.src}
                 srcSet={backgroundUrl.srcSet}
                 alt={`photo-${background?.fileName}`}
@@ -129,8 +175,15 @@ const SectionLandingBackground: RFZ = ({ children }) => {
           defaultSelectedId={background?.fileId}
           content={{ onCloseAutoFocus: (e) => e.preventDefault() }}
           onItemPicked={onItemSelected}
+          coordinate={{
+            defaultCoordinate: background?.coordinate,
+            allowedAxis: ['x'],
+            onValueCommit,
+            onChangedCoordinate: setPosition,
+          }}
           root={{ open, onOpenChange }}
           trigger={{
+            'aria-label': 'Tambah / hapus foto',
             className: tw('absolute top-0 left-0 right-0 bottom-0 z-[2]'),
             children: isEditor && !backgroundUrl && (
               <span className='absolute left-1/2 top-1/2 -mt-[50%] flex h-10 w-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500'>

@@ -1,23 +1,18 @@
 'use client'
 
-import type { Wedding } from '@wedding/schema'
 import { useRef } from 'react'
 import { useParams } from 'next/navigation'
+import { assets } from '@wedding/helpers'
 import { tw } from '@/tools/lib'
-import { useIntersection } from '@/tools/hook'
-import { assets } from '@/tools/helper'
+import { useIntersection, useWeddingDetail } from '@/tools/hook'
 
 type ImageCalloutProps = {
   model: 'bird' | 'wave'
-  foreground: Wedding['loadout']['foreground']
   className?: string
 }
 
-const ImageCallout: RFZ<ImageCalloutProps> = ({
-  model,
-  foreground,
-  className,
-}) => {
+const ImageCallout: RFZ<ImageCalloutProps> = ({ model, className }) => {
+  const { foreground } = useWeddingDetail().loadout
   const param = useParams()
   const imageRef = useRef(null)
   const isEditor = !!param.wid

@@ -1,18 +1,26 @@
 'use client'
 
 import type { Wedding, WeddingLoadout } from '@wedding/schema'
-import type { Session } from '@supabase/auth-helpers-nextjs'
 import { useRef, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
+import { MdModeEdit } from 'react-icons/md'
 import { GoMoon, GoSun } from 'react-icons/go'
 import { colorType } from '@wedding/schema'
 import { updateWeddingLoadoutQuery } from '@wedding/query'
+import { assets, swatches } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useUtilities } from '@/tools/hook'
-import { assets, exact, keys, swatches } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import {
+  useIsEditor,
+  useOutlinedClasses,
+  useUtilities,
+  useWeddingDetail,
+} from '@/tools/hook'
+import { debounceOnOlderDevice, exact, keys } from '@/tools/helpers'
+import { useTranslations } from 'use-intl'
 import dynamic from 'next/dynamic'
+import Toast from '@/components/Notification/Toast'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -22,18 +30,22 @@ type SheetLoadoutPayload = WeddingLoadout & {
   wid: string
 }
 
-const SheetLoadout: RFZ<Wedding['loadout']> = ({ children, ...props }) => {
-  const [openSheet, setOpenSheet] = useState(false)
-  const [{ theme, foreground, background }, setLoadout] = useState(props)
-  const ulRef = useRef<HTMLUListElement | null>(null)
+const SheetLoadout: RF = () => {
   const queryClient = useQueryClient()
-  const isEditor = !!queryClient.getQueryData<Session>(Queries.accountVerify)
-  const myWedding = queryClient.getQueryData<Wedding[]>(Queries.weddingGetAll)
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
+  const [openSheet, setOpenSheet] = useState(false)
+  const [loadout, setLoadout] = useState(detail.loadout)
   const [prevDetail, setPrevDetail] = useState(detail)
-  const [previousList, setPreviousList] = useState(myWedding)
+  const { theme, foreground, background } = loadout
+  const ulRef = useRef<HTMLUListElement | null>(null)
+  const isEditor = useIsEditor()
+  const outlined = useOutlinedClasses()
+  const supportedTheme = ['autumn', 'tropical'] as const
   const { abort, getSignal } = useUtilities()
   const wid = useParams().wid as string
+  const toast = new Toast()
+  const focusRef = useRef<HTMLButtonElement | null>(null)
+  const t = useTranslations()
   const updateLoadout = useMutation<
     WeddingLoadout,
     unknown,
@@ -50,30 +62,16 @@ const SheetLoadout: RFZ<Wedding['loadout']> = ({ children, ...props }) => {
     },
     onSuccess: (loadout) => {
       setPrevDetail((prev) => ({ ...prev, loadout }))
-      setPreviousList((prev) =>
-        !prev
-          ? prev
-          : [
-              ...prev.map((item) =>
-                prevDetail.wid === item.wid ? { ...item, loadout } : item
-              ),
-            ]
-      )
     },
     onError: (e) => {
       if ((e as Error).message.includes('AbortError')) {
         return
       }
 
-      if (previousList) {
-        queryClient.setQueryData<Wedding[] | undefined>(
-          Queries.weddingGetAll,
-          previousList
-        )
-      }
+      toast.error(t('error.general.failedToSave'))
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, loadout: prevDetail.loadout })
       )
 
@@ -98,7 +96,7 @@ const SheetLoadout: RFZ<Wedding['loadout']> = ({ children, ...props }) => {
     const payload = { theme, background, foreground }
     const previous = exact(
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => {
           return !prev
             ? prev
@@ -108,7 +106,7 @@ const SheetLoadout: RFZ<Wedding['loadout']> = ({ children, ...props }) => {
     )
 
     queryClient.setQueryData<Wedding[] | undefined>(
-      Queries.weddingGetAll,
+      QueryWedding.weddingGetAll,
       (prev) => {
         return !prev
           ? prev
@@ -132,7 +130,8 @@ const SheetLoadout: RFZ<Wedding['loadout']> = ({ children, ...props }) => {
   // prettier-ignore
   const prepend = (
     <button
-      className='text-2xl text-zinc-500 dark:text-zinc-400'
+      ref={focusRef}
+      className='text-2xl text-zinc-500 [.dark_&]:text-zinc-400 rounded-full'
       onClick={onClickSubmit({
         background: background === 'black' ? 'white' : 'black',
       })}
@@ -152,39 +151,37 @@ const SheetLoadout: RFZ<Wedding['loadout']> = ({ children, ...props }) => {
   }
 
   return (
-    <>
-      <button onClick={() => setOpenSheet(true)}>{children}</button>
+    <div className='absolute right-0 top-0 z-[1] flex h-full w-full justify-end'>
       <BottomSheet
         root={{ open: openSheet, onOpenChange: setOpenSheet }}
         header={{ append, prepend, title: 'Tampilan' }}
         option={{ useOverlay: true }}
+        trigger={{
+          'aria-label': 'Ubah tampilan',
+          children: <MdModeEdit />,
+          className: tw(
+            'flex h-10 w-10 mt-6 mr-6 border-2 border-white items-center justify-center rounded-full bg-blue-600 text-xl text-white'
+          ),
+        }}
         content={{
-          onCloseAutoFocus: () => {
-            setLoadout({
-              theme: props.theme,
-              background: props.background,
-              foreground: props.foreground,
-            })
-          },
+          onCloseAutoFocus: () => setLoadout(detail.loadout),
           onOpenAutoFocus: () => {
-            const selector = 'button[data-active=true]'
-            const button = ulRef.current?.querySelector<HTMLElement>(selector)
+            function goCenter() {
+              const button = ulRef.current?.querySelector<HTMLElement>(
+                'button[data-active=true]'
+              )
 
-            if (!openSheet || !ulRef.current || !button) {
-              return
+              button?.scrollIntoView({ inline: 'center' })
+              button?.focus()
             }
 
-            const viewportWidth = window.innerWidth
-            const scrollLeft = button.offsetLeft - viewportWidth
-
-            ulRef.current.scrollBy({
-              left: scrollLeft + 20 + viewportWidth / 2,
-            })
+            debounceOnOlderDevice(goCenter)
+            setLoadout(detail.loadout)
           },
         }}
       >
         <div className='px-6'>
-          <div className='rounded-lg bg-zinc-100 p-5 dark:bg-zinc-700'>
+          <div className='rounded-lg bg-zinc-100 p-5 [.dark_&]:bg-zinc-700'>
             <div className='relative mx-auto w-full pt-[64.23841059602649%]'>
               <img
                 className='absolute left-0 top-0 w-full'
@@ -199,8 +196,27 @@ const SheetLoadout: RFZ<Wedding['loadout']> = ({ children, ...props }) => {
             </div>
           </div>
         </div>
+        <ul className='flex items-center justify-center py-4 text-center'>
+          {supportedTheme.map((th, index) => (
+            <li key={index}>
+              <button
+                className={tw(
+                  'flex h-8 items-center rounded-full px-4 text-sm tracking-normal',
+                  th === theme ? 'bg-zinc-100 font-semibold' : 'text-zinc-400'
+                )}
+                onClick={() => {
+                  if (th !== theme) {
+                    setLoadout((prev) => ({ ...prev, theme: th }))
+                  }
+                }}
+              >
+                {th.charAt(0).toUpperCase() + th.slice(1)}
+              </button>
+            </li>
+          ))}
+        </ul>
         <div className='pb-8'>
-          <div className='h-px w-full bg-zinc-200 dark:bg-zinc-700' />
+          <div className='h-px w-full bg-zinc-200 [.dark_&]:bg-zinc-700' />
           <ul ref={ulRef} className='mt-4 flex space-x-4 overflow-x-auto p-2'>
             {keys(colorType.Enum).map((color, index) => (
               <li
@@ -213,18 +229,17 @@ const SheetLoadout: RFZ<Wedding['loadout']> = ({ children, ...props }) => {
                 <button
                   onClick={onClickSubmit({ foreground: color })}
                   data-active={foreground === color}
-                  // prettier-ignore
-                  className={tw({
-                  [[swatches(color), 'h-8 w-8 rounded-full'].join(' ')]: true,
-                  'outline outline-[3px] outline-offset-[3px] outline-blue-400': foreground === color,
-                })}
+                  className={tw(
+                    [swatches(color), 'h-8 w-8 rounded-full'].join(' '),
+                    outlined(foreground === color, 'outline-offset-[3px]')
+                  )}
                 />
               </li>
             ))}
           </ul>
         </div>
       </BottomSheet>
-    </>
+    </div>
   )
 }
 

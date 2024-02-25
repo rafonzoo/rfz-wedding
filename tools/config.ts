@@ -5,6 +5,7 @@ export enum RouteDefault {
   //
   home = '/',
   notFound = '/404',
+  termsOfUse = '/terms-of-use',
 }
 
 export const Queries = {
@@ -18,30 +19,25 @@ export const Route = {
   ...RouteWedding,
 } as const
 
-export const RoutePublicAuth = [
+export const RouteNavigation = [
+  Route.home,
+  Route.termsOfUse,
+  Route.wedding,
+  Route.account,
   Route.accountSignin,
-  Route.accountSignup,
 ] as const
 
-export const RouteProtected = [
-  Route.account,
-  Route.accountOption,
-  Route.wedding,
-  Route.weddingEditor,
-] as const
+export const RouteDarkMode = [Route.home, Route.wedding]
 
 export enum RouteApi {
   auth = '/api/auth',
   uploads = '/api/uploads',
   comment = '/api/comment',
+  transaction = '/api/transaction',
 }
 
 export enum RouteHeader {
-  csrf = 'X-CSRF-Token',
-}
-
-export enum RouteCookie {
-  csrf = 'csrfToken',
+  path = 'X-URL-Path',
 }
 
 export enum ErrorMap {
@@ -69,27 +65,14 @@ export const Dictionaries = [Dictionary.indonesia, Dictionary.english]
 
 export const DefaultLocale = Dictionary.indonesia
 
-export const ASSETS_PATH = '/assets'
-
-export const UPLOADS_PATH = '/uploads'
-
 export const AppConfig = {
   Column: {
     development: 'wedding',
     staging: 'wedding_stg',
     production: 'wedding_prod',
   },
-  Wedding: {
-    NewlineSymbol: '--',
-    DateFormat: 'YYYY-MM-DD',
-    MaxMonthRange: 4,
-    MaxEvent: 4,
-    MaxDraft: 3,
-    ImageryStartIndex: 100,
-  },
   Timeout: {
-    TimeBeforeCancel: 3_000,
     Toast: 5_000,
-    Debounce: 1_000,
+    Debounce: 2_000,
   },
 } as const

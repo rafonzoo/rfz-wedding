@@ -1,39 +1,151 @@
 'use client'
 
 import type { MutableRefObject } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import type { Guest, Payment, Wedding } from '@wedding/schema'
+import type { Session } from '@supabase/auth-helpers-nextjs'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
+import { RiContactsLine } from 'react-icons/ri'
+import { LuMailOpen } from 'react-icons/lu'
+import { isPassed } from '@wedding/helpers'
+import {
+  QueryWedding,
+  RouteNavigationWedding,
+  WeddingConfig,
+} from '@wedding/config'
+import { QueryAccount } from '@account/config'
 import { tw } from '@/tools/lib'
-import { isObjectEqual } from '@/tools/helper'
-import { AppConfig } from '@/tools/config'
+import { exact, iOSVersion, isObjectEqual } from '@/tools/helpers'
+import { AppConfig, Route } from '@/tools/config'
 import { useLocalePathname } from '@/locale/config'
 
-export const useIsEditorOrDev = () => {
-  const haveId = !!useParams().wid
+export const useWeddingNavigator = () => {
+  type WeddingNavigatorType = {
+    title: string
+    pathname: (typeof RouteNavigationWedding)[number]
+    Icon: () => JSX.Element
+    className?: string
+  }[]
 
-  // return isLocal() || haveId
-  return haveId
-}
+  const items = RouteNavigationWedding.map((pathname) => {
+    switch (pathname) {
+      case Route.weddingList:
+        return {
+          title: 'Undangan',
+          pathname,
+          Icon: LuMailOpen,
+          className: void 0,
+        }
 
-export const useFeatureDetection = () => {
-  const [{ pointerEvent }, setFeatures] = useState({
-    pointerEvent: true, // Most is supported.
+      case Route.weddingHistory:
+        return {
+          title: 'Riwayat',
+          pathname,
+          Icon: RiContactsLine,
+          className: void 0,
+        }
+    }
   })
 
-  useMountedEffect(() =>
-    setFeatures({
-      pointerEvent: window.onpointerdown !== undefined,
-    })
+  return items as unknown as WeddingNavigatorType
+}
+
+export const useWeddingPayment = () => {
+  const queryClient = useQueryClient()
+  const detail = useWeddingDetail()
+  const guests = queryClient.getQueryData<Guest[]>(QueryWedding.weddingGuests)
+  const sumOfAdditionalGuest = useMemo(
+    () =>
+      detail.payment
+        .map((item) => item.additionalGuest)
+        .reduce((acc, val) => acc + val, 0),
+    [detail.payment]
   )
 
-  return { pointerEvent }
+  // prettier-ignore
+  const payment = (detail.payment[detail.payment.length - 1] ?? null) as Payment | null
+  const guestTrackCounts = WeddingConfig.GuestFree + sumOfAdditionalGuest
+  const addMoreGuest = guests ? guests.length >= guestTrackCounts : false
+  const fullQuota = guests ? guests.length >= WeddingConfig.GuestMax : false
+  const isForeverActive = detail.payment.some((pay) => !!pay.foreverActive)
+  const isGuestMax = guestTrackCounts === WeddingConfig.GuestMax
+
+  return {
+    guestTrackCounts,
+    isRequirePayment: payment ? addMoreGuest : false,
+    isGuestMaxout: fullQuota,
+    isForeverActive,
+    isPaymentComplete: isGuestMax && isForeverActive,
+  }
+}
+
+export const useWeddingDetail = () => {
+  const queryClient = useQueryClient()
+  const detail = exact(
+    queryClient.getQueryData<Wedding | undefined>(QueryWedding.weddingDetail)
+  )
+
+  return detail
+}
+
+export const useWeddingGuests = <T extends boolean>(ex?: T) => {
+  const queryClient = useQueryClient()
+  const guests = queryClient.getQueryData<Guest[] | undefined>(
+    QueryWedding.weddingGuests
+  )
+
+  return (ex ? exact(guests) : guests) as T extends true
+    ? Guest[]
+    : typeof guests
+}
+
+export const useWeddingGetAll = <T extends boolean>(ex?: T) => {
+  const queryClient = useQueryClient()
+  const myWedding = queryClient.getQueryData<Wedding[] | undefined>(
+    QueryWedding.weddingGetAll
+  )
+
+  return (ex ? exact(myWedding) : myWedding) as T extends true
+    ? Wedding[]
+    : typeof myWedding
+}
+
+export const useAccountSession = () => {
+  const queryClient = useQueryClient()
+  const session = queryClient.getQueryData<Session | undefined>(
+    QueryAccount.accountSession
+  )
+
+  return session
+}
+
+export const useIsEditor = () => {
+  const detail = useWeddingDetail()
+  const haveId = !!useParams().wid
+
+  return haveId && !isPassed(detail.events)
+}
+
+export const useIOSVersion = () => {
+  const [iosVer, setIosVer] = useState<
+    | {
+        version: string
+        array: number[]
+      }
+    | undefined
+  >()
+
+  useMountedEffect(() => setIosVer(iOSVersion()))
+  return iosVer
 }
 
 export const useOutlinedClasses = () => {
-  const { pointerEvent } = useFeatureDetection()
+  const iOSVersion = useIOSVersion()
+  const isIOS12 = iOSVersion && iOSVersion.array[0] <= 12
 
   return (isFocused = false, additionalClasses?: string) => {
-    if (!pointerEvent) {
+    if (isIOS12) {
       return tw(
         'transition-shadow',
         !isFocused && 'shadow-none',
@@ -100,7 +212,7 @@ export const useUtilities = () => {
   return { abort, cancelDebounce, debounce, getSignal }
 }
 
-export function useDebounce<T>(value: T, delay?: number): T {
+export const useDebounce = <T>(value: T, delay?: number): T => {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
 
   useEffect(() => {

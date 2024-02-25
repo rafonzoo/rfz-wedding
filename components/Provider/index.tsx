@@ -1,6 +1,9 @@
 'use client'
 import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from 'react-query'
+import { useMountedEffect, useRouterEffect } from '@/tools/hook'
+import { iOSVersion } from '@/tools/helpers'
+import { RouteDarkMode } from '@/tools/config'
 
 export const QueryProvider: RFZ = ({ children }) => {
   const [queryClient] = useState(
@@ -16,65 +19,21 @@ export const QueryProvider: RFZ = ({ children }) => {
       })
   )
 
+  useMountedEffect(() => {
+    const ver = iOSVersion()
+    const isIOS12 = ver && ver.array[0] <= 12
+
+    document.body.classList.toggle('ios-12', isIOS12)
+  })
+
+  useRouterEffect((pathname) => {
+    document.documentElement.classList.toggle(
+      'dark',
+      RouteDarkMode.includes(pathname)
+    )
+  })
+
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
 }
-
-// import type {
-//   DialogMascotOption,
-//   DialogMascotType,
-// } from '@/WILL_DELETE/Mascot'
-// import dynamic from 'next/dynamic'
-
-// // const DialogMascot = dynamic(() => import('@/components/Dialog/Mascot'), {
-// //   ssr: false,
-// // })
-
-// // const DialogAlert = dynamic(() => import('@/components/Dialog/Alert'), {
-// //   ssr: false,
-// // })
-
-// export type StoreDialogAlert = {
-//   severity: `${Severity}`
-//   text: string
-//   isShow?: boolean
-//   isClosing?: boolean
-// }
-
-// export type StoreState = {
-//   dialog: {
-//     mascot: StoreDialogMascot
-//     alert: StoreDialogAlert[]
-//   }
-// }
-
-// export type StoreDialogMascot = {
-//   type?: DialogMascotType
-//   option?: DialogMascotOption
-// }
-
-// export const initialValue: StoreState = {
-//   loading: 'idle',
-//   dialog: {
-//     mascot: {},
-//     alert: [],
-//   },
-// }
-
-// export const StoreContext = createContext<
-//   [StoreState, Dispatch<SetStateAction<StoreState>>]
-// >(undefined!)
-
-// export const StoreProvider: RFZ = ({ children }) => {
-//   const [state, setState] = useState(initialValue)
-
-//   return (
-//     <StoreContext.Provider value={[state, setState]}>
-//       {children}
-//       {/* Portal */}
-//       {/* <DialogMascot />
-//       <DialogAlert /> */}
-//     </StoreContext.Provider>
-//   )
-// }

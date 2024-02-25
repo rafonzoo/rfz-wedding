@@ -23,3 +23,26 @@ type RFC<T = {}> = React.FC<{ className?: string } & T>
 type RFZ<T = {}> = React.FC<React.PropsWithChildren<T>>
 
 type RF<T = {}> = React.FC<T>
+
+type Social =
+  | 'apple'
+  | 'azure'
+  | 'bitbucket'
+  | 'discord'
+  | 'facebook'
+  | 'figma'
+  | 'github'
+  | 'gitlab'
+  | 'google'
+  | 'kakao'
+  | 'keycloak'
+  | 'linkedin'
+  | 'linkedin_oidc'
+  | 'notion'
+  | 'slack'
+  | 'spotify'
+  | 'twitch'
+  | 'twitter'
+  | 'workos'
+  | 'zoom'
+  | 'fly'

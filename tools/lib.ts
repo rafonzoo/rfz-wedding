@@ -42,6 +42,7 @@ export const zodClient = () => {
   }
 
   i18next.init({
+    compatibilityJSON: 'v3',
     lng: locale,
     resources: {
       id: { zod: ZodID },

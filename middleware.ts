@@ -1,6 +1,6 @@
-import type { NextRequest } from 'next/server'
+import { type NextRequest } from 'next/server'
 import { default as createMiddleware } from 'next-intl/middleware'
-import { RouteCookie, DefaultLocale as defaultLocale } from '@/tools/config'
+import { DefaultLocale as defaultLocale } from '@/tools/config'
 import { localePrefix, locales, pathnames } from '@/locale/config'
 
 export const middleware = async (req: NextRequest) => {
@@ -12,16 +12,14 @@ export const middleware = async (req: NextRequest) => {
     localeDetection: false,
   })(req)
 
-  if (req.cookies.has(RouteCookie.csrf)) {
-    response.cookies.delete(RouteCookie.csrf)
-  }
-
-  const token = crypto.randomUUID()
-  response.cookies.set(RouteCookie.csrf, token, {
-    sameSite: 'strict',
-    httpOnly: true,
-    path: '/',
-  })
+  const locale = response.headers.get('x-middleware-request-x-next-intl-locale')
+  response.headers.set(
+    'X-URL-PATH',
+    response.headers
+      .get('x-middleware-rewrite')
+      ?.replace(process.env.NEXT_PUBLIC_SITE_URL ?? '', '')
+      ?.replace(`/${locale}` ?? '', '') || '/'
+  )
 
   return response
 }

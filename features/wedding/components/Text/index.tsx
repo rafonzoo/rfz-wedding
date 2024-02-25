@@ -6,14 +6,14 @@ type TextProps = Tag<'span'> & {
 
 const CinzelFont = Cinzel({
   weight: 'variable',
-  display: 'swap',
+  display: 'block',
   subsets: ['latin'],
   preload: true,
 })
 
 const PoiretFont = Poiret_One({
   weight: '400',
-  display: 'swap',
+  display: 'block',
   subsets: ['latin'],
   preload: true,
 })

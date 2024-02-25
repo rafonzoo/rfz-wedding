@@ -2,12 +2,12 @@ import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { weddingGalleryType, weddingGalleryUploadType } from '@wedding/schema'
 import { WEDDING_ROW } from '@wedding/query'
+import { retina, uploads } from '@wedding/helpers'
 import { authorizationQuery } from '@account/query'
 import { supabaseServer, zodLocale } from '@/tools/server'
 import { djs } from '@/tools/lib'
-import { delay, retina, uploads } from '@/tools/helper'
 import { AppError } from '@/tools/error'
-import { AppConfig, ErrorMap } from '@/tools/config'
+import { ErrorMap } from '@/tools/config'
 import ImageKit from 'imagekit'
 
 function imagekit() {
@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
     const { z, t } = await zodLocale(request)
 
     if (!(await authorizationQuery(supabaseServer()))) {
-      throw new AppError(ErrorMap.authError, t('error.photo.failedToFetch'))
+      throw new AppError(
+        ErrorMap.authError,
+        t('error.general.failedToLoad', { name: t('def.photo') })
+      )
     }
 
     const requestUrl = new URL(request.url)
@@ -35,7 +38,10 @@ export async function GET(request: NextRequest) {
     })
 
     if (lists.$ResponseMetadata.statusCode !== 200) {
-      throw new AppError(ErrorMap.internalError, t('error.photo.failedToFetch'))
+      throw new AppError(
+        ErrorMap.internalError,
+        t('error.general.failedToLoad', { name: t('def.photo') })
+      )
     }
 
     const images = lists.map(({ filePath, name, fileId }) => ({
@@ -64,31 +70,24 @@ export async function POST(request: NextRequest) {
       .merge(
         z.object({
           isAudio: z.boolean().optional(),
-          cancelable: z.boolean().optional(),
           wid: z.string(),
         })
       )
       .parse(json)
 
-    if (payload.cancelable) {
-      await delay(AppConfig.Timeout.TimeBeforeCancel)
-      /**
-       * Manually throw signal
-       */
-      request.signal.throwIfAborted()
-    }
-
     const file = await imagekit().upload({
       file: payload.file,
       fileName: payload.fileName,
-      useUniqueFileName: false,
       folder: uploads(`/${payload.path}`),
+      useUniqueFileName: true,
     })
 
     if (file.$ResponseMetadata.statusCode !== 200) {
       throw new AppError(
         ErrorMap.internalError,
-        t('error.photo.failedToUpload')
+        t('error.general.failedToUpload', {
+          name: payload.isAudio ? t('def.song') : t('def.photo'),
+        })
       )
     }
 
@@ -138,15 +137,16 @@ export async function DELETE(request: NextRequest) {
     const requestUrl = new URL(request.url)
     const wid = z.string().parse(requestUrl.searchParams.get('wid'))
     const supabase = supabaseServer()
-    const path = z
-      .string()
-      .optional()
-      .parse(requestUrl.searchParams.get('path'))
+    const paramsPath = requestUrl.searchParams.get('path')
 
-    if (path) {
-      const { data } = await supabase.auth.getSession()
-
+    if (paramsPath) {
       try {
+        const { data } = await supabase.auth.getSession()
+        const path = z
+          .string()
+          .optional()
+          .parse(requestUrl.searchParams.get('path'))
+
         if (data.session) {
           await imagekit().deleteFolder(uploads(`/${path}`))
         }
@@ -156,9 +156,6 @@ export async function DELETE(request: NextRequest) {
 
       return NextResponse.json({ data: '' })
     }
-
-    await delay(AppConfig.Timeout.TimeBeforeCancel)
-    request.signal.throwIfAborted()
 
     const fileId = z.string().parse(requestUrl.searchParams.get('id'))
     const { data: previous } = await supabase
@@ -181,7 +178,10 @@ export async function DELETE(request: NextRequest) {
         .eq('wid', previous.wid)
     }
 
-    await imagekit().deleteFile(fileId)
+    try {
+      // Image might be deleted somewhere
+      await imagekit().deleteFile(fileId)
+    } catch (e) {}
 
     return NextResponse.json({ data: fileId })
   } catch (e) {

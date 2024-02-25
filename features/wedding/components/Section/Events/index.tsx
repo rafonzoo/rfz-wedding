@@ -8,40 +8,48 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams, useSearchParams } from 'next/navigation'
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6'
 import { updateWeddingEventQuery } from '@wedding/query'
+import { groupName, guestAlias } from '@wedding/helpers'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useUtilities } from '@/tools/hook'
-import { exact, groupName, guestAlias } from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import { useMountedEffect, useUtilities, useWeddingDetail } from '@/tools/hook'
 import { DUMMY_EVENT } from '@/dummy'
 import dynamic from 'next/dynamic'
 import Event from '@wedding/components/Section/Events/Event'
-import EventsAction from '@wedding/components/Section/Events/Action'
 import ImageTheme from '@wedding/components/Image/Theme'
 import ImageCallout from '@wedding/components/Image/Callout'
 import Spinner from '@/components/Loading/Spinner'
+
+const EventsAction = dynamic(
+  () => import('@wedding/components/Section/Events/Action'),
+  {
+    ssr: false,
+    loading: () => <div className='ml-5 h-10 w-10' />,
+  }
+)
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
 })
 
-const SectionEvents: RFZ<Wedding> = (wedding) => {
+const SectionEvents = () => {
   const [activeIndex, setActiveIndex] = useState(0)
   const [open, onOpenChange] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState<'add' | 'delete' | null>(null)
   const { abort, getSignal } = useUtilities()
   const isPublic = !!useParams().name
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const guestSlug = useSearchParams().get('to') ?? ''
   const group = groupName(guestAlias(guestSlug))
 
   // prettier-ignore
   const opensToOnlyEvents = (
     !isPublic
-      ? wedding.events
+      ? detail.events
       : !group
-        ? wedding.events.filter((event) => !event.opensTo)
-        : wedding.events.filter((event) => {
+        ? detail.events.filter((event) => !event.opensTo)
+        : detail.events.filter((event) => {
             const lowerGroup = group.toLowerCase()
             const eventGroup = event.opensTo
               .split(',')
@@ -56,7 +64,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
   // In case group doesn't match any, show all event.
   // prettier-ignore
   const groupedEvents = (
-    !opensToOnlyEvents.length ? wedding.events : opensToOnlyEvents
+    !opensToOnlyEvents.length ? detail.events : opensToOnlyEvents
   )
 
   const events = groupedEvents.map((item, index) => ({
@@ -92,7 +100,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
     },
     onSuccess: (latestEvents, { onSuccess }) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => {
           return !prev
             ? prev
@@ -155,7 +163,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
     },
   ]
 
-  const isMax = events.length === AppConfig.Wedding.MaxEvent
+  const isMax = events.length === WeddingConfig.MaxEvent
   const actions =
     events.length === 1 || !activeIndex
       ? buttons.filter((item) => item.id !== 'delete')
@@ -165,6 +173,10 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
 
   const isDisabledPrevious = !activeIndex
   const isDisabledNext = activeIndex === events.length - 1
+
+  useMountedEffect(() => {
+    setTimeout(() => setIsMounted(true), 3_000)
+  })
 
   return (
     <section className='relative overflow-hidden'>
@@ -179,7 +191,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
               }
               className={tw(
                 '-mr-4 -mt-2 box-content flex h-8 w-8 items-center justify-center rounded-full p-2 text-[21px]',
-                isDisabledPrevious && 'text-zinc-300 dark:text-zinc-700' // prettier-ignore
+                isDisabledPrevious && 'text-zinc-300 [.dark_&]:text-zinc-700' // prettier-ignore
               )}
             >
               <FaChevronLeft />
@@ -192,7 +204,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
               }
               className={tw(
                 '-mr-2 -mt-2 box-content flex h-8 w-8 items-center justify-center rounded-full p-2 text-[21px]',
-                isDisabledNext && 'text-zinc-300 dark:text-zinc-700' // prettier-ignore
+                isDisabledNext && 'text-zinc-300 [.dark_&]:text-zinc-700' // prettier-ignore
               )}
             >
               <FaChevronRight />
@@ -211,13 +223,18 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
                 dateErrorRef={dateErrorRef}
                 timeErrorRef={timeErrorRef}
               >
-                <EventsAction
-                  isActive={activeIndex === index}
-                  onClick={() => onOpenChange(true)}
-                  isFirstIndex={
-                    !index && events.length === AppConfig.Wedding.MaxEvent
-                  }
-                />
+                {isMounted ? (
+                  <EventsAction
+                    {...event}
+                    isActive={activeIndex === index}
+                    onClick={() => onOpenChange(true)}
+                    isFirstIndex={
+                      !index && events.length === WeddingConfig.MaxEvent
+                    }
+                  />
+                ) : (
+                  <div className='ml-5 h-10 w-10' />
+                )}
               </Event>
             ))}
           </ul>
@@ -230,7 +247,7 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
                 'h-1.5 w-1.5 rounded-full transition-[width,background-color] duration-200',
                 {
                   '!w-8 bg-zinc-500': activeIndex === index,
-                  'bg-zinc-300 delay-100 dark:bg-zinc-700': activeIndex !== index, // prettier-ignore
+                  'bg-zinc-300 delay-100 [.dark_&]:bg-zinc-700': activeIndex !== index, // prettier-ignore
                   'opacity-0': array.length === 1,
                 }
               )}
@@ -239,10 +256,10 @@ const SectionEvents: RFZ<Wedding> = (wedding) => {
         </div>
       </div>
       <div className='absolute bottom-24 left-6 right-0'>
-        <ImageCallout model='bird' foreground={wedding.loadout.foreground} />
+        <ImageCallout model='bird' />
       </div>
       <div className='absolute bottom-0 right-0'>
-        <ImageTheme {...wedding.loadout} size={169} className='rotate-90' />
+        <ImageTheme {...detail.loadout} size={169} className='rotate-90' />
       </div>
       <BottomSheet
         root={{ open, onOpenChange }}

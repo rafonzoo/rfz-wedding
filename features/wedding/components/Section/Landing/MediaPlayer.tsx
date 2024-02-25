@@ -3,15 +3,15 @@
 import type { Music, Wedding, WeddingGalleryUpload } from '@wedding/schema'
 import { type ChangeEvent, useState } from 'react'
 import { useMutation, useQueryClient } from 'react-query'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { uploadWeddingSongQuery } from '@wedding/query'
-import { blobToUri, cleaner, exact } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { QueryWedding, WeddingConfig } from '@wedding/config'
+import { useWeddingDetail } from '@/tools/hook'
+import { blobToUri, cleaner } from '@/tools/helpers'
+import Toast from '@/components/Notification/Toast'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
-
-const MAX_AUDIO_SIZE = 2048
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 type LandingMediaPlayerProps = {
   isRemoving?: boolean
@@ -20,18 +20,31 @@ type LandingMediaPlayerProps = {
 const LandingMediaPlayer: RF<LandingMediaPlayerProps> = ({ isRemoving }) => {
   const queryClient = useQueryClient()
   const locale = useLocale()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const {
-    isLoading,
-    error: uploadError,
-    mutate: uploadSong,
-  } = useMutation<Music, unknown, WeddingGalleryUpload & { fileId?: string }>({
-    mutationFn: (payload) => uploadWeddingSongQuery(locale, payload),
+  const toast = new Toast()
+  const t = useTranslations()
+  const maxSizeInMega = WeddingConfig.MaxFileSize * 1000
+  const maxSizeText = `${WeddingConfig.MaxFileSize}`.charAt(0) + ' MB'
+  const detail = useWeddingDetail()
+  const { isLoading, mutate: uploadSong } = useMutation<
+    Music,
+    unknown,
+    WeddingGalleryUpload & { fileId?: string }
+  >({
+    mutationFn: (payload) => {
+      return uploadWeddingSongQuery(detail.wid, locale, payload)
+    },
     onSuccess: (music) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, music })
       )
+    },
+    onError: (e) => {
+      if ((e as Error)?.message.includes('AbortError')) {
+        return
+      }
+
+      toast.error(t('error.general.failedToUpload', { name: t('def.song') }))
     },
   })
 
@@ -43,8 +56,8 @@ const LandingMediaPlayer: RF<LandingMediaPlayerProps> = ({ isRemoving }) => {
     const file = e.target.files[0]
     setError('')
 
-    if (file.size > MAX_AUDIO_SIZE * 1000) {
-      setError('File size should below 2MB.')
+    if (file.size > maxSizeInMega) {
+      setError(t('error.field.invalidFileSize', { size: maxSizeText }))
       return (e.target.value = '')
     }
 
@@ -61,7 +74,7 @@ const LandingMediaPlayer: RF<LandingMediaPlayerProps> = ({ isRemoving }) => {
     <FieldGroup title='Lagu' classNames={{ root: 'pt-6 pb-1' }}>
       {!detail.music || isRemoving ? (
         isRemoving || isLoading ? (
-          <div className='flex h-[76px] w-full items-center justify-center rounded-md border border-zinc-300 dark:border-zinc-700'>
+          <div className='flex h-[76px] w-full items-center justify-center rounded-md border border-zinc-300 [.dark_&]:border-zinc-700'>
             <Spinner />
           </div>
         ) : (

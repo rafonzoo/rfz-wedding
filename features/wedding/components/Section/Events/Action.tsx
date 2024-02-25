@@ -1,11 +1,16 @@
 'use client'
 
+import type { WeddingEvent } from '@wedding/schema'
+import { useRef } from 'react'
 import { MdModeEdit } from 'react-icons/md'
 import { BsPlusLg } from 'react-icons/bs'
+import { isPassed, placeName } from '@wedding/helpers'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev } from '@/tools/hook'
+import { useIsEditor, useWeddingDetail } from '@/tools/hook'
+import dayjs from 'dayjs'
+import { atcb_action } from 'add-to-calendar-button-react'
 
-type EventsActionProps = {
+type EventsActionProps = WeddingEvent & {
   isFirstIndex: boolean
   isActive: boolean
   onClick?: () => void
@@ -15,26 +20,63 @@ const EventsAction: RF<EventsActionProps> = ({
   isFirstIndex,
   isActive,
   onClick,
+  ...event
 }) => {
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
+  const detail = useWeddingDetail()
+  const passed = isPassed(detail.events)
   const isPublic = !isEditor
+  const publicButton = useRef<HTMLButtonElement | null>(null)
+
+  function saveToCalendar() {
+    const name = detail.displayName
+      .split(' & ')
+      .map((n) => n.charAt(0).toUpperCase() + n.slice(1))
+      .join(' & ')
+
+    const title = `The Wedding of ${name}`
+    const dateStart = dayjs(event.date)
+      .set('h', +event.timeStart.split(':')[0])
+      .set('m', +event.timeStart.split(':')[1])
+      .tz()
+
+    const dateEnd = dayjs(event.date)
+      .set('h', +event.timeEnd.split(':')[0])
+      .set('m', +event.timeEnd.split(':')[1])
+      .tz()
+
+    atcb_action({
+      name: title + ` (${event.eventName})`,
+      options: ['Apple', 'Google', 'Outlook.com', 'MicrosoftTeams'],
+      location: [placeName(event.placeName), event.detail].join('. '),
+      startDate: dateStart.format('YYYY-MM-DD'),
+      endDate: dateEnd.format('YYYY-MM-DD'),
+      startTime: dateStart.format('HH:mm'),
+      endTime: dateEnd.format('HH:mm'),
+      timeZone: 'Asia/Jakarta',
+    })
+  }
 
   return isPublic ? (
     <button
-      tabIndex={isActive ? 0 : -1}
+      ref={publicButton}
+      tabIndex={isActive && !passed ? 0 : -1}
+      disabled={!isActive || passed}
       aria-label='Save to calendar'
-      className='ml-5 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-2xl text-white'
+      className='ml-5 flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 text-2xl text-white disabled:opacity-50'
+      onClick={saveToCalendar}
     >
       <BsPlusLg />
     </button>
   ) : (
     <div className='ml-5 h-10 w-10'>
       <button
+        aria-label='Tambah / hapus acara'
         tabIndex={isActive && !isFirstIndex ? 0 : -1}
         onClick={isFirstIndex ? void 0 : onClick}
         className={tw(
           'flex h-full w-full items-center justify-center rounded-full bg-blue-600 text-xl text-white',
-          isFirstIndex && 'opacity-40'
+          isFirstIndex && 'opacity-50'
         )}
       >
         <MdModeEdit />

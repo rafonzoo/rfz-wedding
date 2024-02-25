@@ -37,6 +37,7 @@ export const zodLocale = cache(async (request: NextRequest) => {
   const locale = requestUrl.searchParams.get('locale') ?? 'en'
 
   i18next.init({
+    compatibilityJSON: 'v3',
     lng: locale ?? 'id',
     resources: {
       id: { zod: ZodID },

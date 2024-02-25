@@ -6,19 +6,14 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { useQueryClient } from 'react-query'
 import { useTranslations } from 'next-intl'
 import { ZodError } from 'zod'
+import { IoArrowForwardCircle } from 'react-icons/io5'
 import { guestType } from '@wedding/schema'
+import { groupMatch, groupName, guestAlias, guestName } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import {
-  cleaner,
-  exact,
-  groupMatch,
-  groupName,
-  guestAlias,
-  guestName,
-  numbers,
-} from '@/tools/helper'
-import { Queries } from '@/tools/config'
-import FieldText from '@/components/Field/Text'
+import { useWeddingGuests } from '@/tools/hook'
+import { cleaner, numbers } from '@/tools/helpers'
+import FieldText from '@/components/FormField/Text'
 
 type SheetGuestActionProps = {
   editId: number
@@ -39,10 +34,11 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
 }) => {
   const [error, setError] = useState('')
   const [recentlyAddedId, setRecentlyAddedId] = useState(-1)
+  const [showSend, setShowSend] = useState(false)
   const lastPosRef = useRef(0)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const queryClient = useQueryClient()
-  const guests = exact(queryClient.getQueryData<Guest[]>(Queries.weddingGuests))
+  const guests = useWeddingGuests(true)
   const guestEdit = guests.find((guest) => guest.id === editId)
   const fullName = guestEdit?.slug ? guestAlias(guestEdit.slug) : ''
   const [value, setValue] = useState(fullName)
@@ -95,6 +91,13 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
     editableFocusHandler(isShow ? 'addEventListener' : 'removeEventListener')
   }, [isShow, scrollRef])
 
+  useEffect(() => {
+    const isAddNew = !guestEdit
+    if (isAddNew) {
+      inputRef.current?.[isShow ? 'focus' : 'blur']()
+    }
+  }, [guestEdit, isShow])
+
   function onValidate(text: string) {
     // Trim then clean multispace
     const textParser = text.trim().replace(/\s+/g, ' ')
@@ -105,7 +108,6 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
 
     // Remove group symbol
     const group = groupName(text)
-    const isAddNew = !guestEdit
 
     let parser = guestType.shape.name
       .refine(
@@ -189,15 +191,13 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         }
       )
 
-    if (isAddNew) {
-      // @ts-expect-error Cannot optional chain on zod
-      parser = parser.refine(
-        (val) => !guests.some((guest) => guestAlias(guest.slug) === val),
-        {
-          message: t('error.field.invalidGuestExist'),
-        }
-      )
-    }
+    // @ts-expect-error Cannot optional chain on zod
+    parser = parser.refine(
+      (val) => !guests.some((guest) => guestAlias(guest.slug) === val),
+      {
+        message: t('error.field.invalidGuestExist'),
+      }
+    )
 
     const name = parser.parse(textParser)
     const slug = (
@@ -232,7 +232,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         }
 
         queryClient.setQueryData<Guest[] | undefined>(
-          Queries.weddingGuests,
+          QueryWedding.weddingGuests,
           (prev) =>
             // Don't change array order in order to compare.
             !prev ? prev : prev.map((item) => (item.id !== id ? item : guest))
@@ -255,7 +255,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         )
 
         queryClient.setQueryData<Guest[] | undefined>(
-          Queries.weddingGuests,
+          QueryWedding.weddingGuests,
           (prev) => (!prev ? prev : [...prev, guestType.parse(guest)])
         )
 
@@ -265,20 +265,26 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
             ? `(${group}) `
             : ''
         )
+
+        inputRef.current?.focus()
       }
     } catch (e) {
       if (e instanceof ZodError) {
         const [issue] = e.issues
 
         setError(issue.message)
+        inputRef.current?.focus()
       }
     }
+
+    setShowSend(false)
   }
 
   function onChange(e: ChangeEvent<HTMLInputElement>) {
     setError('')
     setRecentlyAddedId(-1)
     setValue(e.target.value)
+    setShowSend(e.target.value !== '')
   }
 
   return (
@@ -287,15 +293,11 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
       className={tw('overflow-hidden translate-z-0', !isShow && 'h-0')}
     >
       <form
+        className='relative mx-4 mt-4'
         onSubmit={(e) => {
           e.preventDefault()
           onSubmit()
         }}
-        className={tw(
-          'relative mx-4 mt-4 transition-transform duration-panel ease-panel',
-          !isShow && 'translate-3d-y-full',
-          isShow && 'translate-3d-0'
-        )}
       >
         {recentlyAdded && isShow && !isSynced && (
           <p className='mb-3 rounded-md border border-green-300 bg-green-50 p-2 text-xs tracking-normal text-green-900'>
@@ -304,6 +306,7 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
         )}
         <FieldText
           ref={inputRef}
+          id='input-add-new'
           label={!guestEdit ? 'Tamu baru' : 'Edit tamu'}
           name='guestName'
           onChange={onChange}
@@ -313,31 +316,49 @@ const SheetGuestAction: RF<SheetGuestActionProps> = ({
           blacklist='-'
           tabIndex={isShow ? 0 : -1}
           errorMessage={error}
-          className='bg-zinc-100 dark:!border-zinc-600 dark:bg-zinc-700'
+          className={tw(
+            'bg-zinc-100 [.dark_&]:!border-zinc-600 [.dark_&]:bg-zinc-700',
+            showSend && !error && '!pr-11'
+          )}
           labelProps={
             !error
               ? {
-                  className: tw(!error && '!text-zinc-600 dark:!text-zinc-300'),
+                  className: tw(
+                    !error && '!text-zinc-600 [.dark_&]:!text-zinc-300'
+                  ),
                 }
               : void 0
           }
           infoMessage={
             <span>
-              {/* Writing guest within {'"("'} and {'")"'} at the beginning will
-              create a guest group.{' '} */}
               Menulis nama tamu didalam {'"("'} dan {'")"'} diawal kolom akan
               membuat grup tamu.{' '}
-              <a
-                className='text-blue-600 dark:text-blue-400'
+              {/* <a
+                className='text-blue-600 [.dark_&]:text-blue-400'
                 href='#'
                 tabIndex={isShow ? 0 : -1}
                 onClick={isShow ? (e) => e.preventDefault() : void 0}
               >
                 Pelajari lebih lanjut
-              </a>
+              </a> */}
             </span>
           }
-        />
+        >
+          {showSend && !error && (
+            <button
+              type='button'
+              tabIndex={-1}
+              className='absolute right-2 top-[30px] rounded-full text-3xl text-blue-600 [.dark_&]:text-blue-400'
+              aria-label='Tambah/edit tamu'
+              onClick={() => {
+                onSubmit()
+                inputRef.current?.blur()
+              }}
+            >
+              <IoArrowForwardCircle />
+            </button>
+          )}
+        </FieldText>
       </form>
     </div>
   )

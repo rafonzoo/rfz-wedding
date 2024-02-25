@@ -11,18 +11,17 @@ import {
   deleteWeddingSongQuery,
   updateWeddingDisplayNameQuery,
 } from '@wedding/query'
+import { guestName, isPassed } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact, guestName } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
 import LandingMediaPlayer from '@wedding/components/Section/Landing/MediaPlayer'
 import SectionLandingBackground from '@wedding/components/Section/Landing/Background'
-import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 const SheetGuest = dynamic(() => import('@wedding/components/Sheet/Guest'), {
   ssr: false,
@@ -32,15 +31,15 @@ const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
 })
 
-const SectionLanding: RFZ<Wedding> = (wedding) => {
+const SectionLanding = () => {
   const { abort, cancelDebounce, getSignal, debounce } = useUtilities()
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
   const [open, onOpenChange] = useState(false)
   const [error, setError] = useState('')
   const [isError, setIsError] = useState(false)
-  const [dname1, dname2] = wedding.displayName.split(' & ')
+  const [dname1, dname2] = detail.displayName.split(' & ')
   const [name1, setName1] = useState(dname1)
   const [name2, setName2] = useState(dname2)
   const trimmedName1 = name1.trim()
@@ -53,6 +52,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
   const minTextSizeLength = (57 / (displayName.length * 4.384615384615385)) * 57
   const maxTextSizeLength = (79 / (displayName.length * 6.076923076923077)) * 79
   const wid = useParams().wid as string
+  const passed = !!wid && isPassed(detail.events)
 
   const { isLoading: isRemoving, mutate: removeSong } = useMutation<
     null,
@@ -67,7 +67,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
     },
     onSuccess: () => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) =>
           !prev
             ? prev
@@ -99,8 +99,21 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
       setIsError(false)
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, displayName: newDisplayName })
+      )
+
+      queryClient.setQueryData<Wedding[] | undefined>(
+        QueryWedding.weddingGetAll,
+        (prev) => {
+          return !prev
+            ? [{ ...detail, displayName: newDisplayName }]
+            : prev.map((item) =>
+                item.wid === wid
+                  ? { ...item, displayName: newDisplayName }
+                  : item
+              )
+        }
       )
     },
     onError: (e) => {
@@ -136,7 +149,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
         return setError('String must contain at least 3 character(s)')
       }
 
-      if (newDisplayName === wedding.displayName) {
+      if (newDisplayName === detail.displayName) {
         return setIsError(false)
       }
 
@@ -145,7 +158,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
   }
 
   return (
-    <section className='h-screen max-h-[906px] min-h-[470px] bg-zinc-900'>
+    <section className='h-screen max-h-[932px] min-h-[470px] bg-zinc-900'>
       <SectionLandingBackground>
         <div className='flex flex-col justify-end overflow-hidden px-6 pb-[min(108px,max(79px,24.615384615384615vw))] pt-6'>
           <div className='mx-auto'>
@@ -177,13 +190,12 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
                   root={{ open, onOpenChange }}
                   header={{
                     title: 'Utama',
-                    useBorder: isError,
                     append: (
                       <>
                         {updateLoading && <Spinner />}
                         {isError && !updateLoading && (
                           <button
-                            className='relative text-blue-600 dark:text-blue-400'
+                            className='relative text-blue-600 [.dark_&]:text-blue-400'
                             onClick={() => updateName(displayName)}
                           >
                             Simpan
@@ -201,12 +213,8 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
                     },
                     prepend: detail.music && !isRemoving && (
                       <button
-                        className='mr-auto w-auto text-blue-600 dark:text-blue-400'
-                        onClick={() => {
-                          if (confirm('Are you sure to remove this song?')) {
-                            removeSong()
-                          }
-                        }}
+                        className='mr-auto w-auto text-blue-600 [.dark_&]:text-blue-400'
+                        onClick={() => removeSong()}
                       >
                         Hapus
                       </button>
@@ -231,15 +239,6 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
                     ),
                   }}
                 >
-                  {isError && (
-                    <div className='px-6 py-6'>
-                      <Notify
-                        severity='error'
-                        title='Failed to save a changes.'
-                        description='Please tap "Save" above to keep your data up to date.'
-                      />
-                    </div>
-                  )}
                   <FieldGroup title='Info'>
                     <div className='flex space-x-4'>
                       <FieldText
@@ -277,7 +276,7 @@ const SectionLanding: RFZ<Wedding> = (wedding) => {
           <div className='mt-6 overflow-hidden text-center text-zinc-300'>
             <p>Undangan kepada yth,</p>
             <p className='min-h-6 truncate'>
-              {isEditor ? <SheetGuest /> : guest}
+              {isEditor ? <SheetGuest /> : passed ? '(Nama tamu)' : guest}
             </p>
           </div>
           <div className='mt-8 flex items-center justify-center space-x-4 text-center'>

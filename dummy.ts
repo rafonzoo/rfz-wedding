@@ -6,30 +6,30 @@ export const DUMMY_NAME = 'laura-john' as const
 export const DUMMY_EVENT = {
   id: 1,
   date: djs().tz().add(3, 'M').toISOString(),
-  eventName: 'Akad',
+  eventName: 'Resepsi',
   timeStart: '11:00',
   timeEnd: '13:00',
-  placeName: 'GOR Soemantry',
+  placeName: 'GOR -- Sumantri',
   district: 'Kuningan',
   province: 'Jakarta',
-  country: 'Indonesia',
   opensTo: '',
   localTime: 'WIB',
-  mapUrl: '',
   detail:
     'Jl. H. R. Rasuna Said No.10b, RT.2/RW.5, Kuningan, Karet Kuningan, Kecamatan Kuningan, Kabupaten Kuningan, Daerah Khusus Ibukota Jakarta 12950',
 }
 
 export const DUMMY_GUEST = {
   id: 1,
-  name: 'GGRFZ Team',
-  slug: 'GGRFZ-Team',
+  name: 'RFZ Team',
+  slug: 'RFZ-Team',
   token: '123456',
 }
 
 export const DUMMY_COMMENT = {
   text: 'Thank you for letting us share in this joyful day! May the joy of your new home be filled with laughter, smiles, kisses, hugs, respect understanding and faithfulness. Happy wedding!',
-  alias: 'GGRFZ Team',
+  alias: 'RFZ Team',
+  token: '123456',
+  isComing: 'no' as const,
 }
 
 export const DUMMY_INVITATION: WeddingAdd = {
@@ -45,6 +45,7 @@ export const DUMMY_INVITATION: WeddingAdd = {
   galleries: [],
   events: [DUMMY_EVENT],
   displayName: DUMMY_NAME.replace(/-/g, ' & '),
+  payment: [],
   couple: [
     {
       id: 0,

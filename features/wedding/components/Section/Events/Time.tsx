@@ -9,15 +9,14 @@ import { ZodError } from 'zod'
 import { PiWarningCircleFill } from 'react-icons/pi'
 import { weddingEventType } from '@wedding/schema'
 import { updateWeddingEventTimeQuery } from '@wedding/query'
+import { QueryWedding } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact, isObjectEqual, omit } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { isObjectEqual, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
-import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -46,11 +45,11 @@ const EventTime: RFZ<EventTimeProps> = ({
   const [errors, setErrors] = useState<{ key: string; message: string }[]>([])
   const hasError = !!previousError.current.find((item) => item.id === id)
   const { timeStart, timeEnd, eventName, localTime } = time
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const caption = `Pukul ${timeStart} ${localTime} — ${timeEnd} ${localTime}`
   const wid = useParams().wid as string
-  const query = useQueryClient()
-  const detail = exact(query.getQueryData<Wedding>(Queries.weddingDetail))
+  const queryClient = useQueryClient()
+  const detail = useWeddingDetail()
   const [previousLength, setPreviousLength] = useState(detail.events.length)
   const { mutate: updateTime, isLoading } = useMutation<
     WeddingEventTime,
@@ -74,24 +73,26 @@ const EventTime: RFZ<EventTimeProps> = ({
         payload: updatedEvents,
       })
     },
-    onSuccess: (result) => {
+    onSuccess: (updatedEvent) => {
       previousError.current = previousError.current.filter(
         (item) => item.id !== id
       )
 
-      query.setQueryData<Wedding | undefined>(Queries.weddingDetail, (prev) =>
-        !prev
-          ? prev
-          : {
-              ...prev,
-              events: prev.events.map((event) => {
-                if (event.id !== id) {
-                  return event
-                }
+      queryClient.setQueryData<Wedding | undefined>(
+        QueryWedding.weddingDetail,
+        (prev) =>
+          !prev
+            ? prev
+            : {
+                ...prev,
+                events: prev.events.map((event) => {
+                  if (event.id !== id) {
+                    return event
+                  }
 
-                return { ...event, ...result }
-              }),
-            }
+                  return { ...event, ...updatedEvent }
+                }),
+              }
       )
     },
     onError: (e, payload) => {
@@ -233,7 +234,7 @@ const EventTime: RFZ<EventTimeProps> = ({
 
   return (
     <div className='mb-[min(179px,max(129px,40.512820512820513vw))] mr-0 mt-5 flex justify-center'>
-      <p className='relative flex flex-col items-end text-right text-sm tracking-normal text-zinc-500'>
+      <p className='relative flex flex-col items-end text-right text-sm tracking-normal text-zinc-500 [.dark_&]:text-zinc-400'>
         <span>{caption}</span>
         <span>
           ({[isMainEvent ? 'Utama' : '', eventName].filter(Boolean).join(' / ')}
@@ -245,6 +246,7 @@ const EventTime: RFZ<EventTimeProps> = ({
               asChild: true,
               children: (
                 <button
+                  aria-label='Edit waktu acara'
                   onClick={() => onOpenChange(true)}
                   className={tw(
                     'absolute flex flex-col items-end text-right text-sm tracking-normal text-zinc-500',
@@ -264,13 +266,12 @@ const EventTime: RFZ<EventTimeProps> = ({
             root={{ open, onOpenChange }}
             header={{
               title: 'Edit acara',
-              useBorder: hasError,
               append: (
                 <>
                   {isLoading && <Spinner />}
                   {hasError && !isLoading && (
                     <button
-                      className='relative text-blue-600 dark:text-blue-400'
+                      className='relative text-blue-600 [.dark_&]:text-blue-400'
                       onClick={() => updateTime(time)}
                     >
                       Simpan
@@ -280,15 +281,6 @@ const EventTime: RFZ<EventTimeProps> = ({
               ),
             }}
           >
-            {hasError && (
-              <div className='px-6 py-6'>
-                <Notify
-                  severity='error'
-                  title='Failed to save a changes.'
-                  description='Please tap "Save" above to keep your data up to date.'
-                />
-              </div>
-            )}
             <FieldGroup title='Nama/Waktu'>
               <FieldText
                 required
@@ -332,7 +324,7 @@ const EventTime: RFZ<EventTimeProps> = ({
                     <label
                       htmlFor={`localTimeCode-${index}`}
                       key={index}
-                      className='flex w-1/3 flex-col space-y-2 rounded-md border p-3 dark:border-zinc-700'
+                      className='flex w-1/3 flex-col space-y-2 rounded-md border p-3 [.dark_&]:border-zinc-700'
                     >
                       <input
                         required

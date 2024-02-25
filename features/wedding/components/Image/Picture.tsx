@@ -7,15 +7,16 @@ import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { BsPlusLg } from 'react-icons/bs'
 import { updateWeddingGalleryQuery } from '@wedding/query'
+import { retina } from '@wedding/helpers'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
 import {
   useIntersection,
-  useIsEditorOrDev,
+  useIsEditor,
   useOutlinedClasses,
   useUtilities,
+  useWeddingDetail,
 } from '@/tools/hook'
-import { exact, retina } from '@/tools/helper'
-import { Queries } from '@/tools/config'
 import dynamic from 'next/dynamic'
 import Toast from '@/components/Notification/Toast'
 
@@ -34,9 +35,10 @@ const FigureImage: RFZ<{
   className?: string
   isCenter?: boolean
 }> = ({ index, isCenter, className, children }) => {
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
+  const detail = useWeddingDetail()
+
   const defaultCommentPhoto = detail.galleries.find(
     (item) => item.index === index
   )
@@ -67,12 +69,12 @@ const FigureImage: RFZ<{
         wid,
         signal,
         galleries,
-        errorText: t('error.photo.failedToSave'),
+        errorText: t('error.general.failedToSave'),
       })
     },
     onMutate: () => {
       return queryClient
-        .getQueryData<Wedding>(Queries.weddingDetail)
+        .getQueryData<Wedding>(QueryWedding.weddingDetail)
         ?.galleries.find((item) => item.index === index)
     },
     onError: (e, p, previous) => {
@@ -83,10 +85,10 @@ const FigureImage: RFZ<{
       toast.error((e as Error)?.message)
       setPhoto(previous)
     },
-    onSuccess: (data) => {
+    onSuccess: (galleries) => {
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
-        (prev) => (!prev ? prev : { ...prev, galleries: data })
+        QueryWedding.weddingDetail,
+        (prev) => (!prev ? prev : { ...prev, galleries })
       )
     },
   })
@@ -114,7 +116,7 @@ const FigureImage: RFZ<{
     <figure
       ref={imageRef}
       className={tw(
-        'shadow-[0_1px_0_1px_rgb(160_160_160)] dark:shadow-[0_1px_0_1px_rgb(80_80_80_/_50%)]', // prettier-ignore
+        'shadow-[0_1px_0_1px_rgb(160_160_160)] [.dark_&]:shadow-[0_1px_0_1px_rgb(80_80_80_/_50%)]', // prettier-ignore
         'relative block w-full rounded-2xl bg-zinc-800 pt-[133.333333333333333%]', // prettier-ignore
         className
       )}

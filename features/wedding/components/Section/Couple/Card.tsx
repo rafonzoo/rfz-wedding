@@ -11,16 +11,15 @@ import { FaFacebook, FaTwitter } from 'react-icons/fa6'
 import { AiFillInstagram } from 'react-icons/ai'
 import { weddingCoupleType, weddingSocialUrls } from '@wedding/schema'
 import { updateWeddingCouplesQuery } from '@wedding/query'
+import { QueryWedding } from '@wedding/config'
 import { tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { cleaner, exact, isObjectEqual, keys, omit } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { cleaner, isLocal, isObjectEqual, keys, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import TextCard from '@wedding/components/Text/Card'
-import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -51,8 +50,8 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
   const [partialError, setSocialErrors] = useState<SocialError[]>([])
   const [errorInfo, setErrorInfo] = useState(false)
   const queryClient = useQueryClient()
-  const detail = exact(queryClient.getQueryData<Wedding>(Queries.weddingDetail))
-  const isEditor = useIsEditorOrDev()
+  const detail = useWeddingDetail()
+  const isEditor = useIsEditor()
   const { abort, cancelDebounce, debounce, getSignal } = useUtilities()
 
   // prettier-ignore
@@ -82,7 +81,7 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
       setErrorInfo(false)
 
       queryClient.setQueryData<Wedding | undefined>(
-        Queries.weddingDetail,
+        QueryWedding.weddingDetail,
         (prev) => (!prev ? prev : { ...prev, couple })
       )
     },
@@ -294,12 +293,11 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
             root={{ open: isOpen, onOpenChange: setIsOpen }}
             header={{
               title: 'Mempelai',
-              useBorder: errorInfo,
               prepend: (requiredError.length > 0 ||
                 partialError.length > 0) && (
                 <button
                   className={tw(
-                    'text-blue-600 dark:text-blue-400',
+                    'text-blue-600 [.dark_&]:text-blue-400',
                     mutation.isLoading && 'opacity-50'
                   )}
                   disabled={mutation.isLoading}
@@ -319,7 +317,7 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
                   {mutation.isLoading && <Spinner />}
                   {errorInfo && !mutation.isLoading && (
                     <button
-                      className='relative text-blue-600 dark:text-blue-400'
+                      className='relative text-blue-600 [.dark_&]:text-blue-400'
                       onClick={() => mutation.mutate(info)}
                     >
                       Simpan
@@ -331,15 +329,6 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
             option={{ useOverlay: true }}
             footer={{ useClose: true }}
           >
-            {errorInfo && (
-              <div className='px-6 py-6'>
-                <Notify
-                  severity='error'
-                  title='Failed to save a changes.'
-                  description='Please tap "Save" above to keep your data up to date.'
-                />
-              </div>
-            )}
             <div className='space-y-6 pb-1'>
               <FieldGroup title='Display info'>
                 <FieldText
@@ -403,21 +392,24 @@ const CoupleCard: RF<WeddingCouple> = (props) => {
             {keys(socialUrl)?.map(
               (social, index) =>
                 socialUrl[social] && (
-                  <div className='block h-5' key={index}>
-                    <a
-                      href={socialUrl[social]}
-                      target='_blank'
+                  <div className='block h-6' key={index}>
+                    <span
+                      tabIndex={0}
                       aria-label={social}
-                      onClick={(e) => isEditor && e.preventDefault()}
+                      onClick={(e) =>
+                        isLocal()
+                          ? e.preventDefault()
+                          : window.open(socialUrl[social])
+                      }
                       className={tw(
-                        'text-xl text-zinc-500 hover:text-blue-500',
+                        'text-2xl text-zinc-500 hover:text-blue-500',
                         social === 'facebook' && 'rounded-full'
                       )}
                     >
                       {social === 'facebook' && <FaFacebook />}
                       {social === 'twitter' && <FaTwitter />}
                       {social === 'instagram' && <AiFillInstagram />}
-                    </a>
+                    </span>
                   </div>
                 )
             )}

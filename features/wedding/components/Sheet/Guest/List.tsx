@@ -2,9 +2,8 @@
 
 import type { Guest } from '@wedding/schema'
 import { memo } from 'react'
-import { useQueryClient } from 'react-query'
-import { guestAlias } from '@/tools/helper'
-import { Queries } from '@/tools/config'
+import { guestAlias } from '@wedding/helpers'
+import { useWeddingGuests } from '@/tools/hook'
 import SheetGuestShare from '@wedding/components/Sheet/Guest/Share'
 
 type SheetGuestListProps = {
@@ -24,10 +23,10 @@ const SheetGuestList: RF<SheetGuestListProps> = ({
   previousGuest,
   onEdit,
 }) => {
-  const queryClient = useQueryClient()
-  const guests = [
-    ...(queryClient.getQueryData<Guest[]>(Queries.weddingGuests) ?? []),
-  ].sort((a, b) => guestAlias(a.slug).localeCompare(guestAlias(b.slug)))
+  const initialGuest = useWeddingGuests()
+  const guests = [...(initialGuest ?? [])].sort((a, b) =>
+    guestAlias(a.slug).localeCompare(guestAlias(b.slug))
+  )
 
   const isNoGuest = (!guests || !guests.length) && !searchQuery
   const guestsFilteredByQuery = guests.filter((item) =>
@@ -52,21 +51,19 @@ const SheetGuestList: RF<SheetGuestListProps> = ({
       No result for {`"${searchQuery}"`}
     </div>
   ) : (
-    <>
-      <ul className='divide-y translate-z-0'>
-        {filteredGuest.map((guest) => (
-          <SheetGuestShare
-            key={guest.id}
-            {...guest}
-            isSynced={isSynced}
-            isModeEdit={isModeEdit}
-            editedGuestId={editedGuestId}
-            previousGuest={previousGuest}
-            onClick={onClick}
-          />
-        ))}
-      </ul>
-    </>
+    <ul className='divide-y translate-z-0'>
+      {filteredGuest.map((guest) => (
+        <SheetGuestShare
+          key={guest.id}
+          {...guest}
+          isSynced={isSynced}
+          isModeEdit={isModeEdit}
+          editedGuestId={editedGuestId}
+          previousGuest={previousGuest}
+          onClick={onClick}
+        />
+      ))}
+    </ul>
   )
 }
 

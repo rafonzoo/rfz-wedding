@@ -1,5 +1,5 @@
 import { supabaseClient } from '@/tools/lib'
-import { abspath } from '@/tools/helper'
+import { abspath } from '@/tools/helpers'
 import { RouteApi } from '@/tools/config'
 
 export const authorizationQuery = async (
@@ -8,9 +8,7 @@ export const authorizationQuery = async (
   return (await supabase.auth.getSession()).data.session ?? void 0
 }
 
-export const signInWithProviderQuery = async (
-  provider: 'google' | 'github' | 'azure'
-) => {
+export const signInWithProviderQuery = async (provider: Social) => {
   const supabase = supabaseClient()
   const { data } = await supabase.auth.signInWithOAuth({
     provider,

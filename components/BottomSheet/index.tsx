@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { IoClose } from 'react-icons/io5'
 import { tw } from '@/tools/lib'
 import { useMountedEffect } from '@/tools/hook'
+import { debounceOnOlderDevice } from '@/tools/helpers'
 import * as Dialog from '@radix-ui/react-dialog'
 
 if (typeof window !== 'undefined' && !('ResizeObserver' in window)) {
@@ -89,6 +90,28 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
   useMountedEffect(() => onLoad?.())
 
   useEffect(() => {
+    const fn = (e: Event) => {
+      const parentDialog = (e.target as HTMLElement)?.closest('[role=dialog]')
+
+      if (!isAnimating && !parentDialog) {
+        root?.onOpenChange?.(false)
+        onCloseClicked?.()
+      }
+    }
+
+    if (
+      isOpen &&
+      window.onpointerdown === undefined &&
+      !option?.useOverlay &&
+      !(root?.modal === false)
+    ) {
+      document.addEventListener('click', fn)
+    }
+
+    return () => document.removeEventListener('click', fn)
+  }, [isAnimating, isOpen, onCloseClicked, option?.useOverlay, root])
+
+  useEffect(() => {
     return () => {
       if (isAnimating) {
         // Avoid sheet can't be closed during
@@ -155,17 +178,15 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
     inputFocus('addEventListener')
     onScrollHeightChange('observe', onScrollingBorder)
 
-    sheetRef.current?.classList.add('data-[state=open]:animate-dialog-show')
     focusRef.current = document.activeElement as HTMLElement
-
     e.preventDefault()
-    content?.onOpenAutoFocus?.(e)
+    debounceOnOlderDevice(() => content?.onOpenAutoFocus?.(e))
   }
 
   function onAnimationEnd(e: AnimationEvent<HTMLDivElement>) {
-    sheetRef.current?.classList.remove('data-[state=open]:animate-dialog-show')
-    !option?.disableFocus &&
-      (option?.triggerRef ?? closeButtonRef).current?.focus()
+    if (!option?.disableFocus) {
+      ;(option?.triggerRef ?? closeButtonRef).current?.focus()
+    }
 
     setIsAnimating(false)
     content?.onAnimationEnd?.(e)
@@ -185,7 +206,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
 
     content?.onCloseAutoFocus?.(e)
 
-    if (!e.defaultPrevented && !root?.modal) {
+    if (!e.defaultPrevented) {
       focusRef.current?.focus()
     }
   }
@@ -263,19 +284,16 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
         {option?.useOverlay && (
           <Dialog.Overlay
             {...overlay}
-            style={{ zIndex: `${998 + sheetIndex}`, ...overlay?.style }}
-            tabIndex={overlay?.tabIndex ?? isAnimating ? -1 : 0}
             asChild={overlay?.asChild ?? true}
+            tabIndex={overlay?.tabIndex ?? isAnimating ? -1 : 0}
+            style={{ zIndex: `${998 + sheetIndex}`, ...overlay?.style }}
+            className={tw(
+              'fixed left-0 top-0 z-[777] h-full w-full cursor-auto select-none bg-black/70 opacity-0 will-change-[opacity]',
+              'data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in data-[state=closed]:opacity-100',
+              overlay?.className
+            )}
           >
-            <Dialog.Close
-              onClick={onCloseStart}
-              className={tw(
-                'fixed left-0 top-0 z-[777] h-full w-full select-none bg-black/70 will-change-[opacity]',
-                'data-[state=open]:animate-fade-in',
-                'data-[state=closed]:animate-fade-out',
-                overlay?.className
-              )}
-            />
+            <Dialog.Close onClick={onCloseStart} />
           </Dialog.Overlay>
         )}
         <Dialog.Content
@@ -284,8 +302,8 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           data-is-animating={`${isAnimating}`}
           style={{ zIndex: `${999 + sheetIndex}` }}
           className={tw(
-            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(906px,96%)] outline-none',
-            !root?.modal && 'data-[state=closed]:animate-dialog-hide',
+            'fixed bottom-0 left-0 right-0 z-[888] flex max-h-[min(932px,96%)] outline-none translate-3d-y-full',
+            'data-[state=closed]:animate-sheet-hide data-[state=open]:animate-sheet-show',
             content?.className
           )}
           onOpenAutoFocus={onOpenAutoFocus}
@@ -296,25 +314,25 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
           <div
             className={tw(
               'relative mx-auto flex w-full max-w-[440px] flex-col rounded-t-2xl',
-              !option?.isTransparent ? 'bg-white dark:bg-zinc-800 shadow-[0_0_0_1px_rgb(0_0_0_/_25%)]' : 'bg-transparent' // prettier-ignore
+              !option?.isTransparent ? 'bg-white [.dark_&]:bg-zinc-800 shadow-[0_0_0_1px_rgb(0_0_0_/_25%)]' : 'bg-transparent' // prettier-ignore
             )}
           >
             {header && !option?.isTransparent && (
-              <div className='relative rounded-[inherit] bg-white dark:bg-zinc-800'>
+              <div className='relative rounded-[inherit] bg-white [.dark_&]:bg-zinc-800'>
                 <div className='px-6 pb-3 pt-4'>
-                  <div className='absolute left-3 top-4 text-blue-600 dark:text-blue-400'>
+                  <div className='absolute left-3 top-4 text-blue-600 [.dark_&]:text-blue-400'>
                     {header?.prepend}
                   </div>
                   <div className='text-center font-semibold'>
                     {header?.title ?? 'Title here'}
                   </div>
-                  <div className='absolute right-3 top-4 text-blue-600 dark:text-blue-400'>
+                  <div className='absolute right-3 top-4 text-blue-600 [.dark_&]:text-blue-400'>
                     {header?.append}
                   </div>
                 </div>
                 <hr
                   ref={headerBorderRef}
-                  className={tw('border-zinc-300 dark:border-zinc-700', {
+                  className={tw('border-zinc-300 [.dark_&]:border-zinc-700', {
                     invisible: header?.useBorder === false,
                     '!visible': header?.useBorder === true,
                   })}
@@ -329,7 +347,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
                 wrapper?.onScroll?.(e)
               }}
               className={tw(
-                'max-h-full overflow-y-auto translate-z-0 overflow-touch',
+                'max-h-full overflow-y-auto overflow-touch translate-z-0',
                 wrapper?.className
               )}
             >
@@ -345,7 +363,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
                 <hr
                   ref={footerBorderRef}
                   className={tw(
-                    'border-zinc-300 dark:border-zinc-700',
+                    'border-zinc-300 [.dark_&]:border-zinc-700',
                     footer?.useBorder && '!visible'
                   )}
                 />
@@ -363,7 +381,7 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
                       aria-label='Close sheet'
                       onClick={onCloseStart}
                       className={tw(
-                        'flex h-11 w-11 items-center justify-center rounded-full bg-zinc-100 text-2xl text-zinc-500 dark:bg-zinc-700 dark:text-zinc-400',
+                        'flex h-11 w-11 items-center justify-center rounded-full bg-zinc-100 text-2xl text-zinc-500 [.dark_&]:bg-zinc-700 [.dark_&]:text-zinc-400',
                         !(footer.append || footer.prepend) && 'mx-auto'
                       )}
                     >
@@ -375,12 +393,6 @@ const BottomSheet: RFZ<BottomSheetProps> = ({
               </div>
             )}
           </div>
-          {/* <div
-            className={tw(
-              'absolute left-1/2 top-full h-[200%] w-full max-w-[440px] -translate-x-1/2',
-              !option?.isTransparent && 'bg-white'
-            )}
-          /> */}
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

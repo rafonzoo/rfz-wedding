@@ -6,8 +6,8 @@ import { useMutation, useQueryClient } from 'react-query'
 import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { updateWeddingGalleryQuery } from '@wedding/query'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { Queries } from '@/tools/config'
+import { QueryWedding } from '@wedding/config'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
 import dynamic from 'next/dynamic'
 import TextTitle from '@wedding/components/Text/Title'
 import GalleriesPhoto from '@wedding/components/Section/Galleries/Photo'
@@ -18,12 +18,12 @@ const SheetGallery = dynamic(
   { ssr: false }
 )
 
-const SectionGalleries: RF<Wedding> = (wedding) => {
+const SectionGalleries = () => {
   const [index, setIndex] = useState(-1)
-  const isEditor = useIsEditorOrDev()
+  const isEditor = useIsEditor()
   const isOpen = index > -1
-  const query = useQueryClient()
-  const detail = query.getQueryData<Wedding>(Queries.weddingDetail) ?? wedding
+  const queryClient = useQueryClient()
+  const detail = useWeddingDetail()
   const [photos, setPhotos] = useState(detail.galleries)
   const [isSheetMounted, setIsSheetMounted] = useState(false)
   const photoRef = useRef<HTMLDivElement | null>(null)
@@ -44,11 +44,14 @@ const SectionGalleries: RF<Wedding> = (wedding) => {
         wid,
         signal,
         galleries,
-        errorText: t('error.photo.failedToSave'),
+        errorText: t('error.general.failedToSave'),
       })
     },
     onMutate: () => {
-      return query.getQueryData<Wedding>(Queries.weddingDetail)?.galleries ?? []
+      return (
+        queryClient.getQueryData<Wedding>(QueryWedding.weddingDetail)
+          ?.galleries ?? []
+      )
     },
     onError: (e, p, previous) => {
       if ((e as Error).message.includes('AbortError')) {
@@ -58,9 +61,10 @@ const SectionGalleries: RF<Wedding> = (wedding) => {
       toast.error((e as Error)?.message)
       setPhotos(previous ?? [])
     },
-    onSuccess: (data) => {
-      query.setQueryData<Wedding | undefined>(Queries.weddingDetail, (prev) =>
-        !prev ? prev : { ...prev, galleries: data }
+    onSuccess: (galleries) => {
+      queryClient.setQueryData<Wedding | undefined>(
+        QueryWedding.weddingDetail,
+        (prev) => (!prev ? prev : { ...prev, galleries })
       )
     },
   })
@@ -75,7 +79,6 @@ const SectionGalleries: RF<Wedding> = (wedding) => {
 
         if (!isAnimating) {
           index === idx ? setIndex(-1) : setIndex(idx)
-          // sheetFocus(photoRef, { bound: 'center' })
         }
       }
     }
@@ -103,7 +106,7 @@ const SectionGalleries: RF<Wedding> = (wedding) => {
   useEffect(() => setPhotos(detail.galleries), [detail.galleries])
 
   return (
-    <section className='min-h-screen bg-black pb-[24.615384615384615%] dark:bg-zinc-950'>
+    <section className='min-h-screen bg-black pb-[24.615384615384615%] [.dark_&]:bg-zinc-900'>
       <TextTitle className='text-white'>The Galleries</TextTitle>
       <div className='mx-6 mt-6 flex flex-wrap space-y-4'>
         <GalleriesPhoto

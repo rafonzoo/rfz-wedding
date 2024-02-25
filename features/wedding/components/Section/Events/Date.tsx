@@ -11,18 +11,17 @@ import { PiWarningCircleFill } from 'react-icons/pi'
 import { FaChevronRight } from 'react-icons/fa6'
 import { weddingEventAddressType } from '@wedding/schema'
 import { updateWeddingEventDateQuery } from '@wedding/query'
-import { FontFamilyWedding } from '@wedding/config'
+import { placeName } from '@wedding/helpers'
+import { FontFamilyWedding, QueryWedding, WeddingConfig } from '@wedding/config'
 import { djs, tw } from '@/tools/lib'
-import { useIsEditorOrDev, useUtilities } from '@/tools/hook'
-import { exact, isObjectEqual, keys, omit, placeName } from '@/tools/helper'
-import { AppConfig, Queries } from '@/tools/config'
+import { useIsEditor, useUtilities, useWeddingDetail } from '@/tools/hook'
+import { isObjectEqual, keys, omit } from '@/tools/helpers'
 import dynamic from 'next/dynamic'
 import Text from '@wedding/components/Text'
-import Notify from '@/components/Notification/Notify'
 import Spinner from '@/components/Loading/Spinner'
-import FieldTextArea from '@/components/Field/TextArea'
-import FieldText from '@/components/Field/Text'
-import FieldGroup from '@/components/Field/Group'
+import FieldTextArea from '@/components/FormField/TextArea'
+import FieldText from '@/components/FormField/Text'
+import FieldGroup from '@/components/FormField/Group'
 
 const BottomSheet = dynamic(() => import('@/components/BottomSheet'), {
   ssr: false,
@@ -58,32 +57,27 @@ const EventDate: RF<EventDateProps> = ({
   const [getErrors, setErrors] = useState<FieldError[]>([])
   const hasError = !!previousError.current.find((item) => item.id === id)
   const buttonRef = useRef<HTMLButtonElement | null>(null)
-  const isIndonesian = getAddress.country.toLowerCase().includes('indonesia')
-  const isEditor = useIsEditorOrDev()
-  // const isPublic = !!useParams().name
+  const isEditor = useIsEditor()
   const isPublic = !isEditor
   const isEnabledDetail = isPublic && isActive
-  const countryBasedKey = isIndonesian
-    ? ({ province: getAddress.province } as const)
-    : ({ country: getAddress.country } as const)
 
   const formatAddress = keys({
     placeName: getAddress.placeName,
     district: getAddress.district,
-    ...countryBasedKey,
+    province: getAddress.province,
   })
 
   const t = useTranslations()
-  const query = useQueryClient()
-  const detail = exact(query.getQueryData<Wedding>(Queries.weddingDetail))
+  const queryClient = useQueryClient()
+  const detail = useWeddingDetail()
   const dateOrNow = djs(getAddress.date || djs())
   const dateValue = djs(getAddress.date).isValid()
-    ? djs(getAddress.date).tz().format(AppConfig.Wedding.DateFormat)
+    ? djs(getAddress.date).tz().format(WeddingConfig.DateFormat)
     : ''
 
   const isOptionalEvent = !!detail.events.findIndex((event) => event.id === id)
   const displayAddress = formatAddress.map((itm, i) => {
-    const divider = AppConfig.Wedding.NewlineSymbol
+    const divider = WeddingConfig.NewlineSymbol
     const value = getAddress[itm].replace(divider, '\n').trim()
     const isNewLine = getAddress[itm].includes(divider)
     const isShowCaret = i === formatAddress.length - 1
@@ -116,7 +110,7 @@ const EventDate: RF<EventDateProps> = ({
         ) : isNewLine ? (
           groupedPlace.map((str, idx) => (
             <span key={idx} className={tw('block', idx > 0 && 'truncate')}>
-              {idx === 0 ? (str + '\n').trim() : str.trim()}
+              {idx === 0 ? (str + '\n').trim() : (str + ',').trim()}
             </span>
           ))
         ) : (
@@ -150,25 +144,42 @@ const EventDate: RF<EventDateProps> = ({
         payload: updatedEvents,
       })
     },
-    onSuccess: (result) => {
+    onSuccess: (updatedEvent) => {
       previousError.current = previousError.current.filter(
         (item) => item.id !== id
       )
 
-      query.setQueryData<Wedding | undefined>(Queries.weddingDetail, (prev) =>
-        !prev
-          ? prev
-          : {
-              ...prev,
-              events: prev.events.map((event) => {
-                if (event.id !== id) {
-                  return event
-                }
+      const updatedDetail = queryClient.setQueryData<Wedding | undefined>(
+        QueryWedding.weddingDetail,
+        (prev) =>
+          !prev
+            ? prev
+            : {
+                ...prev,
+                events: prev.events.map((event) => {
+                  if (event.id !== id) {
+                    return event
+                  }
 
-                return { ...event, ...result }
-              }),
-            }
+                  return { ...event, ...updatedEvent }
+                }),
+              }
       )
+
+      if (updatedDetail) {
+        queryClient.setQueryData<Wedding[] | undefined>(
+          QueryWedding.weddingGetAll,
+          (prev) => {
+            return !prev
+              ? [{ ...detail, events: updatedDetail.events }]
+              : prev.map((item) =>
+                  item.wid === wid
+                    ? { ...item, events: updatedDetail.events }
+                    : item
+                )
+          }
+        )
+      }
     },
     onError: (e, payload) => {
       if ((e as Error)?.message.includes('AbortError')) {
@@ -200,21 +211,6 @@ const EventDate: RF<EventDateProps> = ({
 
         const parser = weddingEventAddressType.merge(
           z.object({
-            mapUrl: z
-              .string()
-              .refine(
-                (data) =>
-                  data.length === 0 ||
-                  (z.string().url().safeParse(data).success &&
-                    !data.match(/ |\s+/g) &&
-                    !(
-                      data.includes('maps.app.goo.gl') ||
-                      !data.includes('google.com/maps/embed')
-                    )),
-                {
-                  message: t('error.field.invalidEmbed'),
-                }
-              ),
             date: z
               .string()
               .datetime()
@@ -222,7 +218,7 @@ const EventDate: RF<EventDateProps> = ({
                 (data) => {
                   const timePicked = djs(data)
                   const next3Month = djs().add(
-                    AppConfig.Wedding.MaxMonthRange,
+                    WeddingConfig.MaxMonthRange,
                     'month'
                   )
 
@@ -232,7 +228,7 @@ const EventDate: RF<EventDateProps> = ({
                 },
                 {
                   message: t('error.field.invalidDate', {
-                    maxMonth: AppConfig.Wedding.MaxMonthRange,
+                    maxMonth: WeddingConfig.MaxMonthRange,
                   }),
                 }
               ),
@@ -288,9 +284,7 @@ const EventDate: RF<EventDateProps> = ({
         placeName: address.placeName,
         district: address.district,
         province: address.province,
-        country: address.country,
         detail: address.detail,
-        mapUrl: address.mapUrl,
         date: address.date,
         opensTo: address.opensTo,
       }
@@ -363,7 +357,7 @@ const EventDate: RF<EventDateProps> = ({
               ].join(', ')}
               .
             </p>
-            <hr className='border-zinc-300 dark:border-zinc-700' />
+            <hr className='border-zinc-300 [.dark_&]:border-zinc-700' />
             <p>{getAddress.detail}</p>
           </div>
         </BottomSheet>
@@ -372,13 +366,12 @@ const EventDate: RF<EventDateProps> = ({
         <BottomSheet
           header={{
             title: 'Edit acara',
-            useBorder: hasError,
             append: (
               <>
                 {isLoading && <Spinner />}
                 {hasError && !isLoading && (
                   <button
-                    className='relative text-blue-600 dark:text-blue-400'
+                    className='relative text-blue-600 [.dark_&]:text-blue-400'
                     onClick={() => updateDate(getAddress)}
                   >
                     Simpan
@@ -411,16 +404,7 @@ const EventDate: RF<EventDateProps> = ({
           }}
           footer={{ useClose: true }}
         >
-          {hasError && (
-            <div className='px-6 py-6'>
-              <Notify
-                severity='error'
-                title='Failed to save a changes.'
-                description='Please tap "Save" above to keep your data up to date.'
-              />
-            </div>
-          )}
-          <FieldGroup title='Waktu/lokasi'>
+          <FieldGroup title='Waktu'>
             <FieldText
               label='Tanggal'
               name='date'
@@ -428,62 +412,26 @@ const EventDate: RF<EventDateProps> = ({
               value={dateValue}
               onChange={(e) => setterValue('date')(e.target.value)}
               errorMessage={errorMessage('date')}
-              min={djs()
-                .add(1, 'day')
-                .tz()
-                .format(AppConfig.Wedding.DateFormat)}
+              min={djs().add(1, 'day').tz().format(WeddingConfig.DateFormat)}
               max={djs()
-                .add(AppConfig.Wedding.MaxMonthRange, 'month')
+                .add(WeddingConfig.MaxMonthRange, 'month')
                 .tz()
-                .format(AppConfig.Wedding.DateFormat)}
-            />
-            <FieldText
-              isSpecialChars
-              label='Gmaps'
-              name='mapUrl'
-              value={getAddress.mapUrl || ''}
-              onChange={(e) => setterValue('mapUrl')(e.target.value)}
-              errorMessage={errorMessage('mapUrl')}
-              onPaste={(e) => {
-                const iframeRaw = e.clipboardData.getData('text/plain')
-
-                if (e.clipboardData) {
-                  const iframeSrc = iframeRaw.match(/src=["']([^"']*)["']/g)
-
-                  if (iframeSrc) {
-                    setterValue('mapUrl')(iframeSrc[0].replace(/src=|"/g, ''))
-                    e.currentTarget.blur()
-                  }
-                }
-              }}
-              infoMessage={
-                <>
-                  Embed url untuk Google maps.{' '}
-                  <a
-                    href='#'
-                    className='text-blue-600 dark:text-blue-400'
-                    onClick={(e) => e.preventDefault()}
-                  >
-                    Mendapatkan embed url
-                  </a>
-                </>
-              }
+                .format(WeddingConfig.DateFormat)}
             />
           </FieldGroup>
-          <FieldGroup title='Alamat/detil' classNames={{ root: 'mt-6' }}>
+          <FieldGroup title='Alamat' classNames={{ root: 'mt-6' }}>
             <FieldText
               isAlphaNumeric
-              label='Tempat'
+              label='Nama/Tempat'
               name='placeName'
               value={getAddress.placeName}
               onChange={(e) => setterValue('placeName')(e.target.value)}
               errorMessage={errorMessage('placeName')}
-              // infoMessage='Placing double dash "--" will create a new line.'
               infoMessage='Menulis dua dash "--" akan membuat baris baru.'
             />
             <FieldText
               isAlphaNumeric
-              label='Kab/Kec'
+              label='Desa/Kecamatan'
               name='district'
               value={getAddress.district}
               onChange={(e) => setterValue('district')(e.target.value)}
@@ -491,19 +439,18 @@ const EventDate: RF<EventDateProps> = ({
             />
             <FieldText
               isAlphaNumeric
-              label='Provinsi'
+              label='Kabupaten/Provinsi'
               name='province'
               value={getAddress.province}
               onChange={(e) => setterValue('province')(e.target.value)}
               errorMessage={errorMessage('province')}
             />
             <FieldTextArea
-              label='Detail'
+              label='Alamat lengkap'
               name='detail'
               value={getAddress.detail}
               onChange={(e) => setterValue('detail')(e.target.value)}
               errorMessage={errorMessage('detail')}
-              // infoMessage="Additional information like street name, home number, etc, This field also used for your guest that can't open the maps."
               infoMessage='Informasi tambahan seperti nama jalan, nomor rumah, dll. Kolom ini juga digunakan tamu Anda yang tidak dapat membuka maps.'
             />
           </FieldGroup>
@@ -515,17 +462,8 @@ const EventDate: RF<EventDateProps> = ({
                 name='opensTo'
                 infoMessage={
                   <>
-                    {/* Only show to a group of guests that contains the group name.
-                    Separated by a commas.{' '} */}
-                    Hanya tampil ke grup tamu yang mengandung nama grup diatas.
+                    Hanya tampil kepada tamu yang mengandung nama grup diatas.
                     Dipisahkan oleh koma.{' '}
-                    <a
-                      href='#'
-                      className='text-blue-600 dark:text-blue-400'
-                      onClick={(e) => e.preventDefault()}
-                    >
-                      Learn more
-                    </a>
                   </>
                 }
                 value={getAddress.opensTo}
