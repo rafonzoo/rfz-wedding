@@ -17,7 +17,7 @@ const Homepage = () => {
               Digitalize your lovely&nbsp;invitation
             </p>
             <p className='mt-2 text-white/80'>
-              journey to create wedding invitation. Pretty.&nbsp;Easy.
+              A new journey to create wedding invitation. Pretty.&nbsp;Easy.
             </p>
             <p className='mt-4'>
               <LocaleLink
