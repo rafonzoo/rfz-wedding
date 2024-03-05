@@ -1,12 +1,12 @@
 const TermsOfUsePage = () => {
   return (
     <main>
-      <article className='mx-auto max-w-[570px] lg:max-w-[800px]'>
-        <h1 className='px-6 pt-[54px] text-center text-3xl font-bold tracking-tight lg:pt-[72px] lg:text-[40px]'>
+      <article className='mx-auto max-w-[570px] xl:max-w-[800px]'>
+        <h1 className='px-6 pt-[54px] text-center text-3xl font-bold tracking-tight xl:pt-[72px] xl:text-[40px]'>
           Terms of Use
-          <hr className='my-8 border-zinc-300 lg:my-12 [.dark_&]:border-zinc-700' />
+          <hr className='my-8 border-zinc-300 xl:my-12 [.dark_&]:border-zinc-700' />
         </h1>
-        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight lg:text-2xl'>
+        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight xl:text-2xl'>
           Website Terms of Use
         </h2>
         <p className='mx-6 mt-2'>
@@ -22,7 +22,7 @@ const TermsOfUsePage = () => {
           LEAST 18 YEARS OF AGE TO ACCESS THE SITE. IF YOU DISAGREE WITH ALL OF
           THE PROVISION OF THESE TERMS, DO NOT LOG INTO AND/OR USE THE SITE
         </p>
-        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight lg:text-2xl'>
+        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight xl:text-2xl'>
           Access to the Site
         </h2>
         <p className='mx-6 mt-2'>
@@ -40,7 +40,7 @@ const TermsOfUsePage = () => {
           means unless otherwise indicated, any future release, update, or other
           addition to functionality of the Site shall be subject to these Terms.
         </p>
-        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight lg:text-2xl'>
+        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight xl:text-2xl'>
           Disclaimers
         </h2>
         <p className='mx-6 mt-2'>
@@ -57,7 +57,7 @@ const TermsOfUsePage = () => {
           to the site, all such warranties are limited in duration to ninety
           (90) days from the date of first use.
         </p>
-        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight lg:text-2xl'>
+        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight xl:text-2xl'>
           Limitation on Liability
         </h2>
         <p className='mx-6 mt-2'>
@@ -72,7 +72,7 @@ const TermsOfUsePage = () => {
           for any damage to your device or computer system, or loss of data
           resulting therefrom.
         </p>
-        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight lg:text-2xl'>
+        <h2 className='mx-6 mt-8 text-xl font-semibold leading-6 tracking-tight xl:text-2xl'>
           Trademark Information
         </h2>
         <p className='mx-6 mt-2'>
@@ -82,7 +82,7 @@ const TermsOfUsePage = () => {
           such third party which may own the Marks.
         </p>
       </article>
-      <div className='pb-20 lg:pb-[120px]'></div>
+      <div className='pb-20 xl:pb-[120px]'></div>
     </main>
   )
 }

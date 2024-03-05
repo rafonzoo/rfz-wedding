@@ -56,9 +56,7 @@ const SigninPageClient = () => {
           </ul>
           <ul className='absolute bottom-0 flex w-full justify-center pb-6 pt-4 text-center text-xs leading-[15px] tracking-base text-blue-600 mn:relative mn:mt-20 [.dark_&]:text-blue-400'>
             <li>
-              <LocaleLink href={Route.termsOfUse} prefetch={false}>
-                Terms of Use
-              </LocaleLink>
+              <LocaleLink href={Route.termsOfUse}>Terms of Use</LocaleLink>
             </li>
             <li className='mx-3 text-black opacity-50 [.dark_&]:text-white'>
               |

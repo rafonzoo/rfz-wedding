@@ -19,14 +19,12 @@ const Footer: RF = () => {
           <p>Copyright © 2023 rf-z.com. All right reserved.</p>
           <div className='flex space-x-1.5'>
             <p className='text-blue-600 [.dark_&]:text-blue-400'>
-              <LocaleLink href={Route.termsOfUse} prefetch={false}>
-                Terms of Use
-              </LocaleLink>
+              <LocaleLink href={Route.termsOfUse}>Terms of Use</LocaleLink>
             </p>
-            <p>&middot;</p>
+            {/* <p>&middot;</p>
             <p className='pointer-events-none text-blue-600 opacity-50 [.dark_&]:text-blue-400'>
               Privacy Policy
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

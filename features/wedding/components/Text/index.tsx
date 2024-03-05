@@ -47,4 +47,6 @@ const Text: RFZ<TextProps> = ({ children, family, ...props }) => {
   )
 }
 
+export { CinzelFont }
+
 export default Text

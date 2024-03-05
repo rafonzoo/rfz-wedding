@@ -10,6 +10,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      backgroundImage: {
+        fall: 'conic-gradient(from 90deg, #e35859, #fba869, #ad5052, #e35859)',
+      },
       fontFamily: {
         inter: 'var(--font-inter)',
       },
@@ -31,7 +34,7 @@ const config: Config = {
         outlined: '0 0 0 4px rgb(133 133 133 / 40%)',
       },
       screens: {
-        sm: { max: '360px' },
+        lg: '1080px',
         mn: { min: '440px' },
       },
       transitionTimingFunction: {

@@ -102,11 +102,11 @@ const CommentInput: RFZ = () => {
     >
       <div className='flex w-full space-x-3'>
         <div className='relative flex h-11 w-11 min-w-11 items-center justify-center rounded-lg border border-zinc-300 [.dark_&]:border-zinc-600'>
-          <p className='text-sm tracking-wider text-zinc-500 [.dark_&]:text-zinc-400'>
+          <p className='text-sm tracking-wider text-zinc-500 [.dark_&]:text-zinc-400/75'>
             {createInitial(alias)}
           </p>
         </div>
-        <p className='flex h-11 w-full items-center overflow-hidden rounded-lg border border-zinc-300 bg-transparent px-3 text-zinc-500 [.dark_&]:border-zinc-600 [.dark_&]:text-zinc-400'>
+        <p className='flex h-11 w-full items-center overflow-hidden rounded-lg border border-zinc-300 bg-transparent px-3 text-zinc-500 [.dark_&]:border-zinc-600 [.dark_&]:text-zinc-400/75'>
           <span className='truncate'>{alias}</span>
         </p>
       </div>
@@ -126,7 +126,7 @@ const CommentInput: RFZ = () => {
             autoComplete='off'
             disabled={isDisabled}
             name='comment'
-            className='min-h-[140px] w-full appearance-none bg-transparent px-4 pt-3 opacity-100 outline-none placeholder:text-zinc-500 [.dark_&]:placeholder:text-zinc-400'
+            className='min-h-[140px] w-full appearance-none bg-transparent px-4 pt-3 opacity-100 outline-none placeholder:text-zinc-500 [.dark_&]:placeholder:text-zinc-400/75'
             placeholder={
               isEditor
                 ? 'Tambahkan komentar Anda'

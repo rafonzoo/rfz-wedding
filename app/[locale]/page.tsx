@@ -8,32 +8,28 @@ const Homepage = () => {
     <main>
       <section className='flex min-h-[570px] w-full flex-col bg-black pb-4'>
         <div className='mx-auto mt-14 w-full max-w-[980px] text-center'>
-          <div className='mx-auto w-[75%] max-w-[320px]'>
+          <div className='mx-auto w-[81%] max-w-[320px]'>
             <h1 className='sr-only'>RFZ Application</h1>
             <p className='text-sm tracking-normal text-white/50'>
-              Undangan Pernikahan
+              Wedding Invitation
             </p>
             <p className='mt-2 text-[32px] font-bold leading-9 tracking-tight text-white'>
-              Klik. Klik. Klik. Bagikan.&nbsp;Done.
+              Digitalize your lovely&nbsp;invitation
             </p>
             <p className='mt-2 text-white/80'>
-              Membuat undangan tidak pernah&nbsp;semudah&nbsp;ini.
+              journey to create wedding invitation. Pretty.&nbsp;Easy.
             </p>
             <p className='mt-4'>
               <LocaleLink
-                prefetch={false}
                 href={Route.weddingList}
                 className='inline-flex h-11 items-center rounded-full bg-blue-600 px-4 font-semibold text-white'
               >
-                Buat
+                Try free
               </LocaleLink>
             </p>
             <p className='mt-4'>
-              <span className='pointer-events-none inline-flex items-center justify-center space-x-0.5 text-blue-400 opacity-50 outline-none focus-visible:underline'>
-                {/* <LocaleLink prefetch={false} href={Route.wedding}>
-                  Selengkapnya
-                </LocaleLink> */}
-                <span>Selengkapnya</span>
+              <span className='inline-flex items-center justify-center space-x-0.5 text-blue-400 outline-none focus-visible:underline'>
+                <LocaleLink href={Route.wedding}>Take closer look</LocaleLink>
                 <span className='mt-px block text-xs'>
                   <FaChevronRight />
                 </span>
@@ -43,7 +39,7 @@ const Homepage = () => {
         </div>
         <figure className='relative mx-auto mt-6 flex h-[448px] w-[387px] max-w-full overflow-hidden'>
           <img
-            className='absolute  h-full w-full object-cover object-center'
+            className='absolute h-full w-full object-cover object-center'
             width={390}
             alt='RFZ Digital Wedding Invitation'
             src={overview('/wedding/tr:q-75,w-0.10/landing.jpg')}

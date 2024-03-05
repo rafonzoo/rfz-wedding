@@ -118,7 +118,7 @@ const CommentList: RF = () => {
       <>
         <span>{(isOwner ? name : guestName(name)).replace('::owner', '')}</span>
         {!!splitter.length && isOwner && (
-          <span className='text-blue-600'>
+          <span className='text-blue-500'>
             <BsFillPatchCheckFill />
           </span>
         )}
@@ -190,14 +190,14 @@ const CommentList: RF = () => {
                       <GuestVerifyName name={alias} isOwner={!token} />
                     </strong>
                     {(token ? alias === guestFullName : !!wid) && (
-                      <span className='block text-sm tracking-normal text-zinc-500'>
+                      <span className='block text-sm tracking-normal text-zinc-600/85 [.dark_&]:text-zinc-400/85'>
                         (Anda)
                       </span>
                     )}
                   </p>
                   <p>{text}</p>
                   {groupName(alias) && (
-                    <span className='block text-sm italic leading-5 tracking-normal text-zinc-500'>
+                    <span className='block text-sm leading-5 tracking-normal text-zinc-600/85 [.dark_&]:text-zinc-400/85'>
                       {groupName(alias)}
                     </span>
                   )}
@@ -248,7 +248,6 @@ const CommentList: RF = () => {
             </li>
           ))}
         </ul>
-        {/* User Comment */}
         <CommentInput />
         <CommentSurprise />
       </div>

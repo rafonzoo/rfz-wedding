@@ -242,7 +242,7 @@ const SectionLanding = () => {
                   <FieldGroup title='Info'>
                     <div className='flex space-x-4'>
                       <FieldText
-                        label='Name 1'
+                        label='Nama pasangan'
                         name='cname1'
                         value={name1}
                         blacklist=',-'
@@ -252,7 +252,7 @@ const SectionLanding = () => {
                         onChange={setterValue('cname1')}
                       />
                       <FieldText
-                        label='Name 2'
+                        label='Nama pasangan'
                         name='cname2'
                         value={name2}
                         blacklist=',-'

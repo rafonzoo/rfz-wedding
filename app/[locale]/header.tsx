@@ -17,6 +17,7 @@ const Header: RF = () => {
       <div className='mx-auto flex h-full max-w-[980px] items-center'>
         <LocaleLink
           href={Route.home}
+          aria-label='Homepage'
           className='flex h-12 w-12 items-center justify-center text-3xl'
         >
           <span className='-mr-2 block'>
@@ -25,6 +26,7 @@ const Header: RF = () => {
         </LocaleLink>
         <button
           disabled
+          aria-label='Menu toggle'
           className='ml-auto flex h-12 w-12 items-center justify-center text-3xl disabled:opacity-50'
         >
           <CgMenuGridO />
